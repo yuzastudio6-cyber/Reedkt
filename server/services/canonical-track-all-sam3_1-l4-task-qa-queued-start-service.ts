@@ -11,7 +11,6 @@ import {
   type CanonicalProfessionalGpuAttemptStartAuthorityReadPort,
 } from './canonical-professional-gpu-plan-funded-dispatch-service'
 import {
-  assertCanonicalProfessionalGpuFundedLaunchBinding,
   assertCanonicalProfessionalGpuFundedPrelaunch,
   createCanonicalProfessionalGpuFundedLifecycleIdentity,
   type CanonicalProfessionalGpuFundedJobLifecycleStore,
@@ -136,16 +135,17 @@ export function parseTrackAllSam31L4TaskQaGpuQueuedStartRequest(
 }
 
 /**
- * Converts the known-not-executed fixed-task preparation bridge into a durable
- * queue entry. Neither this adapter nor the caller creates a Cloud Task or GPU
- * job; the authenticated scheduler and route-aware consumer own those steps.
+ * Converts exact material plus a funded prelaunch authorization into a durable
+ * queue entry. Neither this adapter nor the caller consumes launch authority,
+ * creates a Cloud Task, or creates a GPU job; the authenticated scheduler and
+ * route-aware consumer own those steps.
  */
 export function createCanonicalTrackAllSam31L4TaskQaQueuedStartRuntime(input: {
   readonly fundedPreparationRuntime:
     CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort
   readonly fundedLifecycleReadPort: Pick<
     CanonicalProfessionalGpuFundedJobLifecycleStore,
-    'rereadPrelaunchAuthorization' | 'rereadLaunchBinding'
+    'rereadPrelaunchAuthorization'
   >
   readonly materialRepository: Pick<
     CanonicalTrackAllSam31L4TaskQaMaterialRepository,
@@ -211,13 +211,12 @@ export function createCanonicalTrackAllSam31L4TaskQaQueuedStartRuntime(input: {
       const identity = createCanonicalProfessionalGpuFundedLifecycleIdentity({
         attemptStartAuthority: attempt,
       })
-      const existing = await rereadPreparedPair({
+      const existing = await rereadPreparedPrelaunch({
         fundedLifecycleReadPort: input.fundedLifecycleReadPort,
         prelaunchAuthorizationId: identity.prelaunchAuthorizationId,
-        launchBindingId: identity.launchBindingId,
       })
       if (existing === null) {
-        await input.fundedPreparationRuntime.startApprovedTaskQaWork({
+        await input.fundedPreparationRuntime.prepareApprovedTaskQaWork({
           authenticatedOwnerUserId: trusted.authenticatedOwnerUserId,
           workspaceId: trusted.workspaceId,
           idempotencyKey: trusted.idempotencyKey,
@@ -232,12 +231,11 @@ export function createCanonicalTrackAllSam31L4TaskQaQueuedStartRuntime(input: {
           }),
         })
       }
-      const prepared = await rereadPreparedPair({
+      const prelaunch = await rereadPreparedPrelaunch({
         fundedLifecycleReadPort: input.fundedLifecycleReadPort,
         prelaunchAuthorizationId: identity.prelaunchAuthorizationId,
-        launchBindingId: identity.launchBindingId,
       })
-      if (prepared === null) throw new TypeError(
+      if (prelaunch === null) throw new TypeError(
         'Track All L4 fixed-task preparation was not durably reread.',
       )
       const material = assertCanonicalTrackAllSam31L4TaskQaMaterialV2(
@@ -245,7 +243,6 @@ export function createCanonicalTrackAllSam31L4TaskQaQueuedStartRuntime(input: {
           executionAttemptRef: attempt.executionAttemptRef,
         }),
       )
-      const { prelaunch, launchBinding } = prepared
       const funded = prelaunch.fundedDispatchAdmission
       const toolAdmission = funded.toolDispatchAdmission
       if (material.sam31InvocationId !== request.sam31InvocationId
@@ -253,16 +250,6 @@ export function createCanonicalTrackAllSam31L4TaskQaQueuedStartRuntime(input: {
         || prelaunch.attemptStartAuthorityRef.id !== attempt.attemptAuthorityId
         || prelaunch.attemptStartAuthorityRef.contentHash !==
           `sha256:${attempt.attemptAuthorityHash}`
-        || launchBinding.prelaunchAuthorizationRef.id !==
-          prelaunch.prelaunchAuthorizationId
-        || launchBinding.prelaunchAuthorizationRef.contentHash !==
-          `sha256:${prelaunch.prelaunchAuthorizationHash}`
-        || launchBinding.launchDisposition !==
-          'job_rejected_before_creation'
-        || launchBinding.providerInferenceOrSubstantiveWorkKnownExecuted !==
-          'not_executed'
-        || launchBinding.routeId !== 'l4_standard_primary'
-        || launchBinding.accelerator !== 'nvidia_l4'
         || toolAdmission.toolId !== 'kornia'
         || toolAdmission.operationId !== 'tool.kornia.refine_mask.v1'
         || toolAdmission.scope.ownerUserId !==
@@ -328,7 +315,6 @@ export function createCanonicalTrackAllSam31L4TaskQaQueuedStartRuntime(input: {
       return buildResult({
         request,
         prelaunch,
-        launchBinding,
         material,
         queueResult,
       })
@@ -346,47 +332,28 @@ async function rereadExactAttempt(input: {
   )
 }
 
-async function rereadPreparedPair(input: {
+async function rereadPreparedPrelaunch(input: {
   readonly fundedLifecycleReadPort: Pick<
     CanonicalProfessionalGpuFundedJobLifecycleStore,
-    'rereadPrelaunchAuthorization' | 'rereadLaunchBinding'
+    'rereadPrelaunchAuthorization'
   >
   readonly prelaunchAuthorizationId: string
-  readonly launchBindingId: string
-}): Promise<{
-  readonly prelaunch: ReturnType<
-    typeof assertCanonicalProfessionalGpuFundedPrelaunch
-  >
-  readonly launchBinding: ReturnType<
-    typeof assertCanonicalProfessionalGpuFundedLaunchBinding
-  >
-} | null> {
-  const [rawPrelaunch, rawLaunchBinding] = await Promise.all([
-    input.fundedLifecycleReadPort.rereadPrelaunchAuthorization({
+}): Promise<ReturnType<
+  typeof assertCanonicalProfessionalGpuFundedPrelaunch
+> | null> {
+  const rawPrelaunch =
+    await input.fundedLifecycleReadPort.rereadPrelaunchAuthorization({
       prelaunchAuthorizationId: input.prelaunchAuthorizationId,
-    }),
-    input.fundedLifecycleReadPort.rereadLaunchBinding({
-      launchBindingId: input.launchBindingId,
-    }),
-  ])
-  if (rawPrelaunch === null && rawLaunchBinding === null) return null
-  if (rawPrelaunch === null || rawLaunchBinding === null) {
-    throw new TypeError('Track All L4 preparation is partially persisted.')
-  }
-  return Object.freeze({
-    prelaunch: assertCanonicalProfessionalGpuFundedPrelaunch(rawPrelaunch),
-    launchBinding:
-      assertCanonicalProfessionalGpuFundedLaunchBinding(rawLaunchBinding),
-  })
+    })
+  return rawPrelaunch === null
+    ? null
+    : assertCanonicalProfessionalGpuFundedPrelaunch(rawPrelaunch)
 }
 
 function buildResult(input: {
   readonly request: TrackAllSam31L4TaskQaGpuQueuedStartRequest
   readonly prelaunch: ReturnType<
     typeof assertCanonicalProfessionalGpuFundedPrelaunch
-  >
-  readonly launchBinding: ReturnType<
-    typeof assertCanonicalProfessionalGpuFundedLaunchBinding
   >
   readonly material: ReturnType<
     typeof assertCanonicalTrackAllSam31L4TaskQaMaterialV2
@@ -421,7 +388,20 @@ function buildResult(input: {
       input.prelaunch.prelaunchAuthorizationId,
       input.prelaunch.prelaunchAuthorizationHash,
     ),
-    fixedTaskPreparationBridgeRef: input.launchBinding.launchRef,
+    fixedTaskPreparationBridgeRef: ref(
+      `track-all-l4-preparation:${input.prelaunch.prelaunchAuthorizationId}`,
+      sha256AuthorityValue({
+        domain: 'track_all_sam3_1_l4_task_qa_fixed_preparation_bridge_v1',
+        prelaunchAuthorizationRef: ref(
+          input.prelaunch.prelaunchAuthorizationId,
+          input.prelaunch.prelaunchAuthorizationHash,
+        ),
+        materialRef: ref(
+          input.material.materialId,
+          input.material.materialHash,
+        ),
+      }),
+    ),
     executionAttemptRef: scope.executionAttemptRef,
     userTriggerRecordRef: scope.userTriggerRecordRef,
     queueEntryRef: input.queueResult.queueEntryRef,

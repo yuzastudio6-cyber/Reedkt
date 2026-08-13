@@ -203,10 +203,12 @@ import {
   createCanonicalTrackAllSam31L4TaskQaQueuedStartRuntime,
   type CanonicalTrackAllSam31L4TaskQaQueuedStartRuntimePort,
 } from './canonical-track-all-sam3_1-l4-task-qa-queued-start-service'
-import { sha256AuthorityValue } from './private-edit-authority-store'
+import {
+  createCanonicalTrackAllSam31L4TaskQaCloudTaskConsumer,
+} from './canonical-track-all-sam3_1-l4-task-qa-cloud-task-consumer-service'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v22' as const
+  'canonical-track-all-sam3_1-production-runtime-v23' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -277,6 +279,7 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
   readonly durablePostgresQueueMountedBeforeGpuInvocation: true
   readonly userTriggeredCloudTaskSchedulingMounted: true
   readonly authenticatedCloudTaskConsumerMounted: true
+  readonly l4RouteAwareCloudTaskConsumerMounted: true
   readonly terminalServingAttemptOwnerMountedBeforeQueueFinalization: true
   readonly l4QuotaAndActiveCountCapacityMounted: true
   readonly l4FixedTaskPreparedBeforeDurableQueueAdmission: true
@@ -378,10 +381,10 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
           l4QuotaReadPort:
             createCanonicalSam31GcpL4CompleteSourceCapacityReadPort(),
         }),
-      // The current Cloud Task consumer executes the dedicated A100 serving
-      // route only. L4 entries stay durably queued until the asynchronous
-      // Cloud Run launch/terminal consumer is mounted.
-      dispatchableRouteIds: ['a100_80gb_heavy_primary'],
+      dispatchableRouteIds: [
+        'a100_80gb_heavy_primary',
+        'l4_standard_primary',
+      ],
       dispatcherInstanceId: env.workerInstanceId,
     })
   const controlPlaneObjectPort =
@@ -653,40 +656,11 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     taskStore,
     rawCloudLaunchPort,
   })
-  const l4QueuePreparationOnlyLaunchPort:
-    CanonicalProfessionalGpuCloudJobLaunchPort = Object.freeze({
-      async startOneShotJob(request: Parameters<
-        CanonicalProfessionalGpuCloudJobLaunchPort['startOneShotJob']
-      >[0]) {
-        if (request.admission.routeId !== 'l4_standard_primary'
-          || request.target.executionTarget !== 'google_cloud_run_l4_job'
-          || request.target.accelerator !== 'nvidia_l4') {
-          throw new Error('L4 queue preparation received another GPU route.')
-        }
-        return {
-          disposition: 'rejected_before_creation' as const,
-          cloudJobExecutionRef: null,
-          cloudJobCreateRequestRef: {
-            id: `${request.admission.admissionId}.l4-queue-preparation`,
-            version: 1,
-            contentHash: `sha256:${sha256AuthorityValue({
-              domain: 'track_all_l4_queue_preparation_bridge_v1',
-              admissionHash: request.admission.admissionHash,
-              executionEnvelopeRef: request.executionEnvelopeRef,
-            })}`,
-          },
-          providerRequestIdDigestSha256: null,
-          observedAt: new Date().toISOString(),
-          providerInferenceOrSubstantiveWorkKnownExecuted:
-            'not_executed' as const,
-        }
-      },
-    })
   const l4TaskQaPreparationRuntimeComposition =
     createCanonicalTrackAllSam31L4TaskQaFundedRuntimeComposition({
       materialRepository: trackAllSam31L4TaskQaMaterialRepository,
       taskStore: trackAllSam31L4TaskQaTaskStore,
-      rawCloudLaunchPort: l4QueuePreparationOnlyLaunchPort,
+      rawCloudLaunchPort,
     })
   const runtimeContextReadPort = Object.freeze({
     rereadQualifiedRuntimeRelease:
@@ -752,6 +726,15 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
           invocationRuntime: authenticatedInvocationRuntime,
           terminalAttemptOwner,
           queueTransactionAdapter: gpuQueueTransactionAdapter,
+          l4TaskQaConsumer:
+            createCanonicalTrackAllSam31L4TaskQaCloudTaskConsumer({
+              fundedStartAuthorityStore,
+              lifecycleStore,
+              releaseReadPort: runtimeConfigurationRepository,
+              runtimeComposition: l4TaskQaPreparationRuntimeComposition,
+              materialRepository:
+                trackAllSam31L4TaskQaMaterialRepository,
+            }),
         }),
       })
     })()
@@ -849,6 +832,7 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     durablePostgresQueueMountedBeforeGpuInvocation: true as const,
     userTriggeredCloudTaskSchedulingMounted: true as const,
     authenticatedCloudTaskConsumerMounted: true as const,
+    l4RouteAwareCloudTaskConsumerMounted: true as const,
     terminalServingAttemptOwnerMountedBeforeQueueFinalization: true as const,
     l4QuotaAndActiveCountCapacityMounted: true as const,
     l4FixedTaskPreparedBeforeDurableQueueAdmission: true as const,

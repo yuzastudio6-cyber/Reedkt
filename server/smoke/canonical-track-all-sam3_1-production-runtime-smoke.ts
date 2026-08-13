@@ -30,7 +30,7 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v22')
+  'canonical-track-all-sam3_1-production-runtime-v23')
 assert.equal(typeof runtime.a100VertexCustomJobTerminalReadPort.reread,
   'function')
 assert.equal(
@@ -61,6 +61,7 @@ assert.equal(runtime.currentA100DedicatedEndpointInvocationMounted, true)
 assert.equal(runtime.durablePostgresQueueMountedBeforeGpuInvocation, true)
 assert.equal(runtime.userTriggeredCloudTaskSchedulingMounted, true)
 assert.equal(runtime.authenticatedCloudTaskConsumerMounted, true)
+assert.equal(runtime.l4RouteAwareCloudTaskConsumerMounted, true)
 assert.equal(
   runtime.terminalServingAttemptOwnerMountedBeforeQueueFinalization,
   true,
@@ -292,7 +293,9 @@ assert.match(productionRuntimeSource,
 assert.match(productionRuntimeSource,
   /createCanonicalProfessionalL4CloudRunExecutionAuthorityRepository/u)
 assert.match(productionRuntimeSource,
-  /dispatchableRouteIds:\s*\['a100_80gb_heavy_primary'\]/u)
+  /dispatchableRouteIds:\s*\[\s*'a100_80gb_heavy_primary',\s*'l4_standard_primary'/u)
+assert.match(productionRuntimeSource,
+  /createCanonicalTrackAllSam31L4TaskQaCloudTaskConsumer/u)
 assert.doesNotMatch(productionRuntimeSource,
   /google_cloud_vertex_custom_job_a2_ultra/u)
 assert.match(productionRuntimeSource,
@@ -331,7 +334,7 @@ assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 98,
+  checks: 101,
   localAndMockRuntimeMounted: false,
   vertexA100AndCloudRunL4GcsCompositionMounted: true,
   historicalVertexA100DurableRereadMounted: true,
@@ -357,7 +360,7 @@ console.log(JSON.stringify({
   authenticatedL4TaskQaStartMounted: true,
   l4DurableQueuedStartMounted: true,
   l4CloudRunOperationAuthorityMounted: true,
-  l4CloudTaskDispatchFailClosedUntilRouteAwareConsumer: true,
+  l4RouteAwareCloudTaskConsumerMounted: true,
   l4TaskMaterialPersistedAndRereadBeforeCloudLaunch: true,
   captionTrackAllTaskLevelQaOwnerMounted: true,
   captionTrackAllTaskLevelQaRequiresL4KorniaCudaAndOpenCv: true,

@@ -48,6 +48,19 @@ const spec = compileCanonicalProfessionalGpuCloudTaskSpec({
   compiledAt: observedAt,
 })
 const outboxRecord = makeOutboxRecord(spec, makeDispatchResult(spec))
+const l4Claim = makeClaim('l4_standard_primary')
+const l4Spec = compileCanonicalProfessionalGpuCloudTaskSpec({
+  claim: l4Claim,
+  runtimeConfig: createCanonicalProfessionalGpuCloudTaskRuntimeConfig({
+    targetOrigin: audience,
+  }),
+  compiledAt: observedAt,
+})
+const l4OutboxRecord = makeOutboxRecord(
+  l4Spec,
+  makeDispatchResult(l4Spec),
+  l4Claim,
+)
 const identity = createCanonicalPrivateServiceIdentityFixture({
   authenticationMechanism: 'google_oidc_id_token',
   subject: 'cloud-tasks-service-account-subject',
@@ -174,6 +187,105 @@ await assert.rejects(() => completedHarness.consumer.consumeOne({
 }))
 assert.equal(getterInvoked, false)
 
+let l4ConsumerCalls = 0
+let a100InvocationCallsForL4 = 0
+const l4RoutedConsumer = createCanonicalProfessionalGpuCloudTaskConsumer({
+  identityVerifier: verifier,
+  expectedAudience: audience,
+  queueRuntimeReadPort: {
+    async readDeliveryConsumption() {
+      return l4Delivery()
+    },
+  },
+  fundedStartAuthorityStore: {
+    async rereadFundedAttemptByExecutionAttemptRef() {
+      throw new Error('A100 funding reader must not handle the L4 route.')
+    },
+  },
+  invocationRuntime: {
+    schemaVersion:
+      'canonical-track-all-sam3_1-authenticated-gpu-invocation-runtime-v1',
+    currentDedicatedEndpointInvocation: true,
+    historicalCloudJobCustomerDispatchUsed: false,
+    routeOwnsGpuPlacementOrPricing: false,
+    currentA100CustomerDispatchReadinessRereadRequired: true,
+    rawProviderInvocationPortExposed: false,
+    async invokeApprovedTrackAllWork() {
+      a100InvocationCallsForL4 += 1
+      throw new Error('A100 invocation must not handle the L4 route.')
+    },
+  },
+  terminalAttemptOwner: {
+    async recordTerminalAttempt() { throw new Error('not used') },
+    async rereadTerminalAttempt() { return null },
+  },
+  queueTransactionAdapter: queueTransactionAdapter(
+    { terminalAttempts: 0, finalizations: 0 },
+    () => undefined,
+  ),
+  l4TaskQaConsumer: {
+    schemaVersion:
+      'canonical-track-all-sam3_1-l4-task-qa-cloud-task-consumer-v1',
+    consumesOnlyVerifiedL4QueueDelivery: true,
+    exactFundedPrelaunchAndMaterialRereadBeforeGpuLaunch: true,
+    queueFinalizationBeforeTerminalCostAndZeroActiveProofAllowed: false,
+    duplicateDeliveryMayStartNewGpuJob: false,
+    productionAuthority: false,
+    async consumeVerifiedDelivery(input) {
+      l4ConsumerCalls += 1
+      assert.equal(input.delivery.claim.queueEntry.routeId,
+        'l4_standard_primary')
+      assert.deepEqual(input.body, l4Spec.body)
+      const payload = {
+        schemaVersion:
+          'canonical-track-all-sam3_1-l4-task-qa-cloud-task-consumer-result-v1' as const,
+        source:
+          'canonical_server_track_all_sam3_1_l4_task_qa_cloud_task_consumer' as const,
+        disposition: 'job_created_pending_terminal' as const,
+        queueEntryRef: ref(l4Claim.queueEntry.queueEntryId),
+        claimRef: {
+          ...ref(l4Claim.claimId),
+          contentHash: `sha256:${l4Claim.claimHash}` as const,
+        },
+        executionAttemptRef: l4Claim.queueEntry.executionAttemptRef,
+        serviceIdentityEvidenceRef: input.serviceIdentityEvidenceRef,
+        l4TaskMaterialRef: ref('l4-material'),
+        prelaunchAuthorizationRef: ref('l4-prelaunch'),
+        launchRef: ref('l4-launch'),
+        launchBindingRef: ref('l4-launch-binding'),
+        cloudJobExecutionRef: ref('l4-cloud-run-execution'),
+        routeId: 'l4_standard_primary' as const,
+        accelerator: 'nvidia_l4' as const,
+        queueFinalized: false as const,
+        terminalUsageCostAndZeroActiveGpuObservationPending: true as const,
+        exactTaskClaimFundingAttemptMaterialPrelaunchAndReleaseReread:
+          true as const,
+        duplicateDeliveryStartedNewGpuJob: false as const,
+        automaticNewExecutionAttemptAllowed: false as const,
+        unresolvedOutcomeBlocksRetry: false,
+        customerCreditsMutated: false as const,
+        qaApproved: false as const,
+        publicDeliveryAuthorized: false as const,
+        productionAuthorityGranted: false as const,
+        observedAt,
+      }
+      return {
+        ...payload,
+        resultDigestSha256: sha256AuthorityValue(payload),
+      }
+    },
+  },
+  now: () => observedAt,
+})
+const l4Routed = await l4RoutedConsumer.consumeOne({
+  authorizationHeader: 'Bearer private-fixture-token',
+  body: l4Spec.body,
+})
+assert.equal(l4Routed.disposition, 'job_created_pending_terminal')
+assert.equal(l4Routed.queueFinalized, false)
+assert.equal(l4ConsumerCalls, 1)
+assert.equal(a100InvocationCallsForL4, 0)
+
 assert.throws(() => assertCanonicalProfessionalGpuCloudTaskConsumerResult({
   ...completed,
   customerCreditsMutated: true,
@@ -181,7 +293,7 @@ assert.throws(() => assertCanonicalProfessionalGpuCloudTaskConsumerResult({
 
 console.log(JSON.stringify({
   smoke: 'canonical-professional-gpu-cloud-task-consumer',
-  checks: 52,
+  checks: 60,
   privateOidcIdentityRequired: true,
   exactTaskOutboxClaimFundingAttemptAndInvocationReread: true,
   terminalUsageAttemptPersistedBeforeQueueFinalization: true,
@@ -190,6 +302,8 @@ console.log(JSON.stringify({
   unknownOutcomeBlocksRetryAndTerminal: true,
   duplicateDeliveryStartedNewInference: false,
   automaticNewExecutionAttemptAllowed: false,
+  exactL4RouteAwareConsumerSelected: true,
+  l4QueueFinalizationBeforeTerminalCostAllowed: false,
   callerExecutionMaterialAccepted: false,
   customerCreditsMutated: false,
   productionAuthorityGranted: false,
@@ -314,6 +428,29 @@ function delivery(
     observedAt,
   }
   if (body !== spec.body) return payload as never
+  return assertCanonicalProfessionalGpuQueueDeliveryConsumption({
+    ...payload,
+    consumptionHash: sha256AuthorityValue(payload),
+  })
+}
+
+function l4Delivery(): CanonicalProfessionalGpuQueueDeliveryConsumption {
+  const payload = {
+    schemaVersion:
+      'canonical-professional-gpu-queue-delivery-consumption-v2' as const,
+    source: 'canonical_postgres_professional_gpu_queue_read_owner' as const,
+    queueId: 'weeditpro-professional-gpu-production-v1' as const,
+    runtimeRegion: 'us-central1' as const,
+    queueEntryStatus: 'dispatched' as const,
+    claim: l4Claim,
+    outboxRecord: l4OutboxRecord,
+    terminal: null,
+    exactClaimCreatedTaskAndTerminalReread: true as const,
+    browserOrCallerExecutionMaterialAccepted: false as const,
+    customerCreditsMutated: false as const,
+    productionAuthorityGranted: false as const,
+    observedAt,
+  }
   return assertCanonicalProfessionalGpuQueueDeliveryConsumption({
     ...payload,
     consumptionHash: sha256AuthorityValue(payload),
@@ -468,13 +605,16 @@ function invocationResult(
   return { ...payload, resultDigestSha256: sha256AuthorityValue(payload) }
 }
 
-function makeClaim(): CanonicalProfessionalGpuFairQueueDurableClaim {
+function makeClaim(
+  routeId: 'a100_80gb_heavy_primary' | 'l4_standard_primary' =
+  'a100_80gb_heavy_primary',
+): CanonicalProfessionalGpuFairQueueDurableClaim {
   const queueEntry = {
     queueEntryId: 'gpuq-consumer-sam31-1',
     ownerUserId: funding.scope.ownerUserId,
     workspaceId: funding.scope.workspaceId,
     projectId: funding.scope.projectId,
-    routeId: 'a100_80gb_heavy_primary' as const,
+    routeId,
     approvedSnapshotRef: funding.approvedSnapshotRef,
     approvedWorkItemRef: funding.approvedWorkItem.approvedWorkItemRef,
     fundedDispatchAdmissionRef: ref('consumer-funded-admission'),
@@ -535,20 +675,21 @@ function makeDispatchResult(
 function makeOutboxRecord(
   taskSpec: ReturnType<typeof compileCanonicalProfessionalGpuCloudTaskSpec>,
   dispatchResult: CanonicalProfessionalGpuCloudTaskDispatchResult,
+  sourceClaim: CanonicalProfessionalGpuFairQueueDurableClaim = claim,
 ): CanonicalProfessionalGpuCloudTaskOutboxRecord {
   const payload = {
     schemaVersion:
       'canonical-professional-gpu-cloud-task-outbox-record-v1' as const,
     source:
       'canonical_postgres_professional_gpu_cloud_task_outbox_owner' as const,
-    outboxId: `gpu-task-outbox:${claim.claimHash}`,
+    outboxId: `gpu-task-outbox:${sourceClaim.claimHash}`,
     queueId: 'weeditpro-professional-gpu-production-v1' as const,
     runtimeRegion: 'us-central1' as const,
-    queueEntryId: claim.queueEntry.queueEntryId,
+    queueEntryId: sourceClaim.queueEntry.queueEntryId,
     claimRef: {
-      id: claim.claimId,
+      id: sourceClaim.claimId,
       version: 1,
-      contentHash: `sha256:${claim.claimHash}` as const,
+      contentHash: `sha256:${sourceClaim.claimHash}` as const,
     },
     cloudTaskSpec: taskSpec,
     status: 'created' as const,

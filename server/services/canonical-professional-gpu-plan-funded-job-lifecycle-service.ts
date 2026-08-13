@@ -276,6 +276,234 @@ export function createCanonicalProfessionalGpuFundedLifecycleIdentity(input: {
   ))
 }
 
+export async function prepareCanonicalProfessionalGpuPlanFundedJob(input: {
+  readonly fundedAdmissionId: string
+  readonly prelaunchAuthorizationId: string
+  readonly workspaceId: string
+  readonly snapshotId: string
+  readonly workItemKey: string
+  readonly pricingAuthorityReadPort:
+    CanonicalProfessionalGpuPlanPricingAuthorityReadPort
+  readonly approvedFundingReadPort:
+    CanonicalProfessionalGpuApprovedFundingReadPort
+  readonly attemptStartReadPort:
+    CanonicalProfessionalGpuAttemptStartAuthorityReadPort
+  readonly runtimeContextReadPort:
+    CanonicalProfessionalGpuRuntimeDispatchContextReadPort
+  readonly a100CustomerDispatchReadinessReadPort?:
+    CanonicalSam31CurrentA100CustomerDispatchReadinessReadPort
+  readonly fundedLifecycleStore:
+    CanonicalProfessionalGpuFundedJobLifecycleStore
+  readonly admittedAt: string
+  readonly admissionExpiresAt: string
+  readonly preparedAt: string
+}): Promise<CanonicalProfessionalGpuFundedPrelaunchAuthorization> {
+  const fundedAdmission =
+    await admitCanonicalProfessionalGpuPlanFundedDispatch({
+      fundedAdmissionId: input.fundedAdmissionId,
+      workspaceId: input.workspaceId,
+      snapshotId: input.snapshotId,
+      workItemKey: input.workItemKey,
+      pricingAuthorityReadPort: input.pricingAuthorityReadPort,
+      approvedFundingReadPort: input.approvedFundingReadPort,
+      attemptStartReadPort: input.attemptStartReadPort,
+      runtimeContextReadPort: input.runtimeContextReadPort,
+      a100CustomerDispatchReadinessReadPort:
+        input.a100CustomerDispatchReadinessReadPort,
+      admittedAt: input.admittedAt,
+      expiresAt: input.admissionExpiresAt,
+    })
+  const toolAdmission = assertCanonicalProfessionalToolGpuDispatchAdmission(
+    fundedAdmission.toolDispatchAdmission,
+  )
+  const identity = identityForAttemptRef(
+    fundedAdmission.attemptStartAuthorityRef,
+  )
+  if (input.fundedAdmissionId !== identity.fundedAdmissionId
+    || input.prelaunchAuthorizationId !== identity.prelaunchAuthorizationId) {
+    throw new Error(
+      'Funded GPU preparation IDs differ from the authenticated attempt.',
+    )
+  }
+  if (Date.parse(input.preparedAt) < Date.parse(fundedAdmission.admittedAt)
+    || Date.parse(input.preparedAt) >= Date.parse(fundedAdmission.expiresAt)) {
+    throw new Error('Funded GPU admission is not current at preparation.')
+  }
+  const payload = prelaunchWithoutHashSchema.parse({
+    schemaVersion: CANONICAL_PROFESSIONAL_GPU_FUNDED_PRELAUNCH_VERSION,
+    source: 'canonical_server_professional_gpu_funded_job_lifecycle_owner',
+    evidenceClass: 'canonical_private_reread',
+    prelaunchAuthorizationId: input.prelaunchAuthorizationId,
+    fundedDispatchAdmission: fundedAdmission,
+    fundedDispatchAdmissionRef: ref(
+      fundedAdmission.fundedAdmissionId,
+      fundedAdmission.fundedAdmissionHash,
+    ),
+    toolDispatchAdmissionRef: ref(
+      toolAdmission.admissionId,
+      toolAdmission.admissionHash,
+    ),
+    pricingAuthorityBundleRef: fundedAdmission.pricingAuthorityBundleRef,
+    preapprovalManifestRef: fundedAdmission.preapprovalManifestRef,
+    publicationBindingRef: fundedAdmission.publicationBindingRef,
+    approvedFundingObservationRef:
+      fundedAdmission.approvedFundingObservationRef,
+    attemptStartAuthorityRef: fundedAdmission.attemptStartAuthorityRef,
+    approvedSnapshotRef: fundedAdmission.approvedSnapshotRef,
+    fundedReservationRef: fundedAdmission.fundedReservationRef,
+    approvedWorkItemRef: fundedAdmission.approvedWorkItemRef,
+    exactFundedAdmissionPersistedBeforeCloudJobCreation: true,
+    directLowLevelAdmissionLaunchAcceptedByPlanLifecycle: false,
+    fullCustomerEstimateFundedBeforeCloudJobCreation: true,
+    createOnlyPersistenceVerified: true,
+    exactPostPersistenceReread: true,
+    customerCreditsMutated: false,
+    cloudJobCreated: false,
+    preparedAt: input.preparedAt,
+  })
+  const prelaunch = canonicalProfessionalGpuFundedPrelaunchAuthorizationSchema
+    .parse({
+      ...payload,
+      prelaunchAuthorizationHash: sha256AuthorityValue(payload),
+    })
+  const disposition =
+    await input.fundedLifecycleStore.createPrelaunchAuthorizationOnly({
+      record: prelaunch,
+    })
+  if (disposition !== 'created' && disposition !== 'already_exists') {
+    throw new Error('Funded GPU prelaunch preparation was not persisted.')
+  }
+  const reread = assertCanonicalProfessionalGpuFundedPrelaunch(
+    await input.fundedLifecycleStore.rereadPrelaunchAuthorization({
+      prelaunchAuthorizationId: prelaunch.prelaunchAuthorizationId,
+    }),
+  )
+  if (reread.prelaunchAuthorizationHash !==
+    prelaunch.prelaunchAuthorizationHash) {
+    throw new Error('Funded GPU prelaunch preparation reread changed.')
+  }
+  return reread
+}
+
+export async function launchCanonicalProfessionalGpuPreparedPlanFundedJob(
+  input: {
+    readonly launchRecordId: string
+    readonly launchBindingId: string
+    readonly prelaunchAuthorization: unknown
+    readonly releaseReadPort: CanonicalProfessionalGpuRuntimeReleaseReadPort
+    readonly launchPort: CanonicalProfessionalGpuCloudJobLaunchPort
+    readonly lifecycleStore: CanonicalProfessionalGpuJobLifecycleStore & {
+      rereadLaunchRecord(input: {
+        readonly launchRecordId: string
+      }): Promise<unknown>
+    }
+    readonly fundedLifecycleStore:
+      CanonicalProfessionalGpuFundedJobLifecycleStore
+    readonly startedAt: string
+  },
+): Promise<CanonicalProfessionalGpuFundedJobStartResult> {
+  const prelaunch = assertCanonicalProfessionalGpuFundedPrelaunch(
+    input.prelaunchAuthorization,
+  )
+  const identity = identityForAttemptRef(prelaunch.attemptStartAuthorityRef)
+  if (input.launchRecordId !== identity.launchRecordId
+    || input.launchBindingId !== identity.launchBindingId) {
+    throw new Error('Prepared GPU launch IDs differ from funded authority.')
+  }
+  const existingRaw = await input.fundedLifecycleStore.rereadLaunchBinding({
+    launchBindingId: input.launchBindingId,
+  })
+  if (existingRaw !== null) {
+    const existing = assertCanonicalProfessionalGpuFundedLaunchBinding(
+      existingRaw,
+    )
+    const launch = assertCanonicalProfessionalGpuJobLaunch(
+      await input.lifecycleStore.rereadLaunchRecord({
+        launchRecordId: input.launchRecordId,
+      }),
+    )
+    if (!sameRef(existing.prelaunchAuthorizationRef, ref(
+      prelaunch.prelaunchAuthorizationId,
+      prelaunch.prelaunchAuthorizationHash,
+    )) || !sameRef(existing.launchRef, ref(
+      launch.launchRecordId,
+      launch.launchHash,
+    ))) throw new Error('Prepared GPU launch replay changed lineage.')
+    return Object.freeze({
+      prelaunchAuthorization: prelaunch,
+      launch,
+      launchBinding: existing,
+    })
+  }
+  const launch = await startCanonicalProfessionalGpuJob({
+    launchRecordId: input.launchRecordId,
+    admission: prelaunch.fundedDispatchAdmission.toolDispatchAdmission,
+    releaseReadPort: input.releaseReadPort,
+    launchPort: input.launchPort,
+    store: input.lifecycleStore,
+    startedAt: input.startedAt,
+  })
+  const payload = launchBindingWithoutHashSchema.parse({
+    schemaVersion: CANONICAL_PROFESSIONAL_GPU_FUNDED_LAUNCH_BINDING_VERSION,
+    source: 'canonical_server_professional_gpu_funded_job_lifecycle_owner',
+    evidenceClass: 'canonical_private_reread',
+    launchBindingId: input.launchBindingId,
+    prelaunchAuthorizationRef: ref(
+      prelaunch.prelaunchAuthorizationId,
+      prelaunch.prelaunchAuthorizationHash,
+    ),
+    fundedDispatchAdmissionRef: prelaunch.fundedDispatchAdmissionRef,
+    toolDispatchAdmissionRef: prelaunch.toolDispatchAdmissionRef,
+    pricingAuthorityBundleRef: prelaunch.pricingAuthorityBundleRef,
+    preapprovalManifestRef: prelaunch.preapprovalManifestRef,
+    publicationBindingRef: prelaunch.publicationBindingRef,
+    approvedFundingObservationRef: prelaunch.approvedFundingObservationRef,
+    attemptStartAuthorityRef: prelaunch.attemptStartAuthorityRef,
+    approvedSnapshotRef: prelaunch.approvedSnapshotRef,
+    fundedReservationRef: prelaunch.fundedReservationRef,
+    approvedWorkItemRef: prelaunch.approvedWorkItemRef,
+    launchRef: ref(launch.launchRecordId, launch.launchHash),
+    launchDisposition: launch.launchDisposition,
+    providerInferenceOrSubstantiveWorkKnownExecuted:
+      launch.providerInferenceOrSubstantiveWorkKnownExecuted,
+    routeId: launch.routeId,
+    accelerator: launch.accelerator,
+    minimumIdleInstances: launch.minimumIdleInstances,
+    fundedPrelaunchRereadBeforeCloudJobCreation: true,
+    userTriggeredScaleFromZero: true,
+    retryAllowedWithoutCanonicalReconciliation: false,
+    unknownLaunchOutcomeBlocksRetry:
+      launch.launchDisposition === 'job_creation_outcome_unknown'
+      || launch.providerInferenceOrSubstantiveWorkKnownExecuted === 'unknown',
+    cpuOnlySubstantiveExecutionAllowed: false,
+    customerCreditsMutated: false,
+    qaApproved: false,
+    publicDeliveryAuthorized: false,
+    productionAuthorityGranted: false,
+    boundAt: launch.launchedAt,
+  })
+  const binding = canonicalProfessionalGpuFundedLaunchBindingSchema.parse({
+    ...payload,
+    launchBindingHash: sha256AuthorityValue(payload),
+  })
+  if (await input.fundedLifecycleStore.createLaunchBindingOnly({
+    record: binding,
+  }) !== 'created') throw new Error('Funded GPU launch binding exists.')
+  const reread = assertCanonicalProfessionalGpuFundedLaunchBinding(
+    await input.fundedLifecycleStore.rereadLaunchBinding({
+      launchBindingId: binding.launchBindingId,
+    }),
+  )
+  if (reread.launchBindingHash !== binding.launchBindingHash) {
+    throw new Error('Prepared GPU launch binding reread changed.')
+  }
+  return Object.freeze({
+    prelaunchAuthorization: prelaunch,
+    launch,
+    launchBinding: reread,
+  })
+}
+
 export async function startCanonicalProfessionalGpuPlanFundedJob(input: {
   readonly fundedAdmissionId: string
   readonly prelaunchAuthorizationId: string

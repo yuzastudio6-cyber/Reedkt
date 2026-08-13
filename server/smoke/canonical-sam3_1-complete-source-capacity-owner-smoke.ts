@@ -46,7 +46,11 @@ assert.equal(ready.a100HeavyPrimary, true)
 assert.equal(ready.l4SeparatelyQualifiedFallbackOnly, true)
 assert.equal(ready.minimumIdleGpuInstances, 0)
 assert.equal(ready.sourceFrameCount, 11_520)
-assert.equal(ready.exactChunkCount, 48)
+assert.equal(ready.chunkFrameCount, 240)
+assert.equal(ready.chunkOverlapFrameCount, 1)
+assert.equal(ready.chunkStrideFrameCount, 239)
+assert.equal(ready.exactChunkCount, 49)
+assert.equal(ready.exactCrossChunkBoundaryCount, 48)
 assert.equal(ready.customerCreditsMutated, false)
 assert.deepEqual(
   await repository.reread({ observationId: ready.observationId }),
@@ -200,7 +204,7 @@ assert.throws(() => sealCanonicalSam31L4CompleteSourceCapacityObservation({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-complete-source-capacity-owner',
-  checks: 23,
+  checks: 27,
   exactEightMinuteSourceFrameCount: ready.sourceFrameCount,
   exactChunkCount: ready.exactChunkCount,
   requiredConcurrentA10080GbWorkers:

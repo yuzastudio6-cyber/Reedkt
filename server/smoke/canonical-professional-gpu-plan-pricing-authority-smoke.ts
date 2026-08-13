@@ -49,6 +49,8 @@ import {
 import {
   assertCanonicalProfessionalGpuFundedTerminalBinding,
   createCanonicalProfessionalGpuFundedLifecycleIdentity,
+  launchCanonicalProfessionalGpuPreparedPlanFundedJob,
+  prepareCanonicalProfessionalGpuPlanFundedJob,
   recordCanonicalProfessionalGpuPlanFundedTerminal,
   startCanonicalProfessionalGpuPlanFundedJob,
 } from '../services/canonical-professional-gpu-plan-funded-job-lifecycle-service'
@@ -691,24 +693,97 @@ const fundedJobStartInput: Parameters<
   admissionExpiresAt: '2026-08-03T14:15:00.000Z',
   startedAt: '2026-08-03T14:12:00.000Z',
 }
-const fundedJob = await startCanonicalProfessionalGpuPlanFundedJob(
-  fundedJobStartInput,
-)
-assert.equal(runtimeReleaseReads, 2)
-assert.equal(dispatchRateReads, 2)
+
+const prepared = await prepareCanonicalProfessionalGpuPlanFundedJob({
+  fundedAdmissionId: fundedLifecycleIdentity.fundedAdmissionId,
+  prelaunchAuthorizationId:
+    fundedLifecycleIdentity.prelaunchAuthorizationId,
+  workspaceId: approvedFunding.scope.workspaceId,
+  snapshotId: approvedFunding.approvedSnapshotRef.id,
+  workItemKey: approvedFunding.approvedWorkItem.workItemKey,
+  pricingAuthorityReadPort: pricingStore,
+  approvedFundingReadPort: fundedJobStartInput.approvedFundingReadPort,
+  attemptStartReadPort: fundedJobStartInput.attemptStartReadPort,
+  runtimeContextReadPort: fundedJobStartInput.runtimeContextReadPort,
+  fundedLifecycleStore,
+  admittedAt: fundedJobStartInput.admittedAt,
+  admissionExpiresAt: fundedJobStartInput.admissionExpiresAt,
+  preparedAt: fundedJobStartInput.startedAt,
+})
+assert.equal(fundedCloudLaunchCount, 0)
+assert.equal(lifecycleObjects.size, 1)
+const splitStarted = await launchCanonicalProfessionalGpuPreparedPlanFundedJob({
+  launchRecordId: fundedLifecycleIdentity.launchRecordId,
+  launchBindingId: fundedLifecycleIdentity.launchBindingId,
+  prelaunchAuthorization: prepared,
+  releaseReadPort: fundedJobStartInput.releaseReadPort,
+  launchPort: fundedJobStartInput.launchPort,
+  lifecycleStore: durableLifecycleStore,
+  fundedLifecycleStore,
+  startedAt: fundedJobStartInput.startedAt,
+})
+assert.equal(splitStarted.launch.launchDisposition, 'job_created')
 assert.equal(fundedCloudLaunchCount, 1)
-assert.ok(await durableLifecycleStore.rereadPrelaunchAuthorization({
+assert.equal(
+  (await launchCanonicalProfessionalGpuPreparedPlanFundedJob({
+    launchRecordId: fundedLifecycleIdentity.launchRecordId,
+    launchBindingId: fundedLifecycleIdentity.launchBindingId,
+    prelaunchAuthorization: prepared,
+    releaseReadPort: fundedJobStartInput.releaseReadPort,
+    launchPort: fundedJobStartInput.launchPort,
+    lifecycleStore: durableLifecycleStore,
+    fundedLifecycleStore,
+    startedAt: fundedJobStartInput.startedAt,
+  })).launch.launchHash,
+  splitStarted.launch.launchHash,
+)
+assert.equal(fundedCloudLaunchCount, 1)
+
+// Use a fresh immutable lifecycle prefix for the original combined API proof.
+const combinedObjects = new Map<string, Buffer>()
+const combinedLifecycleStore =
+  createCanonicalProfessionalGpuDurableLifecycleStore({
+    objectPort: {
+      async createOnly({ objectPath, body }) {
+        const existing = combinedObjects.get(objectPath)
+        if (existing) {
+          if (!existing.equals(body)) throw new Error('combined collision')
+          return 'already_exists'
+        }
+        combinedObjects.set(objectPath, Buffer.from(body))
+        return 'created'
+      },
+      async readExact(objectPath) {
+        const body = combinedObjects.get(objectPath)
+        return body ? Buffer.from(body) : null
+      },
+    },
+    prefix: 'private/weeditpro/gpu-funded-lifecycle-combined-v1',
+  })
+const combinedFundedJobStartInput = {
+  ...fundedJobStartInput,
+  lifecycleStore: combinedLifecycleStore,
+  fundedLifecycleStore: combinedLifecycleStore,
+}
+fundedCloudLaunchCount = 0
+const fundedJob = await startCanonicalProfessionalGpuPlanFundedJob(
+  combinedFundedJobStartInput,
+)
+assert.equal(runtimeReleaseReads, 3)
+assert.equal(dispatchRateReads, 3)
+assert.equal(fundedCloudLaunchCount, 1)
+assert.ok(await combinedLifecycleStore.rereadPrelaunchAuthorization({
   prelaunchAuthorizationId: fundedLifecycleIdentity.prelaunchAuthorizationId,
 }))
-assert.ok(await durableLifecycleStore.rereadAdmissionConsumption({
+assert.ok(await combinedLifecycleStore.rereadAdmissionConsumption({
   admissionId: fundedJob.prelaunchAuthorization
     .fundedDispatchAdmission.toolDispatchAdmission.admissionId,
 }))
-assert.ok(await durableLifecycleStore.rereadExecutionEnvelope({
+assert.ok(await combinedLifecycleStore.rereadExecutionEnvelope({
   envelopeId: fundedJob.prelaunchAuthorization.fundedDispatchAdmission
     .toolDispatchAdmission.admissionId + '.execution-envelope',
 }))
-assert.ok(await durableLifecycleStore.rereadLaunchRecord({
+assert.ok(await combinedLifecycleStore.rereadLaunchRecord({
   launchRecordId: fundedLifecycleIdentity.launchRecordId,
 }))
 assert.equal(fundedJob.launch.accelerator, 'nvidia_l4')
@@ -727,13 +802,13 @@ assert.equal(fundedJob.launchBinding.unknownLaunchOutcomeBlocksRetry, false)
 assert.equal(fundedJob.launchBinding.customerCreditsMutated, false)
 
 await assert.rejects(() => startCanonicalProfessionalGpuPlanFundedJob({
-  ...fundedJobStartInput,
+  ...combinedFundedJobStartInput,
   fundedAdmissionId: 'caller-changed-funded-admission-id',
 }), /IDs differ from the authenticated attempt identity/u)
-assert.equal(lifecycleObjects.size, 5)
+assert.equal(combinedObjects.size, 5)
 assert.equal(fundedCloudLaunchCount, 1)
 await assert.rejects(() => startCanonicalProfessionalGpuPlanFundedJob(
-  fundedJobStartInput,
+  combinedFundedJobStartInput,
 ), /prelaunch authorization already exists/u)
 assert.equal(fundedCloudLaunchCount, 1)
 

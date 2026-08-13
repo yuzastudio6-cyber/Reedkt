@@ -19,9 +19,9 @@ export const CANONICAL_SAM3_1_A100_SERVING_COMPLETE_SOURCE_CAPACITY_VERSION =
 export const CANONICAL_SAM3_1_L4_COMPLETE_SOURCE_CAPACITY_VERSION =
   'canonical-sam3_1-l4-complete-source-capacity-observation-v1' as const
 export const CANONICAL_SAM3_1_COMPLETE_SOURCE_CAPACITY_VERSION =
-  'canonical-sam3_1-complete-source-capacity-observation-v2' as const
+  'canonical-sam3_1-complete-source-capacity-observation-v3' as const
 export const CANONICAL_SAM3_1_COMPLETE_SOURCE_CAPACITY_OWNER_VERSION =
-  'canonical-sam3_1-complete-source-capacity-owner-v2' as const
+  'canonical-sam3_1-complete-source-capacity-owner-v3' as const
 
 const PROJECT_ID = 'reeditpro' as const
 const PROJECT_NUMBER = '390722338345' as const
@@ -53,7 +53,11 @@ const DEFAULT_PREFIX =
   'private/sam3_1/gpu-runtime-qualification/v1/complete-source-capacity'
 const REQUIRED_CONCURRENT_A100_80GB_WORKERS = 16 as const
 const REQUIRED_CONCURRENT_L4_FALLBACK_WORKERS = 16 as const
-const EXACT_CHUNK_COUNT = 48 as const
+const EXACT_CHUNK_COUNT = 49 as const
+const EXACT_CROSS_CHUNK_BOUNDARY_COUNT = 48 as const
+const CHUNK_FRAME_COUNT = 240 as const
+const CHUNK_OVERLAP_FRAME_COUNT = 1 as const
+const CHUNK_STRIDE_FRAME_COUNT = 239 as const
 const EXACT_SOURCE_FRAME_COUNT = 11_520 as const
 const MAXIMUM_RECORD_BYTES = 2 * 1024 * 1024
 
@@ -167,8 +171,11 @@ const capacityWithoutHashSchema = z.object({
   sourceFrameCount: z.literal(EXACT_SOURCE_FRAME_COUNT),
   fpsNumerator: z.literal(24),
   fpsDenominator: z.literal(1),
-  chunkFrameCount: z.literal(240),
+  chunkFrameCount: z.literal(CHUNK_FRAME_COUNT),
+  chunkOverlapFrameCount: z.literal(CHUNK_OVERLAP_FRAME_COUNT),
+  chunkStrideFrameCount: z.literal(CHUNK_STRIDE_FRAME_COUNT),
   exactChunkCount: z.literal(EXACT_CHUNK_COUNT),
+  exactCrossChunkBoundaryCount: z.literal(EXACT_CROSS_CHUNK_BOUNDARY_COUNT),
   targetWallTimeMilliseconds: z.literal(480_000),
   a100QuotaObservationHash: sha256,
   l4QuotaObservationHash: sha256,
@@ -198,6 +205,19 @@ const capacityWithoutHashSchema = z.object({
   productionAuthorityGranted: z.literal(false),
   observedAt: timestamp,
 }).strict().superRefine((value, context) => {
+  const derivedChunkCount = Math.ceil(
+    (value.sourceFrameCount - value.chunkFrameCount)
+      / value.chunkStrideFrameCount,
+  ) + 1
+  if (value.chunkStrideFrameCount !== value.chunkFrameCount
+      - value.chunkOverlapFrameCount
+    || value.exactChunkCount !== derivedChunkCount
+    || value.exactCrossChunkBoundaryCount !== value.exactChunkCount - 1) {
+    context.addIssue({
+      code: 'custom',
+      message: 'SAM 3.1 overlapping complete-source chunk geometry changed.',
+    })
+  }
   const ready = value.a100PreferredValue >=
       value.minimumRequiredConcurrentA10080GbWorkers
     && value.a100GrantedValue >=
@@ -414,8 +434,11 @@ export function createCanonicalSam31CompleteSourceCapacityOwner(input: {
         sourceFrameCount: EXACT_SOURCE_FRAME_COUNT,
         fpsNumerator: 24,
         fpsDenominator: 1,
-        chunkFrameCount: 240,
+        chunkFrameCount: CHUNK_FRAME_COUNT,
+        chunkOverlapFrameCount: CHUNK_OVERLAP_FRAME_COUNT,
+        chunkStrideFrameCount: CHUNK_STRIDE_FRAME_COUNT,
         exactChunkCount: EXACT_CHUNK_COUNT,
+        exactCrossChunkBoundaryCount: EXACT_CROSS_CHUNK_BOUNDARY_COUNT,
         targetWallTimeMilliseconds: 480_000,
         a100QuotaObservationHash: a100.observationHash,
         l4QuotaObservationHash: l4.observationHash,

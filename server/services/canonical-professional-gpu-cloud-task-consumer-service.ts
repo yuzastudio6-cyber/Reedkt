@@ -35,6 +35,10 @@ import {
   sha256AuthorityValue,
   stableAuthorityStringify,
 } from './private-edit-authority-store'
+import type {
+  CanonicalTrackAllSam31L4TaskQaCloudTaskConsumer,
+  CanonicalTrackAllSam31L4TaskQaCloudTaskConsumerResult,
+} from './canonical-track-all-sam3_1-l4-task-qa-cloud-task-consumer-service'
 
 export const CANONICAL_PROFESSIONAL_GPU_CLOUD_TASK_CONSUMER_VERSION =
   'canonical-professional-gpu-cloud-task-consumer-v2' as const
@@ -131,7 +135,10 @@ export interface CanonicalProfessionalGpuCloudTaskConsumer {
   consumeOne(input: {
     readonly authorizationHeader: unknown
     readonly body: unknown
-  }): Promise<CanonicalProfessionalGpuCloudTaskConsumerResult>
+  }): Promise<
+    CanonicalProfessionalGpuCloudTaskConsumerResult
+    | CanonicalTrackAllSam31L4TaskQaCloudTaskConsumerResult
+  >
 }
 
 export function createCanonicalProfessionalGpuCloudTaskConsumer(input: {
@@ -153,6 +160,8 @@ export function createCanonicalProfessionalGpuCloudTaskConsumer(input: {
   >
   readonly queueTransactionAdapter:
     CanonicalProfessionalGpuFairQueueTransactionAdapter
+  readonly l4TaskQaConsumer?:
+    CanonicalTrackAllSam31L4TaskQaCloudTaskConsumer
   readonly now?: () => string
 }): CanonicalProfessionalGpuCloudTaskConsumer {
   const expectedAudience = parseExpectedAudience(input.expectedAudience)
@@ -228,6 +237,21 @@ export function createCanonicalProfessionalGpuCloudTaskConsumer(input: {
           identity.evidenceHash,
         ),
       }
+      if (delivery.claim.queueEntry.routeId === 'l4_standard_primary') {
+        if (!input.l4TaskQaConsumer) throw new TypeError(
+          'The L4 task-QA Cloud Task consumer is not mounted.',
+        )
+        return input.l4TaskQaConsumer.consumeVerifiedDelivery({
+          body,
+          delivery,
+          serviceIdentityEvidenceRef: common.serviceIdentityEvidenceRef,
+          observedAt,
+        })
+      }
+      if (delivery.claim.queueEntry.routeId !==
+        'a100_80gb_heavy_primary') throw new TypeError(
+        'The claimed GPU route has no qualified Cloud Task consumer.',
+      )
       if (delivery.terminal) {
         const terminalAttempt = await input.terminalAttemptOwner
           .rereadTerminalAttempt({

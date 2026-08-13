@@ -18,6 +18,8 @@ import {
 } from './canonical-professional-gpu-plan-funded-dispatch-service'
 import {
   createCanonicalProfessionalGpuFundedLifecycleIdentity,
+  launchCanonicalProfessionalGpuPreparedPlanFundedJob,
+  prepareCanonicalProfessionalGpuPlanFundedJob,
   type CanonicalProfessionalGpuFundedJobLifecycleStore,
 } from './canonical-professional-gpu-plan-funded-job-lifecycle-service'
 import type {
@@ -50,10 +52,12 @@ import {
 import {
   parseCaptionTrackAllSupportPayload,
 } from './canonical-caption-track-all-support-service'
-import {
-  startCanonicalTrackAllSam31L4TaskQaPlanFundedGpuJob,
-  type CanonicalTrackAllSam31L4TaskQaFundedRuntimeComposition,
+import type {
+  CanonicalTrackAllSam31L4TaskQaFundedRuntimeComposition,
 } from './canonical-track-all-sam3_1-l4-task-qa-funded-gpu-runtime-composition'
+import type {
+  CanonicalProfessionalGpuDurableLifecycleStore,
+} from './canonical-professional-gpu-durable-lifecycle-store'
 import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from './canonical-gcs-source-analysis-lifecycle-store'
@@ -175,8 +179,25 @@ export interface CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort {
     typeof CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_AUTHENTICATED_START_VERSION
   readonly routeOwnsGpuPlacementOrPricing: false
   readonly rawCloudLaunchPortExposed: false
+  prepareApprovedTaskQaWork(input: z.input<typeof authenticatedInputSchema>):
+    Promise<CanonicalTrackAllSam31L4TaskQaPreparedWork>
   startApprovedTaskQaWork(input: z.input<typeof authenticatedInputSchema>):
     Promise<TrackAllSam31L4TaskQaGpuStartResult>
+}
+
+export interface CanonicalTrackAllSam31L4TaskQaPreparedWork {
+  readonly request: TrackAllSam31L4TaskQaGpuStartRequest
+  readonly workspaceId: string
+  readonly material: ReturnType<
+    typeof buildCanonicalTrackAllSam31L4TaskQaMaterialV2
+  >
+  readonly sam31Result: CanonicalSam31GpuRuntimeResultAdmission
+  readonly prelaunchAuthorization: Awaited<ReturnType<
+    typeof prepareCanonicalProfessionalGpuPlanFundedJob
+  >>
+  readonly launchRecordId: string
+  readonly launchBindingId: string
+  readonly preparedAt: string
 }
 
 type FundingReadInput = Parameters<
@@ -348,7 +369,10 @@ export function createCanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntime(
     readonly supportResumeRepository: Pick<
       CanonicalSpecialistSupportResumeRepository, 'rereadCallResultPair'
     >
-    readonly lifecycleStore: CanonicalProfessionalGpuJobLifecycleStore
+    readonly lifecycleStore: CanonicalProfessionalGpuJobLifecycleStore & Pick<
+      CanonicalProfessionalGpuDurableLifecycleStore,
+      'rereadLaunchRecord'
+    >
     readonly fundedLifecycleStore:
       CanonicalProfessionalGpuFundedJobLifecycleStore
     readonly now?: () => string
@@ -360,7 +384,7 @@ export function createCanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntime(
       CANONICAL_TRACK_ALL_SAM3_1_L4_TASK_QA_AUTHENTICATED_START_VERSION,
     routeOwnsGpuPlacementOrPricing: false as const,
     rawCloudLaunchPortExposed: false as const,
-    async startApprovedTaskQaWork(untrusted) {
+    async prepareApprovedTaskQaWork(untrusted) {
       assertPlainSerializedData(untrusted,
         'track_all_l4_task_qa_authenticated_start_input')
       const trusted = authenticatedInputSchema.parse(untrusted)
@@ -521,9 +545,11 @@ export function createCanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntime(
         productionAuthorityGranted: false,
         preparedAt: startedAt,
       })
-      if (await input.materialRepository.persistMaterialCreateOnly({ material })
-        !== 'created') {
-        throw new TypeError('Track All L4 task material already exists.')
+      const materialDisposition =
+        await input.materialRepository.persistMaterialCreateOnly({ material })
+      if (materialDisposition !== 'created'
+        && materialDisposition !== 'already_exists') {
+        throw new TypeError('Track All L4 task material was not persisted.')
       }
       const rereadMaterial = await input.materialRepository.rereadMaterial({
         executionAttemptRef: attempt.executionAttemptRef,
@@ -543,9 +569,10 @@ export function createCanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntime(
         input.attemptStartReadPort,
         attempt,
       )
-      const started =
-        await startCanonicalTrackAllSam31L4TaskQaPlanFundedGpuJob({
-          ...identity,
+      const prelaunchAuthorization =
+        await prepareCanonicalProfessionalGpuPlanFundedJob({
+          fundedAdmissionId: identity.fundedAdmissionId,
+          prelaunchAuthorizationId: identity.prelaunchAuthorizationId,
           workspaceId: trusted.workspaceId,
           snapshotId: request.approvedSnapshotId,
           workItemKey: request.workItemKey,
@@ -553,19 +580,40 @@ export function createCanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntime(
           approvedFundingReadPort: exactFundingReadPort,
           attemptStartReadPort: exactAttemptReadPort,
           runtimeContextReadPort: input.runtimeContextReadPort,
-          releaseReadPort: input.releaseReadPort,
-          runtimeComposition: input.runtimeComposition,
-          lifecycleStore: input.lifecycleStore,
           fundedLifecycleStore: input.fundedLifecycleStore,
           admittedAt: startedAt,
           admissionExpiresAt: attempt.expiresAt,
-          startedAt,
+          preparedAt: startedAt,
         })
-      return buildResult({
+      return Object.freeze({
         request,
         workspaceId: trusted.workspaceId,
         material,
-        result,
+        sam31Result: result,
+        prelaunchAuthorization,
+        launchRecordId: identity.launchRecordId,
+        launchBindingId: identity.launchBindingId,
+        preparedAt: startedAt,
+      })
+    },
+    async startApprovedTaskQaWork(untrusted) {
+      const prepared = await runtime.prepareApprovedTaskQaWork(untrusted)
+      const started =
+        await launchCanonicalProfessionalGpuPreparedPlanFundedJob({
+          launchRecordId: prepared.launchRecordId,
+          launchBindingId: prepared.launchBindingId,
+          prelaunchAuthorization: prepared.prelaunchAuthorization,
+          releaseReadPort: input.releaseReadPort,
+          launchPort: input.runtimeComposition.launchPort,
+          lifecycleStore: input.lifecycleStore,
+          fundedLifecycleStore: input.fundedLifecycleStore,
+          startedAt: prepared.preparedAt,
+        })
+      return buildResult({
+        request: prepared.request,
+        workspaceId: prepared.workspaceId,
+        material: prepared.material,
+        result: prepared.sam31Result,
         started,
       })
     },
@@ -695,7 +743,7 @@ function buildResult(input: {
   material: ReturnType<typeof buildCanonicalTrackAllSam31L4TaskQaMaterialV2>
   result: CanonicalSam31GpuRuntimeResultAdmission
   started: Awaited<ReturnType<
-    typeof startCanonicalTrackAllSam31L4TaskQaPlanFundedGpuJob
+    typeof launchCanonicalProfessionalGpuPreparedPlanFundedJob
   >>
 }): TrackAllSam31L4TaskQaGpuStartResult {
   const funded = input.started.prelaunchAuthorization.fundedDispatchAdmission

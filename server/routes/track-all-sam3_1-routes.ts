@@ -81,9 +81,11 @@ export function createTrackAllSam31Routes(): Router {
         body: request.body,
       })
       sendOk(response, { consumption: result }, [
-        result.disposition === 'unknown_outcome_requires_reconciliation'
-          ? 'The exact paid attempt has an uncertain endpoint outcome. The queue remains blocked for canonical reconciliation and no automatic retry or second inference was started.'
-          : 'The canonical backend reread the exact durable task, queue claim, funded attempt, and endpoint result. Duplicate delivery cannot start a second paid inference.',
+        result.disposition.includes('unknown')
+          ? 'The exact funded GPU attempt has an uncertain provider outcome. The queue remains blocked for canonical reconciliation and no automatic retry or second execution was started.'
+          : result.disposition.includes('pending_terminal')
+            ? 'The canonical backend reread the exact durable L4 task, queue claim, funding, material, release, and prelaunch authority before creating or rereading one Cloud Run job. Queue finalization remains blocked until terminal usage, cost, and zero-active-GPU evidence is persisted.'
+            : 'The canonical backend reread the exact durable task, queue claim, funded attempt, and endpoint result. Duplicate delivery cannot start a second paid inference.',
       ], 200)
     }),
   )

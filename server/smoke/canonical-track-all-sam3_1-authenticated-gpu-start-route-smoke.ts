@@ -251,6 +251,9 @@ const app = createReeditProApiApp(loadRuntimeEnv({
       'canonical-track-all-sam3_1-l4-task-qa-authenticated-start-v1',
     routeOwnsGpuPlacementOrPricing: false,
     rawCloudLaunchPortExposed: false,
+    async prepareApprovedTaskQaWork() {
+      throw new Error('Direct-route smoke does not prepare queued L4 work.')
+    },
     async startApprovedTaskQaWork(input: {
       authenticatedOwnerUserId: string
       workspaceId: string

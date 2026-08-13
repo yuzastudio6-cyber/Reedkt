@@ -49,7 +49,9 @@ const serviceSource = readFileSync(
 assert.match(serviceSource,
   /sealCanonicalProfessionalGpuFairQueueTransactionRequest/u)
 assert.match(serviceSource, /multiReplicaDurabilityVerified/u)
-assert.match(serviceSource, /job_rejected_before_creation/u)
+assert.match(serviceSource, /prepareApprovedTaskQaWork/u)
+assert.doesNotMatch(serviceSource, /startApprovedTaskQaWork/u)
+assert.doesNotMatch(serviceSource, /rereadLaunchBinding/u)
 assert.match(serviceSource, /l4_standard_primary/u)
 assert.match(serviceSource, /assertCanonicalTrackAllSam31L4TaskQaMaterialV2/u)
 assert.match(serviceSource, /rereadMaterial/u)
@@ -79,12 +81,13 @@ assert.match(productionSource,
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-l4-task-qa-queued-start',
-  checks: 20,
+  checks: 22,
   requestClosedAndDigestBound: true,
   exactL4MaterialRereadBeforeQueue: true,
   durablePostgresQueueAdmissionRequired: true,
   serverOwnedL4QuotaAndActiveCapacity: true,
   directGpuInvocationPerformedByRequest: false,
+  launchAuthorityConsumedBeforeScheduler: false,
   customerCreditsMutated: false,
   productionAuthority: false,
 }, null, 2))

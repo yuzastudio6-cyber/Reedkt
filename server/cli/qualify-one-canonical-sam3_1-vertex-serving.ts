@@ -131,7 +131,7 @@ const readinessTriggerPayload = {
   qualificationId: request.qualificationId,
   runOrdinal: request.runOrdinal,
   deploymentProfileRef: request.deploymentProfileRef,
-  endpointDeploymentRef: bootstrapReadinessProbe.endpointDeploymentRef,
+  endpointDeploymentRef: request.modelVersionRolloutRef,
   imageSupplyChainReleaseRef: request.imageSupplyChainReleaseRef,
   nonCustomerReadinessOnly: true,
   modelInferenceAuthorized: false,
@@ -145,7 +145,7 @@ const readinessProbe =
     auth: authClient,
     repository: readinessRepository,
   }).warmAndObserve({
-    endpointDeploymentRef: bootstrapReadinessProbe.endpointDeploymentRef,
+    endpointDeploymentRef: request.modelVersionRolloutRef,
     readinessTriggerRef: {
       id: `sam31-serving-qualification-readiness-${
         readinessTriggerHash.slice(0, 32)}`,

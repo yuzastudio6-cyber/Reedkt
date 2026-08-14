@@ -1056,6 +1056,40 @@ export function createCanonicalSam31VertexModelVersionSuccessorRolloutOwner(
   }
 }
 
+export async function rereadCanonicalSam31VertexSuccessorDeploymentProfile(
+  input: {
+    readonly objectPort: CanonicalCreateOnlyJsonObjectPort
+    readonly profileRef: Ref
+    readonly prefix?: string
+  },
+): Promise<CanonicalSam31VertexScaleZeroDeploymentProfile | null> {
+  if (typeof input.objectPort?.readExact !== 'function') {
+    throw new Error('SAM 3.1 successor durable store is absent.')
+  }
+  const prefix = safePrefix.parse(input.prefix ?? DEFAULT_PREFIX)
+  const profileRef = refSchema.parse(input.profileRef)
+  if (profileRef.id !== 'sam31-vertex-successor-profile') {
+    throw new Error('SAM 3.1 successor profile reference changed.')
+  }
+  const profileHash = sha256.parse(profileRef.contentHash.slice(7))
+  const body = await input.objectPort.readExact(
+    `${prefix}/profiles/${profileHash}.json`,
+  )
+  if (!body) return null
+  let decoded: unknown
+  try { decoded = JSON.parse(body.toString('utf8')) } catch {
+    throw new Error('SAM 3.1 successor profile JSON is invalid.')
+  }
+  const profile = assertCanonicalSam31VertexScaleZeroDeploymentProfile(
+    decoded,
+  )
+  if (
+    profile.profileHash !== profileHash
+    || stableAuthorityStringify(profile) !== body.toString('utf8')
+  ) throw new Error('SAM 3.1 successor profile exact reread changed.')
+  return structuredClone(profile)
+}
+
 function createConsumption(
   profile: CanonicalSam31VertexScaleZeroDeploymentProfile,
   request: CanonicalSam31VertexModelVersionSuccessorRequest,

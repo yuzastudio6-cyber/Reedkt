@@ -1,6 +1,12 @@
 import { z } from 'zod'
 
 import {
+  CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYMENT_PROFILE_HASH,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYMENT_PROFILE_ID,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_SUPPLY_CHAIN_RELEASE_HASH,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_SUPPLY_CHAIN_RELEASE_ID,
+} from '../edit-architecture/canonical-sam3_1-vertex-current-serving-release'
+import {
   createCanonicalGcsCurrentGoogleCloudGpuRateAuthorityRepository,
 } from '../services/canonical-current-google-cloud-gpu-rate-authority-repository'
 import {
@@ -42,16 +48,16 @@ import {
 } from '../services/canonical-sam3_1-vertex-dedicated-prediction-route'
 import {
   createCanonicalGcsSam31VertexModelVersionRolloutRepository,
+  createCanonicalSam31VertexModelVersionRolloutService,
 } from '../services/canonical-sam3_1-vertex-model-version-rollout-service'
 import {
-  createCanonicalGcsSam31VertexScaleZeroControlPlaneRepository,
-} from '../services/canonical-sam3_1-vertex-scale-zero-control-plane-repository'
+  rereadCanonicalSam31VertexSuccessorDeploymentProfile,
+} from '../services/canonical-sam3_1-vertex-model-version-successor-rollout-service'
 import {
   createCanonicalGcsSam31VertexServingQualificationCandidateRepository,
   createCanonicalSam31VertexServingQualificationCandidateService,
 } from '../services/canonical-sam3_1-vertex-serving-qualification-candidate'
 import {
-  assertCanonicalSam31VertexServingReadinessProbe,
   createCanonicalGcsSam31VertexServingReadinessProbeRepository,
   createCanonicalSam31VertexServingReadinessProbeService,
 } from '../services/canonical-sam3_1-vertex-serving-readiness-probe-service'
@@ -96,10 +102,9 @@ const SOURCE_PREPARATION_ID =
 const SOURCE_TERMINAL_ID =
   'sam31-source-prep-canonical-20260814T180041Z' as const
 const IMAGE_RELEASE_REF = {
-  id: 'sam31-production-image-supply-chain-release-a14e4ac5e5067a37c38d4db7',
+  id: CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_SUPPLY_CHAIN_RELEASE_ID,
   version: 1,
-  contentHash:
-    'sha256:69344ac8adbe2775ad50ab919f1a117d2f628e805dce8f331bd4b8082752ad6f',
+  contentHash: CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_SUPPLY_CHAIN_RELEASE_HASH,
 } as const
 const SOURCE_CHECKPOINT_REF = {
   schemaVersion:
@@ -110,19 +115,10 @@ const SOURCE_CHECKPOINT_REF = {
     'sha256:ba8708871ddace51ca8ed0602beeaa8a406c66494848a07ef6f58d377e7085d9',
 } as const
 const DEPLOYMENT_PROFILE_REF = {
-  id: 'sam31-vertex-deployment-profile-ad6717d119fd554e2ce1a52bb3314880',
+  id: CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYMENT_PROFILE_ID,
   version: 1,
-  contentHash:
-    'sha256:ad6717d119fd554e2ce1a52bb33148807aff53b364fe4540dacbd24a75582305',
+  contentHash: CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYMENT_PROFILE_HASH,
 } as const
-const MODEL_VERSION_ROLLOUT_REF = {
-  id: 'sam31-vertex-model-version-rollout-6bb7ac0a3fbe4f8d4fbfabeecd1f8e89',
-  version: 1,
-  contentHash:
-    'sha256:4a59c3fe1e9ef4340d4af394c101c9d73e75c9cb65e549acc22973a8b27bdbdd',
-} as const
-const BOOTSTRAP_READINESS_PROBE_ID =
-  'sam31-a100-readiness-cd4c26ebc000f09f0ecdb3e227bf41ab' as const
 const DRIVER_COMPONENT_REF = {
   id: `${QUALIFICATION_ID}:vertex-serving-driver-and-cuda`,
   version: 1,
@@ -166,8 +162,6 @@ const objectPort = createCanonicalGcsSourceAnalysisJsonObjectPort({
   storage,
   bucketName: CONTROL_BUCKET,
 })
-const controlPlane =
-  createCanonicalGcsSam31VertexScaleZeroControlPlaneRepository({ storage })
 const readinessRepository =
   createCanonicalGcsSam31VertexServingReadinessProbeRepository({ storage })
 const rolloutRepository =
@@ -176,17 +170,24 @@ const candidateRepository =
   createCanonicalGcsSam31VertexServingQualificationCandidateRepository({
     storage,
   })
-const [profile, bootstrapRaw, rollout] = await Promise.all([
-  controlPlane.rereadDeploymentProfile(DEPLOYMENT_PROFILE_REF),
-  readinessRepository.reread({
-    readinessProbeId: BOOTSTRAP_READINESS_PROBE_ID,
+const [profile, rollout] = await Promise.all([
+  rereadCanonicalSam31VertexSuccessorDeploymentProfile({
+    objectPort,
+    profileRef: DEPLOYMENT_PROFILE_REF,
   }),
-  rolloutRepository.reread({ rolloutId: MODEL_VERSION_ROLLOUT_REF.id }),
+  createCanonicalSam31VertexModelVersionRolloutService({
+    auth: authClient,
+    repository: rolloutRepository,
+  }).observeCurrent(),
 ])
-if (!profile || !bootstrapRaw || !rollout) {
+if (!profile || !rollout) {
   throw new Error('Current A100 deployment lineage is absent.')
 }
-const bootstrap = assertCanonicalSam31VertexServingReadinessProbe(bootstrapRaw)
+const modelVersionRolloutRef = {
+  id: rollout.rolloutId,
+  version: 1,
+  contentHash: `sha256:${rollout.rolloutHash}` as const,
+}
 const readinessTriggerPayload = {
   schemaVersion:
     'canonical-sam3_1-complete-source-a100-pilot-readiness-trigger-v1',
@@ -195,7 +196,7 @@ const readinessTriggerPayload = {
   qualificationId: QUALIFICATION_ID,
   runOrdinal: 1,
   deploymentProfileRef: DEPLOYMENT_PROFILE_REF,
-  endpointDeploymentRef: bootstrap.endpointDeploymentRef,
+  endpointDeploymentRef: modelVersionRolloutRef,
   imageSupplyChainReleaseRef: IMAGE_RELEASE_REF,
   exactPreparedSourceChunkWillBeUsedOnlyAfterReadiness: true,
   nonCustomerReadinessOnly: true,
@@ -209,7 +210,7 @@ const readiness = await createCanonicalSam31VertexServingReadinessProbeService({
   auth: authClient,
   repository: readinessRepository,
 }).warmAndObserve({
-  endpointDeploymentRef: bootstrap.endpointDeploymentRef,
+  endpointDeploymentRef: modelVersionRolloutRef,
   readinessTriggerRef: {
     id: `sam31-complete-source-readiness-${readinessTriggerHash.slice(0, 32)}`,
     version: 1,
@@ -231,7 +232,7 @@ const candidate =
   }).produceOne({
     profile,
     deploymentProfileRef: DEPLOYMENT_PROFILE_REF,
-    modelVersionRolloutRef: MODEL_VERSION_ROLLOUT_REF,
+    modelVersionRolloutRef,
     modelVersionRollout: rollout,
     endpointDeploymentRef: readiness.endpointDeploymentRef,
     readinessProbeRef: {

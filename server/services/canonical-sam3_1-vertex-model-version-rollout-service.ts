@@ -5,16 +5,22 @@ import { GoogleAuth } from 'google-auth-library'
 import { z } from 'zod'
 
 import {
+  CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOY_OPERATION,
   CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
   CANONICAL_SAM3_1_VERTEX_CURRENT_ENDPOINT_RESOURCE,
   CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_DIGEST,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_SUPPLY_CHAIN_RELEASE_HASH,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_SUPPLY_CHAIN_RELEASE_ID,
   CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_URI,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ALIAS,
   CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_RESOURCE,
   CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
   CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_RESOURCE,
   CANONICAL_SAM3_1_VERTEX_CURRENT_NUMERIC_ENDPOINT_RESOURCE,
   CANONICAL_SAM3_1_VERTEX_CURRENT_NUMERIC_MODEL_RESOURCE,
   CANONICAL_SAM3_1_VERTEX_CURRENT_NUMERIC_MODEL_VERSION_RESOURCE,
+  CANONICAL_SAM3_1_VERTEX_PREVIOUS_DEPLOYED_MODEL_ID,
+  CANONICAL_SAM3_1_VERTEX_PREVIOUS_MODEL_VERSION_ID,
 } from '../edit-architecture/canonical-sam3_1-vertex-current-serving-release'
 
 import type {
@@ -47,16 +53,16 @@ const NUMERIC_MODEL_VERSION_RESOURCE =
 const ENDPOINT_RESOURCE = CANONICAL_SAM3_1_VERTEX_CURRENT_ENDPOINT_RESOURCE
 const NUMERIC_ENDPOINT_RESOURCE =
   CANONICAL_SAM3_1_VERTEX_CURRENT_NUMERIC_ENDPOINT_RESOURCE
-const DEPLOY_OPERATION =
-  'projects/390722338345/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1/operations/7837944887155621888' as const
+const DEPLOY_OPERATION = CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOY_OPERATION
 const DEPLOYED_MODEL_ID = CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID
-const PREVIOUS_DEPLOYED_MODEL_ID = '3101000001' as const
+const PREVIOUS_DEPLOYED_MODEL_ID =
+  CANONICAL_SAM3_1_VERTEX_PREVIOUS_DEPLOYED_MODEL_ID
 const IMAGE_URI = CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_URI
 const IMAGE_DIGEST = CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_DIGEST
 const SUPPLY_CHAIN_RELEASE_ID =
-  'sam31-production-image-supply-chain-release-a14e4ac5e5067a37c38d4db7' as const
+  CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_SUPPLY_CHAIN_RELEASE_ID
 const SUPPLY_CHAIN_RELEASE_HASH =
-  'sha256:69344ac8adbe2775ad50ab919f1a117d2f628e805dce8f331bd4b8082752ad6f' as const
+  CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_SUPPLY_CHAIN_RELEASE_HASH
 const SERVICE_ACCOUNT =
   'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com' as const
 
@@ -88,10 +94,14 @@ const rolloutWithoutHashSchema = z.object({
   modelResourceName: z.literal(MODEL_BASE_RESOURCE),
   modelVersionResourceName: z.literal(MODEL_VERSION_RESOURCE),
   modelVersionId: z.literal(CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID),
-  modelVersionAlias: z.literal('l4-streaming-fix-candidate'),
+  modelVersionAlias: z.literal(
+    CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ALIAS,
+  ),
   endpointResourceName: z.literal(ENDPOINT_RESOURCE),
   deployedModelId: z.literal(DEPLOYED_MODEL_ID),
-  previousModelVersionId: z.literal('1'),
+  previousModelVersionId: z.literal(
+    CANONICAL_SAM3_1_VERTEX_PREVIOUS_MODEL_VERSION_ID,
+  ),
   previousDeployedModelId: z.literal(PREVIOUS_DEPLOYED_MODEL_ID),
   previousModelVersionRetainedForRollback: z.literal(true),
   previousDeployedModelRemovedFromTraffic: z.literal(true),
@@ -196,10 +206,11 @@ export function createCanonicalSam31VertexModelVersionRolloutService(input: {
         modelResourceName: MODEL_BASE_RESOURCE,
         modelVersionResourceName: MODEL_VERSION_RESOURCE,
         modelVersionId: CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
-        modelVersionAlias: 'l4-streaming-fix-candidate',
+        modelVersionAlias: CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ALIAS,
         endpointResourceName: ENDPOINT_RESOURCE,
         deployedModelId: DEPLOYED_MODEL_ID,
-        previousModelVersionId: '1',
+        previousModelVersionId:
+          CANONICAL_SAM3_1_VERTEX_PREVIOUS_MODEL_VERSION_ID,
         previousDeployedModelId: PREVIOUS_DEPLOYED_MODEL_ID,
         previousModelVersionRetainedForRollback: true,
         previousDeployedModelRemovedFromTraffic: true,
@@ -323,7 +334,9 @@ function parseExactModelVersion(value: unknown): void {
     name: z.literal(NUMERIC_MODEL_VERSION_RESOURCE),
     displayName: z.literal('WeEditPro SAM 3.1 A100 scale-zero v1'),
     versionId: z.literal(CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID),
-    versionAliases: z.array(z.literal('l4-streaming-fix-candidate')).length(1),
+    versionAliases: z.array(z.literal(
+      CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ALIAS,
+    )).length(1),
     containerSpec: z.object({
       imageUri: z.literal(IMAGE_URI),
       healthRoute: z.literal('/health'),

@@ -10,6 +10,7 @@ import type {
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
 import {
   createCanonicalSam31VertexModelVersionSuccessorRolloutOwner,
+  rereadCanonicalSam31VertexSuccessorDeploymentProfile,
 } from '../services/canonical-sam3_1-vertex-model-version-successor-rollout-service'
 
 const hash = (character: string) => `sha256:${character.repeat(64)}` as const
@@ -157,6 +158,18 @@ assert.deepEqual(
   [false, true, true],
 )
 assert.equal(providerPostCount, 2)
+const rereadProfile =
+  await rereadCanonicalSam31VertexSuccessorDeploymentProfile({
+    objectPort,
+    prefix: 'private/smoke/sam31-successor-rollout',
+    profileRef: {
+      id: 'sam31-vertex-successor-profile',
+      version: 1,
+      contentHash: `sha256:${profile.profileHash}`,
+    },
+  })
+assert.equal(rereadProfile?.profileHash, profile.profileHash)
+assert.equal(rereadProfile?.immutableImageDigest, profile.immutableImageDigest)
 
 const replay = await owner.rolloutOne(profile)
 assert.equal(replay.disposition, 'rolled_out')
@@ -263,7 +276,7 @@ assert.equal(rejectedPostCount, 1)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-model-version-successor-rollout',
-  checks: 58,
+  checks: 60,
   exactModelVersionUpload: true,
   exactExistingCandidateAdoptedWithoutDuplicateUpload: true,
   restartReusedOriginalConsumptionTimestamp: true,

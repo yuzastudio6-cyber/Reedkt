@@ -29,15 +29,15 @@ const observedAt = '2026-08-12T14:00:00.000Z'
 const imageDigest =
   'sha256:57883cbf16ef0c130885a0237307bc329d214445ae6a4c2109b7410317c68c45'
 const imageSupplyChainReleaseRef = {
-  id: 'sam31-production-image-supply-chain-release-a14e4ac5e5067a37c38d4db7',
+  id: 'sam31-production-image-supply-chain-release-b00b2dc99edcfbf04f7ddcdf',
   version: 1 as const,
   contentHash:
-    'sha256:69344ac8adbe2775ad50ab919f1a117d2f628e805dce8f331bd4b8082752ad6f' as const,
+    'sha256:89db73b5790507b821803f5589b9d4bac962f3fdbc630e5347a6903a37e09575' as const,
 }
 const profile = createCanonicalSam31VertexScaleZeroDeploymentProfile({
   imageSupplyChainReleaseRef,
   immutableImageRef: {
-    id: 'sam31-image-2f758d4c1be7e483fe8aa1c8',
+    id: 'sam31-image-ae6a4c2109b7410317c68c45',
     version: 1,
     contentHash: imageDigest,
   },
@@ -65,19 +65,19 @@ const rolloutPayload = {
   immutableImageUri: profile.immutableImageUri,
   immutableImageDigest: imageDigest,
   deployOperationName:
-    'projects/390722338345/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1/operations/7837944887155621888' as const,
+    'projects/390722338345/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1/operations/4595905660041822208' as const,
   deployOperationDone: true as const,
   modelResourceName:
     'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1' as const,
   modelVersionResourceName:
     'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@3' as const,
   modelVersionId: '3' as const,
-  modelVersionAlias: 'l4-streaming-fix-candidate' as const,
+  modelVersionAlias: 'cold-start-health-fix-candidate' as const,
   endpointResourceName:
     'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1' as const,
   deployedModelId: '3101000006' as const,
-  previousModelVersionId: '1' as const,
-  previousDeployedModelId: '3101000001' as const,
+  previousModelVersionId: '2' as const,
+  previousDeployedModelId: '3101000004' as const,
   previousModelVersionRetainedForRollback: true as const,
   previousDeployedModelRemovedFromTraffic: true as const,
   exactModelVersionReread: true as const,

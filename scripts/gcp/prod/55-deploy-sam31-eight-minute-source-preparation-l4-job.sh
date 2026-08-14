@@ -57,7 +57,7 @@ readonly JOB_DESCRIPTION="$(gcloud run jobs describe "${JOB}" \
 
 DESCRIPTION="${JOB_DESCRIPTION}" \
 EXPECTED_IMAGE="${IMAGE}" \
-EXPECTED_ENTRYPOINT="${EXPECTED_ENTRYPOINT}" \
+VERIFY_EXPECTED_ENTRYPOINT="${EXPECTED_ENTRYPOINT}" \
 node <<'NODE'
 const job = JSON.parse(process.env.DESCRIPTION || '{}')
 const task = job.spec?.template?.spec?.template?.spec
@@ -69,7 +69,7 @@ const env = Object.fromEntries((container?.env || []).map((item) => [
 const exact = container?.image === process.env.EXPECTED_IMAGE
   && JSON.stringify(container?.command) === JSON.stringify(['/nodejs/bin/node'])
   && JSON.stringify(container?.args) === JSON.stringify([
-    process.env.EXPECTED_ENTRYPOINT,
+    process.env.VERIFY_EXPECTED_ENTRYPOINT,
   ])
   && task?.nodeSelector?.['run.googleapis.com/accelerator'] === 'nvidia-l4'
   && Number(task?.maxRetries) === 0

@@ -335,7 +335,7 @@ export function createGoogleCloudRunSam31EightMinuteSourcePreparationPort(
           data: {
             overrides: {
               taskCount: 1,
-              timeout: '7200s',
+              timeout: '3600s',
               containerOverrides: [{
                 env: [{
                   name: INVOCATION_ENVIRONMENT_NAME,
@@ -677,7 +677,7 @@ function requestRef(
     cloudRunJobDefinitionRef,
     jobResource: JOB_RESOURCE,
     taskCount: 1,
-    timeout: '7200s',
+    timeout: '3600s',
     environmentOverrideName: INVOCATION_ENVIRONMENT_NAME,
   }))
 }
@@ -725,7 +725,7 @@ export function getCanonicalSam31EightMinuteSourcePreparationCloudRunJobDefiniti
           }).passthrough(),
         }).passthrough()),
         maxRetries: z.literal(0),
-        timeout: z.literal('7200s'),
+        timeout: z.literal('3600s'),
         serviceAccount: z.literal(EXPECTED_SERVICE_ACCOUNT),
         nodeSelector: z.record(z.string(), z.string()),
         gpuZonalRedundancyDisabled: z.literal(true),

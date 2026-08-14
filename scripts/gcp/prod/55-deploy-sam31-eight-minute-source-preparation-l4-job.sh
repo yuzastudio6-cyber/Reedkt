@@ -44,7 +44,7 @@ run_gcloud run jobs deploy "${JOB}" \
   --tasks=1 \
   --parallelism=1 \
   --max-retries=0 \
-  --task-timeout=7200s \
+  --task-timeout=3600s \
   --add-volume="name=weeditpro-sam31-source-prep-scratch,type=in-memory,size-limit=24Gi" \
   --add-volume-mount="volume=weeditpro-sam31-source-prep-scratch,mount-path=/mnt/weeditpro-private/l4-visual-evidence" \
   --set-env-vars="REEDITPRO_ENV=production,WORKER_GROUP=l4_standard_primary,GCS_CONTROL_PLANE_STATE_BUCKET=${CONTROL_PLANE_STATE_BUCKET}" \

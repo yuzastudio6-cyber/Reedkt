@@ -155,7 +155,7 @@ const acceptedPort =
           'https://run.googleapis.com/v2/projects/reeditpro/locations/us-central1/jobs/weeditpro-sam31-source-prep-l4:run')
         assert.equal(exact.method, 'POST')
         assert.equal(exact.data?.overrides?.taskCount, 1)
-        assert.equal(exact.data?.overrides?.timeout, '7200s')
+        assert.equal(exact.data?.overrides?.timeout, '3600s')
         assert.deepEqual(
           exact.data?.overrides?.containerOverrides?.[0]?.env,
           [{
@@ -437,7 +437,7 @@ function createJobDefinition(
           emptyDir: { medium: 'MEMORY', sizeLimit: '24Gi' },
         }],
         maxRetries: 0,
-        timeout: '7200s',
+        timeout: '3600s',
         serviceAccount:
           'reeditpro-gpu-worker-sa@reeditpro.iam.gserviceaccount.com',
         nodeSelector: {

@@ -459,7 +459,7 @@ function createJobDefinition() {
           emptyDir: { medium: 'MEMORY', sizeLimit: '24Gi' },
         }],
         maxRetries: 0,
-        timeout: '7200s',
+        timeout: '3600s',
         serviceAccount:
           'reeditpro-gpu-worker-sa@reeditpro.iam.gserviceaccount.com',
         nodeSelector: { 'run.googleapis.com/accelerator': 'nvidia-l4' },

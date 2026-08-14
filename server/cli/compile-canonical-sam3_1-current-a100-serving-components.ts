@@ -4,7 +4,6 @@ import {
 } from '../services/canonical-sam3_1-vertex-serving-runtime-component-qualification-owner'
 import {
   createWeEditProGcpLocalOperatorAuth,
-  WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH_MODE,
 } from './weeditpro-gcp-local-operator-auth'
 
 const CONFIRMATION =

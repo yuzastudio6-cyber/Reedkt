@@ -369,6 +369,7 @@
     "observe:sam3_1-private-qualification-capacity": "tsx server/cli/observe-canonical-sam3_1-private-qualification-capacity.ts",
     "prepare:sam3_1-eight-minute-qualification-source": "tsx server/cli/prepare-canonical-sam3_1-eight-minute-qualification-source.ts",
     "compile:sam3_1-current-a100-serving-components": "tsx server/cli/compile-canonical-sam3_1-current-a100-serving-components.ts",
+    "qualify:sam3_1-complete-source-a100-pilot": "tsx server/cli/qualify-one-canonical-sam3_1-complete-source-a100-pilot.ts",
     "smoke:sam3_1-vertex-serving-runtime-components": "tsx server/smoke/canonical-sam3_1-vertex-serving-runtime-component-qualification-owner-smoke.ts",
     "smoke:sam3_1-gpu-runtime-contract": "tsx server/smoke/canonical-sam3_1-gpu-runtime-contract-smoke.ts",
     "smoke:sam3_1-gpu-temporal-measurement-compiler": "tsx server/smoke/canonical-sam3_1-gpu-temporal-measurement-compiler-smoke.ts",

@@ -112,9 +112,13 @@ await assert.rejects(createCanonicalSam31VertexServingRuntimeComponentOwner({
     async rereadThirtyRunQualification() { return sourceReceipt },
     async rereadFirstRunTask() { return task },
     async rereadFirstRunResponse() {
-      const changed = structuredClone(response)
-      changed.gpuEvidence!.cpuOnlyInferenceUsed = true
-      return changed
+      return {
+        ...structuredClone(response),
+        gpuEvidence: {
+          ...structuredClone(response.gpuEvidence!),
+          cpuOnlyInferenceUsed: true,
+        },
+      }
     },
   },
   repository: createCanonicalSam31VertexServingRuntimeComponentRepository({

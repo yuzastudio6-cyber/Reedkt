@@ -301,6 +301,7 @@ export function createCanonicalSam31VertexServingRuntimeComponentOwner(input: {
       if (firstRunBlockers.length > 0) {
         throw conflict(`first_run_${firstRunBlockers.join('_')}`)
       }
+      if (!gpu) throw conflict('first_run_gpu_evidence_missing')
 
       const recordedAt = timestamp.parse(now())
       if (Date.parse(recordedAt) < Date.parse(receipt.compiledAt)) {
@@ -470,7 +471,9 @@ export function createCanonicalSam31VertexServingRuntimeComponentRepository(
     return Object.freeze(structuredClone(component))
   }
   return Object.freeze({
-    async persistCreateOnly({ component: raw }) {
+    async persistCreateOnly({ component: raw }: {
+      readonly component: CanonicalSam31VertexServingRuntimeComponentEvidence
+    }) {
       const component =
         assertCanonicalSam31VertexServingRuntimeComponentEvidence(raw)
       const body = Buffer.from(stableAuthorityStringify(component), 'utf8')
@@ -488,7 +491,9 @@ export function createCanonicalSam31VertexServingRuntimeComponentRepository(
       return disposition === 'created'
         ? 'created' as const : 'identical_replay' as const
     },
-    reread({ componentRef }) { return reread(componentRef) },
+    reread({ componentRef }: { readonly componentRef: EvidenceRef }) {
+      return reread(componentRef)
+    },
   })
 }
 
@@ -564,7 +569,10 @@ function ref(id: string, hash: string): EvidenceRef {
   return refSchema.parse({ id, version: 1, contentHash: `sha256:${hash}` })
 }
 
-function sameRef(left: EvidenceRef, right: EvidenceRef): boolean {
+function sameRef(
+  left: Readonly<{ id: string; version: number; contentHash: string }>,
+  right: Readonly<{ id: string; version: number; contentHash: string }>,
+): boolean {
   return left.id === right.id && left.version === right.version
     && left.contentHash === right.contentHash
 }

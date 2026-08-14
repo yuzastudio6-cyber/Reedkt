@@ -27,7 +27,7 @@ import {
 
 const observedAt = '2026-08-12T14:00:00.000Z'
 const imageDigest =
-  'sha256:b8ac1fe762564f7debf30f4045b68a25f508ce202f758d4c1be7e483fe8aa1c8'
+  'sha256:57883cbf16ef0c130885a0237307bc329d214445ae6a4c2109b7410317c68c45'
 const imageSupplyChainReleaseRef = {
   id: 'sam31-production-image-supply-chain-release-a14e4ac5e5067a37c38d4db7',
   version: 1 as const,
@@ -70,12 +70,12 @@ const rolloutPayload = {
   modelResourceName:
     'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1' as const,
   modelVersionResourceName:
-    'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@2' as const,
-  modelVersionId: '2' as const,
+    'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@3' as const,
+  modelVersionId: '3' as const,
   modelVersionAlias: 'l4-streaming-fix-candidate' as const,
   endpointResourceName:
     'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1' as const,
-  deployedModelId: '3101000004' as const,
+  deployedModelId: '3101000006' as const,
   previousModelVersionId: '1' as const,
   previousDeployedModelId: '3101000001' as const,
   previousModelVersionRetainedForRollback: true as const,
@@ -202,8 +202,8 @@ assert.equal(candidate.readyForPrivateQualificationInvocation, true)
 assert.equal(candidate.readyForCustomerInvocation, false)
 assert.equal(candidate.runtimeReleaseGranted, false)
 assert.equal(candidate.customerInvocationStarted, false)
-assert.equal(candidate.deployedModelId, '3101000004')
-assert.equal(candidate.modelVersionId, '2')
+assert.equal(candidate.deployedModelId, '3101000006')
+assert.equal(candidate.modelVersionId, '3')
 assert.deepEqual(
   assertCanonicalSam31VertexServingQualificationCandidate(
     candidate,

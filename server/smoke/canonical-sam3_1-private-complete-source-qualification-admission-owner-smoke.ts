@@ -38,6 +38,9 @@ import {
 import {
   current as sourceCapacity,
 } from './canonical-sam3_1-private-qualification-capacity-owner-smoke'
+import {
+  buildCanonicalSam31VertexServingRuntimeComponentEvidence,
+} from '../services/canonical-sam3_1-vertex-serving-runtime-component-qualification-owner'
 
 const admittedAt = '2026-08-13T16:11:00.000Z'
 const expiresAt = '2026-08-13T16:20:00.000Z'
@@ -49,6 +52,8 @@ const capacity = currentCapacity()
 export const rateAuthority = currentRateAuthority()
 const owner =
   createCanonicalSam31PrivateCompleteSourceQualificationAdmissionOwner()
+const [vertexServingDriverComponent, vertexServingDeterministicComponent] =
+  vertexServingComponents()
 const request = {
   admissionId: 'sam31-private-complete-source-a100-run-1-admission',
   qualificationId: driverComponent.qualificationId,
@@ -87,6 +92,21 @@ assert.equal(admission.maximumCustomerToolCostCredits, 0)
 assert.equal(admission.customerCreditsMutated, false)
 assert.equal(admission.customerOrPublicDispatchAuthorized, false)
 assert.equal(admission.productionAuthorityGranted, false)
+
+const exactVertexServingAdmission = owner.admit({
+  ...request,
+  admissionId: 'sam31-private-complete-source-a100-run-1-serving-admission',
+  driverAndCudaComponent: vertexServingDriverComponent,
+  deterministicRunSetComponent: vertexServingDeterministicComponent,
+})
+assert.equal(exactVertexServingAdmission.routeId,
+  'a100_80gb_heavy_primary')
+assert.deepEqual(exactVertexServingAdmission.driverAndCudaComponentRef,
+  canonicalVertexComponentRef(vertexServingDriverComponent))
+assert.deepEqual(
+  exactVertexServingAdmission.deterministicRunSetComponentRef,
+  canonicalVertexComponentRef(vertexServingDeterministicComponent),
+)
 
 const objects = new Map<string, Buffer>()
 const repository =
@@ -136,7 +156,7 @@ assert.throws(() => assertCanonicalSam31PrivateCompleteSourceQualificationAdmiss
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-private-complete-source-qualification-admission-owner',
-  checks: 31,
+  checks: 35,
   routeId: admission.routeId,
   exactChunkCount: admission.exactChunkCount,
   qualificationExecutionAuthorized: admission.qualificationExecutionAuthorized,
@@ -164,6 +184,110 @@ function currentCapacity() {
       expiresAt: '2026-08-13T16:25:30.000Z',
     }),
   }, admittedAt)
+}
+
+function canonicalVertexComponentRef(value: {
+  componentId: string
+  componentHash: string
+}) {
+  return {
+    id: value.componentId,
+    version: 1,
+    contentHash: `sha256:${value.componentHash}`,
+  }
+}
+
+function vertexServingComponents() {
+  if (driverComponent.componentKind !== 'driver_and_cuda'
+    || deterministicComponent.componentKind !== 'deterministic_run_set') {
+    throw new Error('Generic endpoint component fixture changed.')
+  }
+  const sourceRef = {
+    id: 'sam31-vertex-serving-thirty-run-parent-smoke',
+    version: 1 as const,
+    contentHash: `sha256:${'9'.repeat(64)}` as const,
+  }
+  const base = {
+    schemaVersion:
+      'canonical-sam3_1-vertex-serving-runtime-component-evidence-v1' as const,
+    ownerVersion:
+      'canonical-sam3_1-vertex-serving-runtime-component-owner-v1' as const,
+    source:
+      'canonical_server_sam3_1_vertex_serving_runtime_component_owner' as const,
+    evidenceClass:
+      'canonical_private_thirty_run_receipt_and_first_runtime_exact_reread' as const,
+    status: 'component_evidence_ready' as const,
+    componentVersion: 1 as const,
+    qualificationId: driverComponent.qualificationId,
+    sourceThirtyRunQualificationRef: sourceRef,
+    route: driverComponent.route,
+    immutableImageDigest: driverComponent.immutableImageDigest,
+    recordedAt: driverComponent.recordedAt,
+  }
+  const first = deterministicComponent.payload[0]!
+  return [
+    buildCanonicalSam31VertexServingRuntimeComponentEvidence({
+      ...base,
+      componentId: 'sam31-vertex-serving-parent-driver-smoke',
+      componentKind: 'driver_and_cuda',
+      payload: {
+        sourceRunOrdinal: 1,
+        sourceTaskRef: first.runtimeRequestRef,
+        sourceRuntimeResponseRef: first.runtimeResponseObjectRef,
+        driverEvidence: driverComponent.payload,
+        exactFirstRunTaskAndRuntimeResponseReread: true,
+        callerDriverOrCudaClaimAccepted: false,
+      },
+    }),
+    buildCanonicalSam31VertexServingRuntimeComponentEvidence({
+      ...base,
+      componentId: 'sam31-vertex-serving-parent-deterministic-smoke',
+      componentKind: 'deterministic_run_set',
+      payload: {
+        deterministicRuns: deterministicComponent.payload.map((run) => ({
+          runOrdinal: run.runOrdinal,
+          invocationId: `sam31-parent-serving-smoke-run-${run.runOrdinal}`,
+          qualificationResultRef: run.resultAdmissionRef,
+          qualificationOutputRef: run.privateOutputRereadEvidenceRef,
+          taskRef: run.runtimeRequestRef,
+          runtimeResponseRef: run.runtimeResponseObjectRef,
+          manifestRef: {
+            id: `sam31-parent-serving-manifest-${run.runOrdinal}`,
+            version: 1,
+            contentHash: `sha256:${sha256AuthorityValue({
+              kind: 'manifest', ordinal: run.runOrdinal,
+            })}`,
+          },
+          privateOutputRereadEvidenceRef: {
+            id: `sam31-parent-serving-private-output-${run.runOrdinal}`,
+            version: 1,
+            contentHash: `sha256:${sha256AuthorityValue({
+              kind: 'private-output', ordinal: run.runOrdinal,
+            })}`,
+          },
+          providerRoundTripDurationMilliseconds: 90_000 + run.runOrdinal,
+          semanticMaskSetDigestSha256: run.outputMaskSetDigestSha256,
+        })),
+        deterministicOutputRunCount: 30,
+        measuredPerformanceRunCount: 30,
+        exactMaskFileCountRereadAcrossDeterministicRuns: 12_000,
+        propagatedFrameCountPerRun: 200,
+        maskFileCountPerRun: 400,
+        allThirtyDeterministicOutputsSemanticallyIdentical: true,
+        allThirtyPerformanceMeasurementsUseExactPredictionReceipts: true,
+        everyPerformanceRunUsesItsOwnPredictionReceipt: true,
+        exactTaskResponseOutputManifestAndMaskEvidenceReread: true,
+        dedicatedEndpointMinimumReplicaCount: 0,
+        perRunScaleToZeroClaimed: false,
+        separateFreshScaleFromZeroReadinessRequiredBeforeDispatch: true,
+        automaticRetryOrFallbackAllowed: false,
+        customerCreditsMutated: false,
+        qaApproved: false,
+        publicDeliveryAuthorized: false,
+        productionAuthorityGranted: false,
+      },
+    }),
+  ] as const
 }
 
 function currentRateAuthority() {

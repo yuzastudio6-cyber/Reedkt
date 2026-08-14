@@ -25,7 +25,13 @@ import {
 import {
   assertCanonicalSam31GpuRuntimeQualificationComponentEvidence,
   canonicalSam31GpuRuntimeQualificationComponentRef,
+  type CanonicalSam31GpuRuntimeQualificationComponentEvidence,
 } from './canonical-sam3_1-gpu-runtime-qualification-compilation-authority'
+import {
+  assertCanonicalSam31VertexServingRuntimeComponentEvidence,
+  canonicalSam31VertexServingRuntimeComponentRef,
+  type CanonicalSam31VertexServingRuntimeComponentEvidence,
+} from './canonical-sam3_1-vertex-serving-runtime-component-qualification-owner'
 import {
   assertCanonicalSam31PrivateQualificationCapacityObservation,
 } from './canonical-sam3_1-private-qualification-capacity-owner'
@@ -66,6 +72,9 @@ const refSchema = z.object({
   contentHash: prefixedSha256,
 }).strict()
 type EvidenceRef = z.infer<typeof refSchema>
+type QualificationComponent =
+  | CanonicalSam31GpuRuntimeQualificationComponentEvidence
+  | CanonicalSam31VertexServingRuntimeComponentEvidence
 
 const requestSchema = z.object({
   admissionId: safeId,
@@ -225,14 +234,14 @@ export function createCanonicalSam31PrivateCompleteSourceQualificationAdmissionO
           request.privateQualificationCapacity,
           request.admittedAt,
         )
-      const driver =
-        assertCanonicalSam31GpuRuntimeQualificationComponentEvidence(
-          request.driverAndCudaComponent,
-        )
-      const deterministic =
-        assertCanonicalSam31GpuRuntimeQualificationComponentEvidence(
-          request.deterministicRunSetComponent,
-        )
+      const driver = parseQualificationComponent(
+        request.routeId,
+        request.driverAndCudaComponent,
+      )
+      const deterministic = parseQualificationComponent(
+        request.routeId,
+        request.deterministicRunSetComponent,
+      )
       const image = assertCanonicalSam31CloudImageSupplyChainRelease(
         request.imageSupplyChainRelease,
       )
@@ -286,9 +295,9 @@ export function createCanonicalSam31PrivateCompleteSourceQualificationAdmissionO
           capacity.observationHash,
         ),
         driverAndCudaComponentRef:
-          canonicalSam31GpuRuntimeQualificationComponentRef(driver),
+          qualificationComponentRef(driver),
         deterministicRunSetComponentRef:
-          canonicalSam31GpuRuntimeQualificationComponentRef(deterministic),
+          qualificationComponentRef(deterministic),
         imageSupplyChainReleaseRef: ref(
           image.releaseId,
           image.releaseHash,
@@ -489,12 +498,8 @@ function assertQualificationPrerequisites(input: {
   capacity: ReturnType<
     typeof assertCanonicalSam31PrivateQualificationCapacityObservation
   >
-  driver: ReturnType<
-    typeof assertCanonicalSam31GpuRuntimeQualificationComponentEvidence
-  >
-  deterministic: ReturnType<
-    typeof assertCanonicalSam31GpuRuntimeQualificationComponentEvidence
-  >
+  driver: QualificationComponent
+  deterministic: QualificationComponent
   image: ReturnType<typeof assertCanonicalSam31CloudImageSupplyChainRelease>
   rate: ReturnType<
     typeof assertCanonicalProfessionalGoogleCloudGpuRateAuthority
@@ -570,6 +575,38 @@ function assertQualificationPrerequisites(input: {
   if (blockers.length > 0) throw new TypeError(
     `SAM 3.1 qualification admission lost exact authority: ${blockers.join(', ')}.`,
   )
+}
+
+function parseQualificationComponent(
+  routeId: z.infer<typeof routeIdSchema>,
+  value: unknown,
+): QualificationComponent {
+  return routeId === 'a100_80gb_heavy_primary'
+    ? tryVertexServingComponent(value)
+    : assertCanonicalSam31GpuRuntimeQualificationComponentEvidence(value)
+}
+
+function tryVertexServingComponent(value: unknown): QualificationComponent {
+  try {
+    return assertCanonicalSam31VertexServingRuntimeComponentEvidence(value)
+  } catch (vertexError) {
+    try {
+      return assertCanonicalSam31GpuRuntimeQualificationComponentEvidence(
+        value,
+      )
+    } catch {
+      throw vertexError
+    }
+  }
+}
+
+function qualificationComponentRef(
+  component: QualificationComponent,
+): EvidenceRef {
+  return component.schemaVersion ===
+    'canonical-sam3_1-vertex-serving-runtime-component-evidence-v1'
+    ? canonicalSam31VertexServingRuntimeComponentRef(component)
+    : canonicalSam31GpuRuntimeQualificationComponentRef(component)
 }
 
 function rateRef(value: ReturnType<

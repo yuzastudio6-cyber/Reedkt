@@ -36,7 +36,7 @@ import {
 const NOW = '2026-08-11T12:04:00.000Z'
 const manifestHash = sha256AuthorityValue('serving-output-smoke-manifest')
 const source = task.runtimeRequest.sourceMedia
-const response = buildCanonicalSam31GpuRuntimeResponse({
+export const response = buildCanonicalSam31GpuRuntimeResponse({
   schemaVersion: 'canonical-sam3_1-gpu-runtime-response-v1',
   operationId: task.runtimeRequest.operationId,
   requestBindingSha256: task.runtimeRequest.requestBindingSha256,

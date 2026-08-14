@@ -462,7 +462,7 @@ function createJobDefinition() {
         timeout: '3600s',
         serviceAccount:
           'reeditpro-gpu-worker-sa@reeditpro.iam.gserviceaccount.com',
-        nodeSelector: { 'run.googleapis.com/accelerator': 'nvidia-l4' },
+        nodeSelector: { accelerator: 'nvidia-l4' },
         gpuZonalRedundancyDisabled: true,
       },
     },

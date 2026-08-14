@@ -1071,13 +1071,15 @@ storage security, or completion. It remains intentionally unexecutable until a
 real qualified SAM 3.1 Track All result completes that full canonical chain.
 
 The source cutover and the current L4 task-QA image path are deterministic and
-fail-closed. The L4 task-QA path has passed immutable image supply-chain review
-and live CUDA qualification, but remains rate-blocked. The official private
-SAM 3.1 source and checkpoint have been ingested, the production image has
-passed its signed supply-chain release, and the A100 80 GB primary has passed
-its thirty-run qualification. The separate L4 thirty-run cross-accelerator
-qualification remains in progress, followed by its terminal cost and
-independent temporal-mask quality evidence. Gemini 3.1 Pro High Standard and
+fail-closed. The official private SAM 3.1 source and checkpoint have been
+ingested, the production image has passed its signed supply-chain release, and
+the A100 80 GB primary has passed its thirty-run qualification. The successor
+L4 cross-accelerator set has also completed all 30 deterministic executions
+from one immutable image, and all 30 account-effective terminal-cost receipts
+exist. Its immutable driver/CUDA and deterministic-run components have now
+been compiled and exact-reread. Independent complete-source temporal quality
+and complete eight-minute performance remain open; the L4 route is therefore
+not yet called a qualified fallback. Gemini 3.1 Pro High Standard and
 greater-than-200k-token live requests have executed successfully and all six
 account-effective price API reads pass. The remaining model/SKU qualification
 gate is the missing Detailed Usage Cost and Pricing export tables needed for
@@ -1163,3 +1165,29 @@ and materialization bytes are unchanged. Materialization starts no cloud job,
 does not spend customer credits, and cannot create customer/public prelaunch
 records. The public 16/16 concurrency target remains recorded only as a future
 release gate.
+
+### 2026-08-14 live deterministic route evidence
+
+- The A100 80 GB primary qualification
+  `sam31-a100-serving-memory-safe-thirty-run-release-candidate-20260812-v1`
+  contains 30 deterministic and 30 measured runs. Its nearest-rank p95 is
+  93,546 ms against the fixed 480,000 ms ceiling, with exact task, response,
+  output, manifest, and mask reread. It remains a private qualification input,
+  not a runtime or customer-dispatch release.
+- The L4 successor qualification
+  `sam31-l4-runtime-cross-accelerator-thirty-run-set-20260812-v5-nvdec-grace`
+  contains 30 exact runs from the single successor image. Its nearest-rank p95
+  is 157,351 ms against the same 480,000 ms ceiling. All 30 terminal
+  account-effective attempt-cost receipts exist and every run returned to
+  scale zero.
+- The canonical L4 driver/CUDA component is
+  `sam31-l4-driver-cuda-20260812-v5-nvdec-grace` with SHA-256
+  `62615b14e51197d223c96c091a977ae8dd51283984dffdebb185aef148ac61ec`.
+  The canonical deterministic-run component is
+  `sam31-l4-deterministic-thirty-run-20260812-v5-nvdec-grace` with SHA-256
+  `e942c66cacde9c724640b00c86ee0ce479ac701a10d396ff5e3abd414d556259`.
+  Both were derived by exact reread of the existing private cloud records; no
+  new GPU job ran and no customer credit was mutated during compilation.
+- These short deterministic route tests do not substitute for the required
+  full eight-minute source execution or independent full-interval temporal
+  quality. Those two route-specific artifacts remain the private finish line.

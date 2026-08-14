@@ -8,8 +8,8 @@ import {
   type CanonicalCurrentGoogleCloudGpuRateAuthority,
 } from '../tool-cost-metering/canonical-current-google-cloud-gpu-rate-authority'
 import {
-  assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority,
-  type CanonicalCurrentGoogleCloudVertexA100ServingRateAuthority,
+  assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2,
+  type CanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2,
 } from '../tool-cost-metering/canonical-current-google-cloud-vertex-a100-serving-rate-authority'
 import {
   assertCanonicalSam31QualifiedSourceCheckpointRelease,
@@ -326,7 +326,7 @@ export function createCanonicalSam31VertexServingQualificationPreparationService
       )
       const image = assertQualifiedImage(imageRaw)
       const a100Rate =
-        assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority(
+        assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2(
           a100RateRaw,
           admittedAt,
         )
@@ -641,7 +641,7 @@ function buildAdmission(input: {
     typeof projectCanonicalSam31QualifiedSourceCheckpointRelease
   >
   image: CanonicalSam31CloudImageSupplyChainRelease
-  a100Rate: CanonicalCurrentGoogleCloudVertexA100ServingRateAuthority
+  a100Rate: CanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2
   l4Rate: CanonicalCurrentGoogleCloudGpuRateAuthority
   quota: ReturnType<
     typeof assertCanonicalCurrentGoogleCloudVertexA100ServingQuotaAuthority
@@ -782,7 +782,7 @@ function assertPrerequisites(input: {
     typeof projectCanonicalSam31QualifiedSourceCheckpointRelease
   >
   image: CanonicalSam31CloudImageSupplyChainRelease
-  a100Rate: CanonicalCurrentGoogleCloudVertexA100ServingRateAuthority
+  a100Rate: CanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2
   l4Rate: CanonicalCurrentGoogleCloudGpuRateAuthority
   quota: ReturnType<
     typeof assertCanonicalCurrentGoogleCloudVertexA100ServingQuotaAuthority
@@ -823,7 +823,7 @@ function assertQualifiedImage(value: unknown) {
 }
 
 function maximumServingQualificationCostUsdNanos(
-  rate: CanonicalCurrentGoogleCloudVertexA100ServingRateAuthority,
+  rate: CanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2,
 ) {
   const quantities: Readonly<Record<string, readonly [bigint, bigint]>> = {
     vertex_prediction_a100_80gb_hour: [1n, 4n],

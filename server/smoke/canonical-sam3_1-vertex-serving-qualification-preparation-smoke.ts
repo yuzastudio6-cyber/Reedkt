@@ -35,7 +35,7 @@ import { qualifiedSupplyChain } from
   './canonical-sam3_1-cloud-image-supply-chain-build-smoke'
 import { release as sourceCheckpointRelease } from
   './canonical-sam3_1-source-checkpoint-qualification-vertex-release-owner-smoke'
-import { authority as a100Rate } from
+import { capacityAwareAuthority as a100Rate } from
   './canonical-current-google-cloud-vertex-a100-serving-rate-authority-smoke'
 
 const NOW = '2026-08-11T12:01:00.000Z'
@@ -219,8 +219,8 @@ function buildCandidate() {
     immutableImageDigest: qualifiedSupplyChain.immutableImageDigest,
     endpointResourceName:
       'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1' as const,
-    deployedModelId: '3101000004' as const,
-    modelVersionId: '2' as const,
+    deployedModelId: '3101000006' as const,
+    modelVersionId: '3' as const,
     routeId: 'a100_80gb_heavy_primary' as const,
     executionTarget:
       'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra' as const,

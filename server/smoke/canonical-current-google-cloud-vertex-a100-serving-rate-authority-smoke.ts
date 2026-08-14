@@ -113,8 +113,8 @@ const capacity = sealCanonicalSam31VertexServingCapacityObservation({
   evidenceClass: 'canonical_private_reread',
   endpointResourceName:
     'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1',
-  deployedModelId: '3101000004',
-  modelVersionId: '2',
+  deployedModelId: '3101000006',
+  modelVersionId: '3',
   routeId: 'a100_80gb_heavy_primary',
   accelerator: 'nvidia_a100_80gb',
   acceleratorCount: 1,

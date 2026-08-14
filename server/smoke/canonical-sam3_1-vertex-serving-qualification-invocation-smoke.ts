@@ -53,11 +53,11 @@ const prediction = {
   productionAuthorityGranted: false as const,
 }
 const wrapper = {
-  deployedModelId: '3101000004' as const,
+  deployedModelId: '3101000006' as const,
   model:
     'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1' as const,
   modelDisplayName: 'WeEditPro SAM 3.1 A100 scale-zero v1' as const,
-  modelVersionId: '2' as const,
+  modelVersionId: '3' as const,
   predictions: [prediction],
 }
 const request = {
@@ -292,11 +292,11 @@ function service(input: {
           dedicatedEndpointDns:
             'weeditpro-sam31-a100-scale-zero-v1.us-central1-390722338345.prediction.vertexai.goog',
           deployedModels: [{
-            id: '3101000004',
+            id: '3101000006',
             model:
-              'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@2',
+              'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@3',
           }],
-          trafficSplit: { '3101000004': 100 },
+          trafficSplit: { '3101000006': 100 },
         } }
         return input.request(providerRequest)
       },

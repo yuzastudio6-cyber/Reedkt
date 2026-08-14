@@ -9,8 +9,8 @@ import {
   type CanonicalCurrentGoogleCloudGpuRateAuthority,
 } from '../tool-cost-metering/canonical-current-google-cloud-gpu-rate-authority'
 import {
-  assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority,
-  type CanonicalCurrentGoogleCloudVertexA100ServingRateAuthority,
+  assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2,
+  type CanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2,
 } from '../tool-cost-metering/canonical-current-google-cloud-vertex-a100-serving-rate-authority'
 import {
   assertCanonicalSam31CloudImageSupplyChainRelease,
@@ -389,7 +389,7 @@ export function createCanonicalSam31VertexCompleteSourceQualificationPreparation
       )
       const image = assertQualifiedImage(imageRaw)
       const a100Rate =
-        assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority(
+        assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2(
           a100RateRaw,
           preparedAt,
         )
@@ -831,7 +831,7 @@ function buildAdmission(input: {
     typeof assertCanonicalSam31QualifiedSourceCheckpointRelease
   >
   image: CanonicalSam31CloudImageSupplyChainRelease
-  a100Rate: CanonicalCurrentGoogleCloudVertexA100ServingRateAuthority
+  a100Rate: CanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2
   l4Rate: CanonicalCurrentGoogleCloudGpuRateAuthority
   chunk: PreparedChunk
   request: z.infer<typeof requestSchema>
@@ -1031,7 +1031,7 @@ function assertPrerequisites(input: {
     typeof projectCanonicalSam31QualifiedSourceCheckpointRelease
   >
   image: CanonicalSam31CloudImageSupplyChainRelease
-  a100Rate: CanonicalCurrentGoogleCloudVertexA100ServingRateAuthority
+  a100Rate: CanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2
   l4Rate: CanonicalCurrentGoogleCloudGpuRateAuthority
   chunk: PreparedChunk
 }) {
@@ -1100,7 +1100,7 @@ function assertQualifiedImage(value: unknown) {
   return image
 }
 
-function rateRef(value: CanonicalCurrentGoogleCloudVertexA100ServingRateAuthority
+function rateRef(value: CanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2
   | CanonicalCurrentGoogleCloudGpuRateAuthority): EvidenceRef {
   return ref(value.rateAuthorityId, value.rateAuthorityHash,
     value.rateAuthorityVersion)

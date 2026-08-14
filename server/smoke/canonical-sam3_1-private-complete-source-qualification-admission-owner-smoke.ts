@@ -14,13 +14,13 @@ import {
   assertCanonicalSam31PrivateQualificationCapacityObservation,
 } from '../services/canonical-sam3_1-private-qualification-capacity-owner'
 import {
-  assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority,
+  assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2,
 } from '../tool-cost-metering/canonical-current-google-cloud-vertex-a100-serving-rate-authority'
 import {
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'
 import {
-  authority as sourceRateAuthority,
+  capacityAwareAuthority as sourceRateAuthority,
 } from './canonical-current-google-cloud-vertex-a100-serving-rate-authority-smoke'
 import {
   exact as sourcePreparationTerminal,
@@ -302,7 +302,7 @@ function currentRateAuthority() {
     observedAt: '2026-08-13T16:10:00.000Z',
     expiresAt: '2026-08-14T16:10:00.000Z',
   }
-  return assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority({
+  return assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2({
     ...currentPayload,
     rateAuthorityHash: sha256AuthorityValue(currentPayload),
   }, admittedAt)

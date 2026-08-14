@@ -832,7 +832,7 @@ function buildQualificationTask(input: {
   refs: ReturnType<typeof buildQualificationRefs>
   consumptionRef: z.infer<typeof evidenceRefSchema>
   envelopeRef: z.infer<typeof evidenceRefSchema>
-  sourceMedia: ReturnType<typeof buildProbeSourceMedia>
+  sourceMedia: z.infer<typeof canonicalSam31GpuSourceMediaSchema>
   stagingEvidence: unknown
   preparedAt: string
 }): CanonicalSam31GpuTaskRecord {

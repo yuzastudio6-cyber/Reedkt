@@ -51,7 +51,7 @@ export const preparationRepository =
     prefix: 'private/smoke/sam31-serving-preparations',
   })
 const candidate = buildCandidate()
-const l4Rate = await buildL4Rate()
+export const l4Rate = await buildL4Rate()
 const quota = buildQuota()
 const sourceRef = sourceCheckpointRelease.sourceCheckpointQualificationRef
 const imageRef = {

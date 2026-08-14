@@ -89,6 +89,8 @@ const requiredCoreQualificationSmokes = [
   'canonical-sam3_1-vertex-serving-qualification-preparation-smoke.ts',
   'canonical-sam3_1-vertex-serving-qualification-invocation-smoke.ts',
   'canonical-sam3_1-vertex-serving-qualification-output-smoke.ts',
+  'canonical-sam3_1-vertex-complete-source-qualification-preparation-smoke.ts',
+  'canonical-sam3_1-vertex-complete-source-qualification-invocation-smoke.ts',
   'canonical-sam3_1-vertex-serving-thirty-run-qualification-smoke.ts',
   'canonical-sam3_1-private-qualification-capacity-owner-smoke.ts',
   'canonical-sam3_1-private-internal-release-readiness-owner-smoke.ts',

@@ -138,6 +138,8 @@ const smokes = [
   'server/smoke/canonical-sam3_1-eight-minute-source-preparation-launch-owner-smoke.ts',
   'server/smoke/canonical-sam3_1-eight-minute-source-preparation-terminal-owner-smoke.ts',
   'server/smoke/canonical-sam3_1-private-complete-source-qualification-admission-owner-smoke.ts',
+  'server/smoke/canonical-sam3_1-vertex-complete-source-qualification-preparation-smoke.ts',
+  'server/smoke/canonical-sam3_1-vertex-complete-source-qualification-invocation-smoke.ts',
   'server/smoke/canonical-sam3_1-private-complete-source-execution-plan-owner-smoke.ts',
   'server/smoke/canonical-sam3_1-private-complete-source-task-materialization-owner-smoke.ts',
   'server/smoke/canonical-sam3_1-private-complete-source-chunk-launch-owner-smoke.ts',

@@ -46,7 +46,7 @@ if (!sourcePreparationTerminal) {
 }
 
 const capacity = currentCapacity()
-const rateAuthority = currentRateAuthority()
+export const rateAuthority = currentRateAuthority()
 const owner =
   createCanonicalSam31PrivateCompleteSourceQualificationAdmissionOwner()
 const request = {

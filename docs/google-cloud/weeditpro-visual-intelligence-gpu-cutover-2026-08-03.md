@@ -1220,6 +1220,21 @@ public dispatch, delivery, or production authority. Final release remains
 blocked until the complete-source performance and temporal-quality evidence is
 produced, exact-reread, and separately compiled.
 
+The A100 serving qualification path now derives one create-only child
+admission for each exact prepared chunk. Each child binds its parent
+complete-source admission, the current dedicated-endpoint candidate, the
+qualified source checkpoint, immutable image, current A100 serving and L4
+fallback rates, exact source plan/preparation, canonical frame interval,
+prepared artifact, range mapping, and FFprobe/GPU-preparation evidence. The
+chunk is opened only through its exact private GCS generation, staged under the
+invocation prefix with byte and SHA-256 equality, and materialized as the same
+fixed SAM 3.1 GPU task used by the qualified endpoint. The invocation owner
+consumes that task once, disables provider retry and redirects, distinguishes
+an executed result from an explicit scale-from-zero no-inference response and
+an unknown outcome, and persists exact per-chunk terminal lineage. None of
+these qualification records is a final runtime release or customer/Track All
+dispatch admission.
+
 ### 2026-08-14 live deterministic route evidence
 
 - The A100 80 GB primary qualification

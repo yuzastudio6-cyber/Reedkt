@@ -15,7 +15,7 @@ import {
 import { stableAuthorityStringify } from './private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_GPU_RUNTIME_RELEASE_READINESS_OBSERVER_VERSION =
-  'canonical-sam3_1-gpu-runtime-release-readiness-observer-v1' as const
+  'canonical-sam3_1-gpu-runtime-release-readiness-observer-v2' as const
 
 const PROJECT_ID = 'reeditpro' as const
 const CONTROL_PLANE_STATE_BUCKET =
@@ -28,6 +28,11 @@ const safeId = z.string().trim().min(1).max(512)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:/+-]*$/u)
   .refine((value) => !value.includes('..'))
 const prefixedSha256 = z.string().regex(/^sha256:[a-f0-9]{64}$/u)
+const refSchema = z.object({
+  id: safeId,
+  version: z.literal(1),
+  contentHash: prefixedSha256,
+}).strict()
 const routeIdSchema = z.enum([
   'a100_80gb_heavy_primary',
   'l4_heavy_fallback',
@@ -36,6 +41,12 @@ const requestSchema = z.object({
   routeId: routeIdSchema,
   qualificationId: safeId,
   immutableImageDigest: prefixedSha256,
+  componentEvidenceRefs: z.object({
+    driverAndCudaRef: refSchema.nullable(),
+    deterministicRunSetRef: refSchema.nullable(),
+    eightMinutePerformanceRef: refSchema.nullable(),
+    independentTemporalQualityRef: refSchema.nullable(),
+  }).strict(),
 }).strict()
 const COMPONENT_KINDS = [
   'driver_and_cuda',
@@ -43,6 +54,12 @@ const COMPONENT_KINDS = [
   'eight_minute_performance',
   'independent_temporal_quality',
 ] as const
+const COMPONENT_REF_KEYS = {
+  driver_and_cuda: 'driverAndCudaRef',
+  deterministic_run_set: 'deterministicRunSetRef',
+  eight_minute_performance: 'eightMinutePerformanceRef',
+  independent_temporal_quality: 'independentTemporalQualityRef',
+} as const
 type CandidateRecord = Readonly<{
   objectPath: string
   body: Buffer
@@ -78,8 +95,15 @@ export function createCanonicalSam31GpuRuntimeReleaseReadinessObserver(input: {
         && component.route.routeId === request.routeId
         && component.immutableImageDigest === request.immutableImageDigest)
       const componentStatuses = COMPONENT_KINDS.map((componentKind) => {
+        const expectedComponentRef = request.componentEvidenceRefs[
+          COMPONENT_REF_KEYS[componentKind]
+        ]
         const candidates = matching.filter((component) =>
-          component.componentKind === componentKind)
+          component.componentKind === componentKind
+          && (expectedComponentRef === null || sameRef(
+            canonicalSam31GpuRuntimeQualificationComponentRef(component),
+            expectedComponentRef,
+          )))
         return Object.freeze({
           componentKind,
           status: candidates.length === 0
@@ -90,19 +114,26 @@ export function createCanonicalSam31GpuRuntimeReleaseReadinessObserver(input: {
           componentRef: candidates.length === 1
             ? canonicalSam31GpuRuntimeQualificationComponentRef(candidates[0])
             : null,
+          expectedComponentRef,
           matchingCandidateCount: candidates.length,
         })
       })
-      const blockers = componentStatuses.flatMap((status) =>
-        status.status === 'ready' ? [] : [
+      const blockers = componentStatuses.flatMap((status) => [
+        ...(status.expectedComponentRef === null
+          ? [`missing_expected_ref_${status.componentKind}`] : []),
+        ...(status.status === 'ready' ? [] : [
           status.status === 'missing'
             ? `missing_${status.componentKind}`
             : `ambiguous_${status.componentKind}`,
-        ])
+        ]),
+      ])
+      const everyExpectedComponentRefProvided = componentStatuses.every(
+        (status) => status.expectedComponentRef !== null,
+      )
       const ready = blockers.length === 0
       return Object.freeze({
         schemaVersion:
-          'canonical-sam3_1-gpu-runtime-release-readiness-observation-v1',
+          'canonical-sam3_1-gpu-runtime-release-readiness-observation-v2',
         source: 'canonical_server_sam3_1_gpu_runtime_release_readiness_observer',
         evidenceClass: 'canonical_component_index_exact_read',
         disposition: ready
@@ -115,6 +146,10 @@ export function createCanonicalSam31GpuRuntimeReleaseReadinessObserver(input: {
         componentStatuses,
         blockers,
         exactCanonicalComponentBodiesAndObjectPathsValidated: true as const,
+        everyExpectedComponentRefProvided,
+        exactExpectedComponentRefsAppliedBeforeReadiness:
+          everyExpectedComponentRefProvided,
+        callerQualificationOrReadinessClaimsAccepted: false as const,
         releasePublisherMayBeInvoked: ready,
         gpuJobDispatched: false as const,
         customerCreditsMutated: false as const,
@@ -125,6 +160,23 @@ export function createCanonicalSam31GpuRuntimeReleaseReadinessObserver(input: {
       })
     },
   })
+}
+
+function sameRef(
+  left: {
+    readonly id: string
+    readonly version: number
+    readonly contentHash: string
+  },
+  right: {
+    readonly id: string
+    readonly version: number
+    readonly contentHash: string
+  },
+): boolean {
+  return left.id === right.id
+    && left.version === right.version
+    && left.contentHash === right.contentHash
 }
 
 export function createCanonicalSam31GcpGpuRuntimeQualificationComponentIndexReadPort(

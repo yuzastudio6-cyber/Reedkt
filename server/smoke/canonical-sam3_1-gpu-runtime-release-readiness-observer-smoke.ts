@@ -4,6 +4,10 @@ import {
   createCanonicalSam31GpuRuntimeReleaseReadinessObserver,
 } from '../services/canonical-sam3_1-gpu-runtime-release-readiness-observer'
 import {
+  buildCanonicalSam31GpuRuntimeQualificationComponentEvidence,
+  canonicalSam31GpuRuntimeQualificationComponentRef,
+} from '../services/canonical-sam3_1-gpu-runtime-qualification-compilation-authority'
+import {
   canonicalSam31GpuRuntimeQualificationComponentEvidenceObjectPath,
 } from '../services/canonical-sam3_1-gpu-runtime-qualification-component-evidence-repository'
 import { stableAuthorityStringify } from '../services/private-edit-authority-store'
@@ -31,6 +35,18 @@ const request = {
   routeId: canonicalDriver.route.routeId,
   qualificationId: canonicalDriver.qualificationId,
   immutableImageDigest: canonicalDriver.immutableImageDigest,
+  componentEvidenceRefs: {
+    driverAndCudaRef:
+      canonicalSam31GpuRuntimeQualificationComponentRef(canonicalDriver),
+    deterministicRunSetRef:
+      canonicalSam31GpuRuntimeQualificationComponentRef(
+        canonicalDeterministic,
+      ),
+    eightMinutePerformanceRef:
+      canonicalSam31GpuRuntimeQualificationComponentRef(canonicalPerformance),
+    independentTemporalQualityRef:
+      canonicalSam31GpuRuntimeQualificationComponentRef(canonicalQuality),
+  },
 }
 
 const ready = await observer(records).observe(request)
@@ -45,6 +61,41 @@ assert.equal(ready.gpuJobDispatched, false)
 assert.equal(ready.customerCreditsMutated, false)
 assert.equal(ready.runtimeReleaseGranted, false)
 assert.equal(ready.productionAuthorityGranted, false)
+assert.equal(ready.exactExpectedComponentRefsAppliedBeforeReadiness, true)
+
+const historicalDeterministicDraft =
+  buildCanonicalSam31GpuRuntimeQualificationComponentEvidence({
+    ...withoutHash(canonicalDeterministic),
+    componentId: 'historical-nondeterministic-draft',
+  })
+const historicalRecord = Object.freeze({
+  objectPath:
+    canonicalSam31GpuRuntimeQualificationComponentEvidenceObjectPath({
+      componentEvidence: historicalDeterministicDraft,
+    }),
+  body: Buffer.from(
+    stableAuthorityStringify(historicalDeterministicDraft),
+    'utf8',
+  ),
+})
+const readyWithHistoricalDraft = await observer([
+  ...records,
+  historicalRecord,
+]).observe(request)
+assert.equal(readyWithHistoricalDraft.releasePublisherMayBeInvoked, true)
+assert.deepEqual(readyWithHistoricalDraft.blockers, [])
+
+const unselected = await observer(records).observe({
+  ...request,
+  componentEvidenceRefs: {
+    ...request.componentEvidenceRefs,
+    deterministicRunSetRef: null,
+  },
+})
+assert.equal(unselected.releasePublisherMayBeInvoked, false)
+assert.deepEqual(unselected.blockers, [
+  'missing_expected_ref_deterministic_run_set',
+])
 
 const missing = await observer(records.slice(0, 1)).observe(request)
 assert.equal(missing.disposition,
@@ -96,9 +147,11 @@ await assert.rejects(
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-gpu-runtime-release-readiness-observer',
-  checks: 25,
+  checks: 33,
   exactCanonicalComponentKinds: components.length,
   ambiguousCandidateRejected: true,
+  unrelatedHistoricalDraftIgnoredAfterExactRefSelection: true,
+  unselectedComponentRefCannotAuthorizePublication: true,
   staleOrCrossRouteCandidateRejected: true,
   callerReadinessAccepted: false,
   gpuJobDispatched: false,
@@ -115,4 +168,12 @@ function observer(recordsToReturn: readonly typeof records[number][]) {
       },
     },
   })
+}
+
+function withoutHash<T extends { readonly componentHash: string }>(
+  component: T,
+): Omit<T, 'componentHash'> {
+  const clone = { ...component }
+  delete (clone as { componentHash?: string }).componentHash
+  return clone
 }

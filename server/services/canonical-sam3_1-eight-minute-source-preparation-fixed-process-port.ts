@@ -943,7 +943,13 @@ function fixedEncodeArguments(input: {
     '-frames:v', String(input.frameCount),
     '-c:v', 'h264_nvenc', '-preset', 'p7', '-tune', 'hq',
     '-rc', 'constqp', '-qp', '20', '-g', '24', '-bf', '0',
-    '-r', '24', '-fps_mode', 'cfr', '-pix_fmt', 'yuv420p',
+    // CUVID supplies CUDA hardware frames whose underlying software format is
+    // NV12.  Forcing a software yuv420p input format here makes FFmpeg insert
+    // an unavailable CUDA-to-CPU format conversion before NVENC.  Leave the
+    // hardware-frame format negotiated between CUVID and NVENC; the closed
+    // post-encode probe below still requires the H.264 result to decode as
+    // yuv420p, so output chroma cannot drift silently.
+    '-r', '24', '-fps_mode', 'cfr',
     '-color_range', 'tv', '-colorspace', 'bt709',
     '-color_trc', 'bt709', '-color_primaries', 'bt709',
     '-movflags', '+faststart', input.outputPath,

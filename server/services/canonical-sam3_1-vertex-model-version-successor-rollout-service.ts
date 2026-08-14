@@ -24,7 +24,7 @@ import {
   CANONICAL_SAM3_1_VERTEX_SUCCESSOR_SERVICE_ACCOUNT,
   createCanonicalSam31VertexModelVersionSuccessorDeployRequest,
   createCanonicalSam31VertexModelVersionSuccessorUploadRequest,
-  createCanonicalSam31VertexPreviousDeploymentUndeployRequest,
+  createCanonicalSam31VertexPreviousDeploymentCapacityUndeployRequest,
   type CanonicalSam31VertexModelVersionSuccessorRequest,
 } from './canonical-sam3_1-vertex-model-version-successor-request-compiler'
 import {
@@ -33,7 +33,7 @@ import {
 } from './private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_VERTEX_MODEL_VERSION_SUCCESSOR_ROLLOUT_VERSION =
-  'canonical-sam3_1-vertex-model-version-successor-rollout-v1' as const
+  'canonical-sam3_1-vertex-model-version-successor-rollout-v2' as const
 
 const SOURCE =
   'canonical_backend_sam3_1_vertex_model_version_successor_rollout_owner' as const
@@ -46,8 +46,8 @@ const CLOUD_PLATFORM_SCOPE =
   'https://www.googleapis.com/auth/cloud-platform' as const
 const stage = z.enum([
   'model_version_upload',
+  'previous_deployed_model_undeploy_for_capacity',
   'model_version_deploy',
-  'previous_deployed_model_undeploy',
 ])
 type Stage = z.infer<typeof stage>
 const safePrefix = z.string().trim().min(1).max(512)
@@ -72,7 +72,7 @@ type Ref = z.infer<typeof refSchema>
 
 const consumptionWithoutHashSchema = z.object({
   schemaVersion: z.literal(
-    'canonical-sam3_1-vertex-model-version-successor-consumption-v1',
+    'canonical-sam3_1-vertex-model-version-successor-consumption-v2',
   ),
   source: z.literal(SOURCE),
   stage,
@@ -94,17 +94,18 @@ type Consumption = z.infer<typeof consumptionSchema>
 
 const submissionWithoutHashSchema = z.object({
   schemaVersion: z.literal(
-    'canonical-sam3_1-vertex-model-version-successor-submission-v1',
+    'canonical-sam3_1-vertex-model-version-successor-submission-v2',
   ),
   source: z.literal(SOURCE),
   stage,
   requestDigestSha256: sha256,
   disposition: z.enum([
     'submitted',
+    'resource_reconciled_without_provider_call',
     'provider_rejected_not_executed',
     'outcome_unknown_requires_reconciliation',
   ]),
-  providerCallStarted: z.literal(true),
+  providerCallStarted: z.boolean(),
   providerOutcome: z.enum(['executed', 'not_executed', 'unknown']),
   operationName: operationName.nullable(),
   providerErrorRef: z.object({
@@ -120,12 +121,20 @@ const submissionWithoutHashSchema = z.object({
   productionAuthorityGranted: z.literal(false),
 }).strict().superRefine((value, context) => {
   const submitted = value.disposition === 'submitted'
+  const reconciled = value.disposition ===
+    'resource_reconciled_without_provider_call'
   const rejected = value.disposition === 'provider_rejected_not_executed'
+  const unknown = value.disposition ===
+    'outcome_unknown_requires_reconciliation'
   if (
     submitted !== (value.providerOutcome === 'executed')
     || submitted !== (value.operationName !== null)
-    || rejected !== (value.providerOutcome === 'not_executed')
+    || (rejected || reconciled) !==
+      (value.providerOutcome === 'not_executed')
+    || unknown !== (value.providerOutcome === 'unknown')
     || rejected !== (value.providerErrorRef !== undefined)
+    || reconciled !== !value.providerCallStarted
+    || (!reconciled && !value.providerCallStarted)
   ) context.addIssue({
     code: 'custom',
     message: 'SAM 3.1 successor submission outcome changed.',
@@ -138,7 +147,7 @@ type Submission = z.infer<typeof submissionSchema>
 
 const observationWithoutHashSchema = z.object({
   schemaVersion: z.literal(
-    'canonical-sam3_1-vertex-model-version-successor-observation-v1',
+    'canonical-sam3_1-vertex-model-version-successor-observation-v2',
   ),
   source: z.literal(SOURCE),
   stage,
@@ -176,15 +185,16 @@ const observationWithoutHashSchema = z.object({
     ? value.modelVersionResourceName !== null
       && value.deployedModelId === null
       && !value.previousDeployedModelAbsent
-    : value.stage === 'model_version_deploy'
+    : value.stage === 'previous_deployed_model_undeploy_for_capacity'
+      ? value.modelVersionResourceName !== null
+        && value.deployedModelId === null
+        && value.previousDeployedModelAbsent
+      : value.stage === 'model_version_deploy'
       ? value.modelVersionResourceName !== null
         && value.deployedModelId ===
           CANONICAL_SAM3_1_VERTEX_SUCCESSOR_DEPLOYED_MODEL_ID
-        && !value.previousDeployedModelAbsent
-      : value.modelVersionResourceName !== null
-        && value.deployedModelId ===
-          CANONICAL_SAM3_1_VERTEX_SUCCESSOR_DEPLOYED_MODEL_ID
         && value.previousDeployedModelAbsent
+      : false
   if (
     failed !== (value.providerErrorRef !== null)
     || pending !== !value.operationDone
@@ -236,7 +246,8 @@ export interface CanonicalSam31VertexModelVersionSuccessorRolloutResult {
   readonly previousDeployedModelId:
     typeof CANONICAL_SAM3_1_VERTEX_PREVIOUS_DEPLOYED_MODEL_ID
   readonly previousModelVersionRetainedForRollback: true
-  readonly previousDeployedModelRemovedAfterCutover: boolean
+  readonly previousDeployedModelRemovedBeforeSuccessorDeployment: boolean
+  readonly capacityOneReplacementSequence: true
   readonly stages:
     readonly CanonicalSam31VertexModelVersionSuccessorStageResult[]
   readonly durableConsumptionBeforeEveryProviderPost: true
@@ -304,6 +315,22 @@ export function createCanonicalSam31VertexModelVersionSuccessorRolloutOwner(
         throw new Error('Completed SAM 3.1 upload lacks exact model version.')
       }
 
+      const capacityUndeploy = await executeStage(
+        profile,
+        createCanonicalSam31VertexPreviousDeploymentCapacityUndeployRequest(
+          profile,
+        ),
+      )
+      stages.push(capacityUndeploy)
+      if (capacityUndeploy.disposition !== 'completed') {
+        return rolloutResult(
+          capacityUndeploy.disposition,
+          profileRef,
+          stages,
+          modelVersion,
+        )
+      }
+
       const deploy = await executeStage(
         profile,
         createCanonicalSam31VertexModelVersionSuccessorDeployRequest({
@@ -316,20 +343,7 @@ export function createCanonicalSam31VertexModelVersionSuccessorRolloutOwner(
         return rolloutResult(deploy.disposition, profileRef, stages,
           modelVersion)
       }
-
-      const undeploy = await executeStage(
-        profile,
-        createCanonicalSam31VertexPreviousDeploymentUndeployRequest(profile),
-      )
-      stages.push(undeploy)
-      return rolloutResult(
-        undeploy.disposition === 'completed'
-          ? 'rolled_out'
-          : undeploy.disposition,
-        profileRef,
-        stages,
-        modelVersion,
-      )
+      return rolloutResult('rolled_out', profileRef, stages, modelVersion)
     },
   })
 
@@ -383,9 +397,22 @@ export function createCanonicalSam31VertexModelVersionSuccessorRolloutOwner(
     }
     if (!submission) {
       if (consumptionCreated) {
-        await exactPreflight(profile, request.stage)
-        providerPostIssuedThisRun = true
-        submission = await submit(request, consumedAt)
+        const exact = await exactStageResourceResult(profile, request.stage)
+        if (exact) {
+          submission = createSubmission({
+            stage: request.stage,
+            requestDigestSha256: request.requestDigestSha256,
+            disposition: 'resource_reconciled_without_provider_call',
+            providerCallStarted: false,
+            providerOutcome: 'not_executed',
+            operationName: null,
+            submittedAt: consumedAt,
+          })
+        } else {
+          await exactPreflight(profile, request.stage)
+          providerPostIssuedThisRun = true
+          submission = await submit(request, consumedAt)
+        }
       } else {
         submission = createSubmission({
           stage: request.stage,
@@ -428,6 +455,22 @@ export function createCanonicalSam31VertexModelVersionSuccessorRolloutOwner(
         observation: null,
         providerPostIssuedThisRun,
       })
+      return persistStageObservation({
+        requestRef,
+        consumptionRef,
+        submissionRef,
+        observation,
+        providerPostIssuedThisRun,
+      })
+    }
+    if (submission.disposition ===
+      'resource_reconciled_without_provider_call') {
+      const observation = await reconcile(profile, request, submission)
+      if (!observation) {
+        throw new Error(
+          'SAM 3.1 successor reconciled resource disappeared.',
+        )
+      }
       return persistStageObservation({
         requestRef,
         consumptionRef,
@@ -636,6 +679,31 @@ export function createCanonicalSam31VertexModelVersionSuccessorRolloutOwner(
       previousDeployedModelAbsent: false,
     } as const
     const endpoint = await readEndpoint()
+    const previousAbsent = !endpoint.deployedModels.some((item) =>
+      item.id === CANONICAL_SAM3_1_VERTEX_PREVIOUS_DEPLOYED_MODEL_ID)
+    if (currentStage ===
+      'previous_deployed_model_undeploy_for_capacity') {
+      const successor = endpoint.deployedModels.find((item) =>
+        item.id === CANONICAL_SAM3_1_VERTEX_SUCCESSOR_DEPLOYED_MODEL_ID)
+      const emptyCapacity = endpoint.deployedModels.length === 0
+        && Object.keys(endpoint.trafficSplit).length === 0
+      const successorAlreadyCompleted = endpoint.deployedModels.length === 1
+        && successor?.modelVersionId === version.versionId
+        && exactDeployment(successor)
+        && endpoint.trafficSplit[
+          CANONICAL_SAM3_1_VERTEX_SUCCESSOR_DEPLOYED_MODEL_ID
+        ] === 100
+        && Object.keys(endpoint.trafficSplit).length === 1
+      if (
+        !previousAbsent
+        || (!emptyCapacity && !successorAlreadyCompleted)
+      ) return null
+      return {
+        modelVersionResourceName: version.resource,
+        deployedModelId: null,
+        previousDeployedModelAbsent: true,
+      } as const
+    }
     const newDeployment = endpoint.deployedModels.find((item) =>
       item.id === CANONICAL_SAM3_1_VERTEX_SUCCESSOR_DEPLOYED_MODEL_ID)
     if (
@@ -647,25 +715,12 @@ export function createCanonicalSam31VertexModelVersionSuccessorRolloutOwner(
       ] !== 100
       || Object.keys(endpoint.trafficSplit).length !== 1
     ) return null
-    const previousAbsent = !endpoint.deployedModels.some((item) =>
-      item.id === CANONICAL_SAM3_1_VERTEX_PREVIOUS_DEPLOYED_MODEL_ID)
-    if (
-      currentStage === 'previous_deployed_model_undeploy'
-      && (!previousAbsent || endpoint.deployedModels.length !== 1)
-    ) return null
-    if (
-      currentStage === 'model_version_deploy'
-      && previousAbsent
-    ) {
-      // A restart may observe the completed undeploy before it rereads deploy.
-      // The exact new version and sole traffic owner still prove deploy success.
-    }
+    if (!previousAbsent || endpoint.deployedModels.length !== 1) return null
     return {
       modelVersionResourceName: version.resource,
       deployedModelId:
         CANONICAL_SAM3_1_VERTEX_SUCCESSOR_DEPLOYED_MODEL_ID,
-      previousDeployedModelAbsent: currentStage ===
-        'previous_deployed_model_undeploy' ? true : false,
+      previousDeployedModelAbsent: true,
     } as const
   }
 
@@ -698,7 +753,8 @@ export function createCanonicalSam31VertexModelVersionSuccessorRolloutOwner(
       throw new Error('SAM 3.1 successor candidate reread is absent.')
     }
     const endpoint = await readEndpoint()
-    if (currentStage === 'model_version_deploy') {
+    if (currentStage ===
+      'previous_deployed_model_undeploy_for_capacity') {
       const previous = endpoint.deployedModels.find((item) =>
         item.id === CANONICAL_SAM3_1_VERTEX_PREVIOUS_DEPLOYED_MODEL_ID)
       if (
@@ -710,22 +766,15 @@ export function createCanonicalSam31VertexModelVersionSuccessorRolloutOwner(
           CANONICAL_SAM3_1_VERTEX_PREVIOUS_DEPLOYED_MODEL_ID
         ] !== 100
         || Object.keys(endpoint.trafficSplit).length !== 1
-      ) throw new Error('SAM 3.1 successor deploy preflight changed.')
+      ) throw new Error(
+        'SAM 3.1 successor capacity undeploy preflight changed.',
+      )
       return
     }
-    const newDeployment = endpoint.deployedModels.find((item) =>
-      item.id === CANONICAL_SAM3_1_VERTEX_SUCCESSOR_DEPLOYED_MODEL_ID)
-    const previous = endpoint.deployedModels.find((item) =>
-      item.id === CANONICAL_SAM3_1_VERTEX_PREVIOUS_DEPLOYED_MODEL_ID)
     if (
-      !newDeployment || !previous
-      || newDeployment.modelVersionId !== candidate.versionId
-      || !exactDeployment(newDeployment)
-      || endpoint.trafficSplit[
-        CANONICAL_SAM3_1_VERTEX_SUCCESSOR_DEPLOYED_MODEL_ID
-      ] !== 100
-      || Object.keys(endpoint.trafficSplit).length !== 1
-    ) throw new Error('SAM 3.1 successor undeploy preflight changed.')
+      endpoint.deployedModels.length !== 0
+      || Object.keys(endpoint.trafficSplit).length !== 0
+    ) throw new Error('SAM 3.1 successor deploy preflight changed.')
   }
 
   async function readCandidateVersion(
@@ -985,7 +1034,7 @@ function createConsumption(
 ): Consumption {
   const payload = consumptionWithoutHashSchema.parse({
     schemaVersion:
-      'canonical-sam3_1-vertex-model-version-successor-consumption-v1',
+      'canonical-sam3_1-vertex-model-version-successor-consumption-v2',
     source: SOURCE,
     stage: request.stage,
     profileHash: profile.profileHash,
@@ -1009,8 +1058,10 @@ function createSubmission(input: {
   readonly stage: Stage
   readonly requestDigestSha256: string
   readonly disposition: 'submitted'
+    | 'resource_reconciled_without_provider_call'
     | 'provider_rejected_not_executed'
     | 'outcome_unknown_requires_reconciliation'
+  readonly providerCallStarted?: boolean
   readonly providerOutcome: 'executed' | 'not_executed' | 'unknown'
   readonly operationName: string | null
   readonly providerErrorRef?: {
@@ -1022,10 +1073,10 @@ function createSubmission(input: {
 }): Submission {
   const payload = submissionWithoutHashSchema.parse({
     schemaVersion:
-      'canonical-sam3_1-vertex-model-version-successor-submission-v1',
+      'canonical-sam3_1-vertex-model-version-successor-submission-v2',
     source: SOURCE,
     ...input,
-    providerCallStarted: true,
+    providerCallStarted: input.providerCallStarted ?? true,
     automaticRetryAllowed: false,
     customerRequestOrGpuInferenceStarted: false,
     walletOrCreditMutationAuthorityGranted: false,
@@ -1081,7 +1132,7 @@ function createObservation(input: {
 }): Observation {
   const payload = observationWithoutHashSchema.parse({
     schemaVersion:
-      'canonical-sam3_1-vertex-model-version-successor-observation-v1',
+      'canonical-sam3_1-vertex-model-version-successor-observation-v2',
     source: SOURCE,
     stage: input.request.stage,
     requestDigestSha256: input.request.requestDigestSha256,
@@ -1175,7 +1226,11 @@ function rolloutResult(
     previousDeployedModelId:
       CANONICAL_SAM3_1_VERTEX_PREVIOUS_DEPLOYED_MODEL_ID,
     previousModelVersionRetainedForRollback: true,
-    previousDeployedModelRemovedAfterCutover: disposition === 'rolled_out',
+    previousDeployedModelRemovedBeforeSuccessorDeployment:
+      stages.some((stageResult) => stageResult.stage ===
+        'previous_deployed_model_undeploy_for_capacity'
+        && stageResult.disposition === 'completed'),
+    capacityOneReplacementSequence: true,
     stages: Object.freeze([...stages]),
     durableConsumptionBeforeEveryProviderPost: true,
     exactSequentialStageOrder: true,

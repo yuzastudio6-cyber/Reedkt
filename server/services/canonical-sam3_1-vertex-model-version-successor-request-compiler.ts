@@ -7,7 +7,7 @@ import {
 import { sha256AuthorityValue } from './private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_VERTEX_MODEL_VERSION_SUCCESSOR_REQUEST_VERSION =
-  'canonical-sam3_1-vertex-model-version-successor-request-v1' as const
+  'canonical-sam3_1-vertex-model-version-successor-request-v2' as const
 
 export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_API_ORIGIN =
   'https://us-central1-aiplatform.googleapis.com' as const
@@ -20,7 +20,7 @@ export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_ENDPOINT_RESOURCE =
 export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_ALIAS =
   'cold-start-health-fix-candidate' as const
 export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_DEPLOYED_MODEL_ID =
-  '3101000005' as const
+  '3101000006' as const
 export const CANONICAL_SAM3_1_VERTEX_PREVIOUS_DEPLOYED_MODEL_ID =
   '3101000004' as const
 export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_SERVICE_ACCOUNT =
@@ -46,8 +46,8 @@ const requestWithoutDigestSchema = z.object({
   ),
   stage: z.enum([
     'model_version_upload',
+    'previous_deployed_model_undeploy_for_capacity',
     'model_version_deploy',
-    'previous_deployed_model_undeploy',
   ]),
   method: z.literal('POST'),
   url: safeUrl,
@@ -142,19 +142,16 @@ export function createCanonicalSam31VertexModelVersionSuccessorDeployRequest(
   })
 }
 
-export function createCanonicalSam31VertexPreviousDeploymentUndeployRequest(
+export function createCanonicalSam31VertexPreviousDeploymentCapacityUndeployRequest(
   value: CanonicalSam31VertexScaleZeroDeploymentProfile,
 ): CanonicalSam31VertexModelVersionSuccessorRequest {
   const profile = acceptProfile(value)
   return createRequest({
-    stage: 'previous_deployed_model_undeploy',
+    stage: 'previous_deployed_model_undeploy_for_capacity',
     url: `${CANONICAL_SAM3_1_VERTEX_SUCCESSOR_API_ORIGIN}/v1beta1/${CANONICAL_SAM3_1_VERTEX_SUCCESSOR_ENDPOINT_RESOURCE}:undeployModel`,
     profileHash: profile.profileHash,
     body: {
       deployedModelId: CANONICAL_SAM3_1_VERTEX_PREVIOUS_DEPLOYED_MODEL_ID,
-      trafficSplit: {
-        [CANONICAL_SAM3_1_VERTEX_SUCCESSOR_DEPLOYED_MODEL_ID]: 100,
-      },
     },
   })
 }
@@ -234,7 +231,7 @@ function containerSpec(
 
 function createRequest(input: {
   readonly stage: 'model_version_upload' | 'model_version_deploy'
-    | 'previous_deployed_model_undeploy'
+    | 'previous_deployed_model_undeploy_for_capacity'
   readonly url: string
   readonly profileHash: string
   readonly body: Record<string, unknown>

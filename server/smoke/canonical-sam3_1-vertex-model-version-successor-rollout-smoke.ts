@@ -57,7 +57,7 @@ const objectPort: CanonicalCreateOnlyJsonObjectPort = {
 }
 
 let providerPostCount = 0
-let candidateCreated = false
+let candidateCreated = true
 let successorDeployed = false
 let previousUndeployed = false
 const operationFor = (url: string) => url.includes('models:upload')
@@ -133,24 +133,27 @@ const first = await owner.rolloutOne(profile)
 assert.equal(first.disposition, 'rolled_out')
 assert.equal(first.modelVersionResourceName,
   'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@3')
-assert.equal(first.deployedModelId, '3101000005')
-assert.equal(first.previousDeployedModelRemovedAfterCutover, true)
+assert.equal(first.deployedModelId, '3101000006')
+assert.equal(first.previousDeployedModelRemovedBeforeSuccessorDeployment, true)
+assert.equal(first.capacityOneReplacementSequence, true)
 assert.deepEqual(first.stages.map((value) => value.stage), [
   'model_version_upload',
+  'previous_deployed_model_undeploy_for_capacity',
   'model_version_deploy',
-  'previous_deployed_model_undeploy',
 ])
 assert.equal(first.stages.every((value) => value.disposition === 'completed'),
   true)
-assert.equal(first.stages.every((value) => value.providerPostIssuedThisRun),
-  true)
-assert.equal(providerPostCount, 3)
+assert.deepEqual(
+  first.stages.map((value) => value.providerPostIssuedThisRun),
+  [false, true, true],
+)
+assert.equal(providerPostCount, 2)
 
 const replay = await owner.rolloutOne(profile)
 assert.equal(replay.disposition, 'rolled_out')
 assert.equal(replay.stages.every((value) =>
   !value.providerPostIssuedThisRun), true)
-assert.equal(providerPostCount, 3)
+assert.equal(providerPostCount, 2)
 assert.equal(objects.size > 10, true)
 
 const unknownObjects = new Map<string, Buffer>()
@@ -251,10 +254,12 @@ assert.equal(rejectedPostCount, 1)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-model-version-successor-rollout',
-  checks: 48,
+  checks: 53,
   exactModelVersionUpload: true,
+  exactExistingCandidateAdoptedWithoutDuplicateUpload: true,
   exactA100ScaleZeroDeployment: true,
-  previousDeploymentRemovedAfterCutover: true,
+  previousDeploymentRemovedBeforeSuccessorDeployment: true,
+  capacityOneReplacementSequence: true,
   previousModelVersionRetainedForRollback: true,
   durableConsumptionBeforeEveryProviderPost: true,
   restartReplayIssuedNoDuplicateProviderPost: true,
@@ -316,7 +321,7 @@ function endpoint() {
     dedicatedResources: resources(),
   }
   const successor = {
-    id: '3101000005',
+    id: '3101000006',
     model:
       'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1',
     modelVersionId: '3',
@@ -329,12 +334,12 @@ function endpoint() {
   return {
     name:
       'projects/390722338345/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1',
-    deployedModels: previousUndeployed
+    deployedModels: successorDeployed
       ? [successor]
-      : successorDeployed ? [previous, successor] : [previous],
+      : previousUndeployed ? [] : [previous],
     trafficSplit: successorDeployed
-      ? { '3101000005': 100 }
-      : { '3101000004': 100 },
+      ? { '3101000006': 100 }
+      : previousUndeployed ? {} : { '3101000004': 100 },
   }
 }
 

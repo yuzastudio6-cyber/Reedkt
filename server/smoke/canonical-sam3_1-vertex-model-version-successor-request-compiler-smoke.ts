@@ -7,7 +7,7 @@ import {
   assertCanonicalSam31VertexModelVersionSuccessorRequest,
   createCanonicalSam31VertexModelVersionSuccessorDeployRequest,
   createCanonicalSam31VertexModelVersionSuccessorUploadRequest,
-  createCanonicalSam31VertexPreviousDeploymentUndeployRequest,
+  createCanonicalSam31VertexPreviousDeploymentCapacityUndeployRequest,
 } from '../services/canonical-sam3_1-vertex-model-version-successor-request-compiler'
 
 const hash = (character: string) => `sha256:${character.repeat(64)}` as const
@@ -41,13 +41,16 @@ const deploy = createCanonicalSam31VertexModelVersionSuccessorDeployRequest({
   modelVersionResourceName:
     'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@3',
 })
-const undeploy = createCanonicalSam31VertexPreviousDeploymentUndeployRequest(
-  profile,
-)
+const undeploy =
+  createCanonicalSam31VertexPreviousDeploymentCapacityUndeployRequest(profile)
 assert.deepEqual(
-  [upload, deploy].map((request) =>
+  [upload, undeploy, deploy].map((request) =>
     assertCanonicalSam31VertexModelVersionSuccessorRequest(request).stage),
-  ['model_version_upload', 'model_version_deploy'],
+  [
+    'model_version_upload',
+    'previous_deployed_model_undeploy_for_capacity',
+    'model_version_deploy',
+  ],
 )
 assert.equal(upload.body.modelId, undefined)
 assert.equal(upload.body.parentModel,
@@ -68,7 +71,7 @@ assert.deepEqual(container.startupProbe, {
 assert.equal(upload.body.serviceAccount,
   'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com')
 const deployedModel = deploy.body.deployedModel as Record<string, unknown>
-assert.equal(deployedModel.id, '3101000005')
+assert.equal(deployedModel.id, '3101000006')
 assert.equal(deployedModel.model,
   'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@3')
 assert.equal(deployedModel.enableAccessLogging, false)
@@ -91,10 +94,12 @@ assert.equal(deploy.existingModelAndEndpointRereadRequired, true)
 assert.equal(deploy.previousModelVersionRetainedForRollback, true)
 assert.equal(deploy.previousDeployedModelReceivesTraffic, false)
 assert.equal(deploy.automaticRetryAllowed, false)
-assert.equal(undeploy.stage, 'previous_deployed_model_undeploy')
+assert.equal(
+  undeploy.stage,
+  'previous_deployed_model_undeploy_for_capacity',
+)
 assert.deepEqual(undeploy.body, {
   deployedModelId: '3101000004',
-  trafficSplit: { '3101000005': 100 },
 })
 assert.equal(undeploy.previousModelVersionRetainedForRollback, true)
 assert.equal(deploy.requestResponsePayloadLoggingEnabled, false)
@@ -119,12 +124,13 @@ assert.throws(() => assertCanonicalSam31VertexModelVersionSuccessorRequest({
 console.log(JSON.stringify({
   smoke:
     'canonical-sam3_1-vertex-model-version-successor-request-compiler',
-  checks: 34,
+  checks: 37,
   existingModelAndEndpointRereadRequired: true,
   previousModelVersionRetainedForRollback: true,
-  previousDeploymentRemovedAfterCutover: true,
+  previousDeploymentRemovedBeforeSuccessorDeployment: true,
+  capacityOneReplacementSequence: true,
   candidateAlias: 'cold-start-health-fix-candidate',
-  deployedModelId: '3101000005',
+  deployedModelId: '3101000006',
   a100HeavyPrimary: true,
   minimumReplicaCount: 0,
   initialReplicaCount: 1,

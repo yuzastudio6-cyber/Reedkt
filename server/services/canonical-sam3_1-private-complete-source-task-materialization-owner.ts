@@ -11,6 +11,8 @@ import type {
 import {
   assertCanonicalProfessionalGpuRuntimeLaunchTarget,
   assertPlainSerializedData,
+  reserveCanonicalProfessionalGpuJobExecution,
+  type CanonicalProfessionalGpuExecutionReservationStore,
 } from './canonical-professional-gpu-job-lifecycle-service'
 import {
   assertCanonicalSam31PrivateCompleteSourceExecutionPlan,
@@ -246,6 +248,8 @@ export function createCanonicalSam31PrivateCompleteSourceTaskMaterializationOwne
     readonly privateInputStagingPort:
       CanonicalSam31GpuPrivateInputStagingPort
     readonly taskStore: CanonicalSam31GpuTaskStore
+    readonly gpuLifecycleStore:
+      CanonicalProfessionalGpuExecutionReservationStore
     readonly materializationRepository:
       CanonicalSam31PrivateCompleteSourceTaskMaterializationRepository
   },
@@ -338,6 +342,16 @@ export function createCanonicalSam31PrivateCompleteSourceTaskMaterializationOwne
         authority,
         materializedAt: request.materializedAt,
       })
+      const reservation =
+        await reserveCanonicalProfessionalGpuJobExecution({
+          admission,
+          target,
+          executionEnvelopeId: chunk.privateInvocationId,
+          store: input.gpuLifecycleStore,
+          reservedAt: request.materializedAt,
+        })
+      const executionEnvelopeRef = reservation.executionEnvelopeRef
+      const admissionConsumptionRef = reservation.admissionConsumptionRef
       const sourceMedia = {
         mediaForm: 'private_read_only_mp4' as const,
         finalizedSourceArtifactRef: plan.exactEightMinuteSourceRef,
@@ -399,16 +413,6 @@ export function createCanonicalSam31PrivateCompleteSourceTaskMaterializationOwne
         privateTaskOutputTransportRef: chunk.privateTaskOutputTransportRef,
         preparedAt: request.materializedAt,
       })
-      const executionEnvelopeRef = ref(
-        chunk.privateInvocationId,
-        sha256AuthorityValue({
-          executionPlanRef: request.executionPlanRef,
-          chunkOrdinal: chunk.chunkOrdinal,
-          executionAttemptRef: chunk.executionAttemptRef,
-          privateTaskInputTransportRef: chunk.privateTaskInputTransportRef,
-          privateTaskOutputTransportRef: chunk.privateTaskOutputTransportRef,
-        }),
-      )
       const dispatchAdmissionRef = ref(
         admission.admissionId,
         admission.admissionHash,
@@ -432,16 +436,6 @@ export function createCanonicalSam31PrivateCompleteSourceTaskMaterializationOwne
           sourceMedia,
           privateTaskInputTransportRef: chunk.privateTaskInputTransportRef,
           stagedAt: request.materializedAt,
-        }),
-      )
-      const admissionConsumptionRef = ref(
-        `${privateAdmission.fundedDispatchAdmission.fundedAdmissionId}:private-consumption`,
-        sha256AuthorityValue({
-          privateInternalFundedAdmissionHash:
-            privateAdmission.privateInternalFundedAdmissionHash,
-          executionPlanRef: request.executionPlanRef,
-          chunkOrdinal: chunk.chunkOrdinal,
-          executionEnvelopeRef,
         }),
       )
       const task = buildCanonicalSam31GpuTaskRecord({
@@ -745,6 +739,7 @@ function assertDependencies(input: {
     CanonicalSam31PrivateCompleteSourceChunkTerminalReadPort
   privateInputStagingPort: CanonicalSam31GpuPrivateInputStagingPort
   taskStore: CanonicalSam31GpuTaskStore
+  gpuLifecycleStore: CanonicalProfessionalGpuExecutionReservationStore
   materializationRepository:
     CanonicalSam31PrivateCompleteSourceTaskMaterializationRepository
 }): void {
@@ -765,6 +760,10 @@ function assertDependencies(input: {
       'function'
     || input.taskStore?.schemaVersion !== 'canonical-sam3_1-gpu-task-store-v1'
     || typeof input.taskStore.persistTaskCreateOnly !== 'function'
+    || typeof input.gpuLifecycleStore?.consumeAdmissionCreateOnly !== 'function'
+    || typeof input.gpuLifecycleStore.rereadAdmissionConsumption !== 'function'
+    || typeof input.gpuLifecycleStore.createExecutionEnvelopeOnly !== 'function'
+    || typeof input.gpuLifecycleStore.rereadExecutionEnvelope !== 'function'
     || typeof input.materializationRepository?.persistCreateOnly !== 'function'
   ) throw new TypeError('SAM 3.1 private task materializer is incomplete.')
 }

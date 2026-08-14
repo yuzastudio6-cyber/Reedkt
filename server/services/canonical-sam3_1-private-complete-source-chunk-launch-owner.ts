@@ -10,9 +10,13 @@ import type {
 } from './canonical-gcs-source-analysis-lifecycle-store'
 import {
   assertCanonicalProfessionalGpuFixedTaskPreparingLaunchPort,
+  assertCanonicalProfessionalGpuJobLaunch,
   assertCanonicalProfessionalGpuRuntimeLaunchTarget,
   assertPlainSerializedData,
+  rereadCanonicalProfessionalGpuJobExecutionReservation,
+  startCanonicalProfessionalGpuReservedJob,
   type CanonicalProfessionalGpuCloudJobLaunchPort,
+  type CanonicalProfessionalGpuExecutionReservationStore,
 } from './canonical-professional-gpu-job-lifecycle-service'
 import {
   assertCanonicalSam31PrivateCompleteSourceExecutionPlan,
@@ -147,6 +151,7 @@ const launchResultPayloadSchema = z.object({
   accountEffectiveRateAuthorityRef: refSchema,
   admissionConsumptionRef: refSchema,
   executionEnvelopeRef: refSchema,
+  canonicalProfessionalLaunchRef: refSchema.nullable(),
   cloudJobCreateRequestRef: refSchema,
   cloudJobExecutionRef: refSchema.nullable(),
   providerRequestIdDigestSha256: sha256.nullable(),
@@ -179,13 +184,15 @@ function refineLaunchResult(
   const rejected = value.status ===
     'private_chunk_cloud_create_rejected_before_creation'
   const exact = created
-    ? value.cloudJobExecutionRef !== null
+    ? value.canonicalProfessionalLaunchRef !== null
+      && value.cloudJobExecutionRef !== null
       && value.providerInferenceOrSubstantiveWorkKnownExecuted ===
         'not_executed'
       && value.gpuJobDispatched
       && !value.unknownOutcomeBlocksAnyRetryUntilCanonicalReconciliation
     : rejected
       ? value.cloudJobExecutionRef === null
+        && value.canonicalProfessionalLaunchRef !== null
         && value.providerInferenceOrSubstantiveWorkKnownExecuted ===
           'not_executed'
         && !value.gpuJobDispatched
@@ -282,6 +289,8 @@ export function createCanonicalSam31PrivateCompleteSourceChunkLaunchOwner(
       CanonicalSam31PrivateCompleteSourceTaskAuthorityReadPort
     readonly launchPortResolver:
       CanonicalSam31PrivateCompleteSourceChunkLaunchPortResolver
+    readonly gpuLifecycleStore:
+      CanonicalProfessionalGpuExecutionReservationStore
     readonly repository:
       CanonicalSam31PrivateCompleteSourceChunkLaunchRepository
   },
@@ -362,11 +371,20 @@ export function createCanonicalSam31PrivateCompleteSourceChunkLaunchOwner(
         chunkOrdinal: chunk.chunkOrdinal,
       })
       if (existingResult) {
+        const canonicalLaunch = existingResult.canonicalProfessionalLaunchRef
+          ? assertCanonicalProfessionalGpuJobLaunch(
+            await input.gpuLifecycleStore.rereadLaunchRecord({
+              launchRecordId:
+                existingResult.canonicalProfessionalLaunchRef.id,
+            }),
+          )
+          : null
         assertResultLineage({
           result: existingResult,
           planRef: request.executionPlanRef,
           materialization,
           task,
+          canonicalLaunch,
         })
         return existingResult
       }
@@ -426,14 +444,49 @@ export function createCanonicalSam31PrivateCompleteSourceChunkLaunchOwner(
       }
       let launch: z.infer<typeof cloudLaunchResultSchema>
       try {
-        launch = cloudLaunchResultSchema.parse(
-          await launchPort.startOneShotJob({
+        const reservation =
+          await rereadCanonicalProfessionalGpuJobExecutionReservation({
             admission,
             target,
-            admissionConsumptionRef: task.admissionConsumptionRef,
-            executionEnvelopeRef: task.executionEnvelopeRef,
+            executionEnvelopeId: chunk.privateInvocationId,
+            store: input.gpuLifecycleStore,
+            at: request.startedAt,
+          })
+        const canonicalLaunch =
+          await startCanonicalProfessionalGpuReservedJob({
+            launchRecordId: `${chunk.privateInvocationId}:gpu-launch`,
+            reservation,
+            durableSingleUseLaunchIntentPersistedBeforeCloudCreate: true,
+            launchPort,
+            store: input.gpuLifecycleStore,
+            startedAt: request.startedAt,
+          })
+        launch = cloudLaunchResultSchema.parse({
+          disposition: canonicalLaunch.launchDisposition === 'job_created'
+            ? 'accepted'
+            : canonicalLaunch.launchDisposition ===
+                'job_rejected_before_creation'
+              ? 'rejected_before_creation'
+              : 'outcome_unknown',
+          cloudJobExecutionRef: canonicalLaunch.cloudJobExecutionRef,
+          cloudJobCreateRequestRef:
+            canonicalLaunch.cloudJobCreateRequestRef,
+          providerRequestIdDigestSha256: null,
+          observedAt: canonicalLaunch.launchedAt,
+          providerInferenceOrSubstantiveWorkKnownExecuted:
+            canonicalLaunch.providerInferenceOrSubstantiveWorkKnownExecuted,
+        })
+        return persistAndRereadResult({
+          repository: input.repository,
+          result: buildLaunchResult({
+            intent: intentReread,
+            launch,
+            canonicalProfessionalLaunchRef: ref(
+              canonicalLaunch.launchRecordId,
+              canonicalLaunch.launchHash,
+            ),
           }),
-        )
+        })
       } catch {
         return persistAndRereadResult({
           repository: input.repository,
@@ -443,10 +496,6 @@ export function createCanonicalSam31PrivateCompleteSourceChunkLaunchOwner(
           }),
         })
       }
-      return persistAndRereadResult({
-        repository: input.repository,
-        result: buildLaunchResult({ intent: intentReread, launch }),
-      })
     },
   })
 }
@@ -588,6 +637,7 @@ function buildIntent(input: {
 function buildLaunchResult(input: {
   intent: CanonicalSam31PrivateCompleteSourceChunkLaunchIntent
   launch: z.infer<typeof cloudLaunchResultSchema>
+  canonicalProfessionalLaunchRef: EvidenceRef | null
 }): CanonicalSam31PrivateCompleteSourceChunkLaunchResult {
   const created = input.launch.disposition === 'accepted'
   const rejected = input.launch.disposition === 'rejected_before_creation'
@@ -621,6 +671,8 @@ function buildLaunchResult(input: {
       input.intent.accountEffectiveRateAuthorityRef,
     admissionConsumptionRef: input.intent.admissionConsumptionRef,
     executionEnvelopeRef: input.intent.executionEnvelopeRef,
+    canonicalProfessionalLaunchRef:
+      input.canonicalProfessionalLaunchRef,
     cloudJobCreateRequestRef: input.launch.cloudJobCreateRequestRef,
     cloudJobExecutionRef: input.launch.cloudJobExecutionRef,
     providerRequestIdDigestSha256:
@@ -656,6 +708,7 @@ function buildUnknownResult(input: {
 }): CanonicalSam31PrivateCompleteSourceChunkLaunchResult {
   return buildLaunchResult({
     intent: input.intent,
+    canonicalProfessionalLaunchRef: null,
     launch: cloudLaunchResultSchema.parse({
       disposition: 'outcome_unknown',
       cloudJobExecutionRef: null,
@@ -752,6 +805,9 @@ function assertResultLineage(input: {
   planRef: EvidenceRef
   materialization: CanonicalSam31PrivateCompleteSourceTaskMaterialization
   task: ReturnType<typeof assertCanonicalSam31GpuTaskRecord>
+  canonicalLaunch: ReturnType<
+    typeof assertCanonicalProfessionalGpuJobLaunch
+  > | null
 }): void {
   if (!sameRef(input.result.executionPlanRef, input.planRef)
     || input.result.chunkOrdinal !== input.materialization.chunkOrdinal
@@ -762,7 +818,14 @@ function assertResultLineage(input: {
       ref(input.task.taskId, input.task.taskRecordHash))
     || !sameRef(input.result.runtimeRequestRef, input.task.runtimeRequestRef)
     || !sameRef(input.result.executionEnvelopeRef,
-      input.task.executionEnvelopeRef)) {
+      input.task.executionEnvelopeRef)
+    || (input.canonicalLaunch === null) !==
+      (input.result.canonicalProfessionalLaunchRef === null)
+    || (input.canonicalLaunch !== null
+      && input.result.canonicalProfessionalLaunchRef !== null
+      && !sameRef(input.result.canonicalProfessionalLaunchRef,
+        ref(input.canonicalLaunch.launchRecordId,
+          input.canonicalLaunch.launchHash)))) {
     throw new TypeError('SAM 3.1 private launch replay changed lineage.')
   }
 }
@@ -777,6 +840,7 @@ function assertDependencies(input: {
     CanonicalSam31PrivateCompleteSourceTaskAuthorityReadPort
   launchPortResolver:
     CanonicalSam31PrivateCompleteSourceChunkLaunchPortResolver
+  gpuLifecycleStore: CanonicalProfessionalGpuExecutionReservationStore
   repository: CanonicalSam31PrivateCompleteSourceChunkLaunchRepository
 }): void {
   if (typeof input.executionPlanRepository?.reread !== 'function'
@@ -791,6 +855,10 @@ function assertDependencies(input: {
     || !input.launchPortResolver.privateInternalOnly
     || input.launchPortResolver.customerOrPublicDispatchAuthorized
     || typeof input.launchPortResolver.resolve !== 'function'
+    || typeof input.gpuLifecycleStore?.rereadAdmissionConsumption !== 'function'
+    || typeof input.gpuLifecycleStore.rereadExecutionEnvelope !== 'function'
+    || typeof input.gpuLifecycleStore.rereadLaunchRecord !== 'function'
+    || typeof input.gpuLifecycleStore.createLaunchRecordOnly !== 'function'
     || typeof input.repository?.persistIntentCreateOnly !== 'function'
     || typeof input.repository?.persistResultCreateOnly !== 'function') {
     throw new TypeError('SAM 3.1 private chunk launcher is incomplete.')

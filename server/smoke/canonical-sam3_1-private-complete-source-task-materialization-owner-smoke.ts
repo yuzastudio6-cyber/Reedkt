@@ -17,6 +17,9 @@ import {
   assertCanonicalProfessionalGpuPrivateInternalFundedDispatchAdmission,
 } from '../services/canonical-professional-gpu-plan-funded-dispatch-service'
 import {
+  createCanonicalProfessionalGpuDurableLifecycleStore,
+} from '../services/canonical-professional-gpu-durable-lifecycle-store'
+import {
   assertCanonicalSam31PrivateCompleteSourceTaskMaterialization,
   canonicalSam31PrivateCompleteSourceChunkTerminalRereadSchema,
   createCanonicalSam31PrivateCompleteSourceTaskMaterializationOwner,
@@ -113,6 +116,10 @@ const materializationRepository =
     objectPort,
     prefix: 'private/smoke/sam31-private-task-materializations',
   })
+const gpuLifecycleStore = createCanonicalProfessionalGpuDurableLifecycleStore({
+  objectPort,
+  prefix: 'private/smoke/sam31-private-complete-source-lifecycle',
+})
 
 const specializedPayload: Record<string, unknown> = {
   ...(a100.context.specializedRuntimeRelease as Record<string, unknown>),
@@ -237,6 +244,7 @@ const owner =
       },
     },
     taskStore,
+    gpuLifecycleStore,
     materializationRepository,
   })
 
@@ -252,6 +260,7 @@ export const canonicalSam31PrivateCompleteSourceLaunchSmokeFixture =
     planRef,
     planRepository,
     taskStore,
+    gpuLifecycleStore,
     materializationRepository,
     first,
     authorityForChunk,

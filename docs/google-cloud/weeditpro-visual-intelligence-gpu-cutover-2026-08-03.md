@@ -41,9 +41,14 @@ not authorize public or production use.
   canonical fixed-task-preparing SAM 3.1 port; a raw cloud port is rejected
   before invocation. An identical replay starts no second job, while an
   uncertain cloud-create outcome is persisted as unknown and blocks every
-  retry or fallback until canonical reconciliation. Successful private launch
-  evidence still leaves customer credits, public dispatch, QA approval,
-  delivery, and production authority false.
+  retry or fallback until canonical reconciliation. The materialization step
+  now reserves and exact-rereads the shared professional GPU admission and
+  execution envelope, and a successful start persists the shared canonical GPU
+  launch record. Existing result-finalization, terminal-cost, and complete-
+  source performance owners can therefore consume the run without a cast or a
+  parallel lifecycle. Successful private launch evidence still leaves customer
+  credits, public dispatch, QA approval, delivery, and production authority
+  false.
 
 ## 2026-08-10 Vertex transport and same-region fallback source milestone
 

@@ -85,6 +85,18 @@ assert.equal(created.customerCreditsMutated, false)
 assert.equal(created.customerOrPublicDispatchAuthorized, false)
 assert.equal(created.productionAuthorityGranted, false)
 assert.equal(launchCalls, 1)
+assert.notEqual(created.canonicalProfessionalLaunchRef, null)
+const canonicalLaunch = await fixture.gpuLifecycleStore.rereadLaunchRecord({
+  launchRecordId: created.canonicalProfessionalLaunchRef!.id,
+})
+assert.equal(
+  canonicalLaunch?.launchHash,
+  created.canonicalProfessionalLaunchRef?.contentHash.slice(7),
+)
+assert.equal(
+  canonicalLaunch?.executionEnvelopeRef.contentHash,
+  fixture.first.executionEnvelopeRef.contentHash,
+)
 assert.deepEqual(
   assertCanonicalSam31PrivateCompleteSourceChunkLaunchResult(created),
   created,
@@ -129,14 +141,15 @@ const rawPortOwner = createOwner({
 })
 const rawPortRejected = await rawPortOwner.start({
   executionPlanRef: fixture.planRef,
-  chunkOrdinal: 1,
-  startedAt: '2026-08-13T16:12:00.000Z',
+  chunkOrdinal: 2,
+  startedAt: '2026-08-13T16:14:00.000Z',
 })
 assert.equal(
   rawPortRejected.status,
   'private_chunk_cloud_create_outcome_unknown_requires_reconciliation',
 )
 assert.equal(rawPortRejected.gpuJobDispatched, false)
+assert.equal(rawPortRejected.canonicalProfessionalLaunchRef, null)
 assert.equal(
   rawPortRejected.unknownOutcomeBlocksAnyRetryUntilCanonicalReconciliation,
   true,
@@ -174,8 +187,8 @@ const thrownOwner = createOwner({
 })
 const unknown = await thrownOwner.start({
   executionPlanRef: fixture.planRef,
-  chunkOrdinal: 1,
-  startedAt: '2026-08-13T16:12:00.000Z',
+  chunkOrdinal: 2,
+  startedAt: '2026-08-13T16:14:00.000Z',
 })
 assert.equal(
   unknown.status,
@@ -183,20 +196,22 @@ assert.equal(
 )
 assert.equal(unknown.gpuJobDispatched, false)
 assert.equal(unknown.providerInferenceOrSubstantiveWorkKnownExecuted, 'unknown')
+assert.notEqual(unknown.canonicalProfessionalLaunchRef, null)
 assert.equal(thrownCalls, 1)
 const unknownReplay = await thrownOwner.start({
   executionPlanRef: fixture.planRef,
-  chunkOrdinal: 1,
-  startedAt: '2026-08-13T16:12:00.000Z',
+  chunkOrdinal: 2,
+  startedAt: '2026-08-13T16:14:00.000Z',
 })
 assert.equal(unknownReplay.resultHash, unknown.resultHash)
 assert.equal(thrownCalls, 1)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-private-complete-source-chunk-launch-owner',
-  checks: 35,
+  checks: 40,
   durableSingleUseIntentBeforeCloudCreate: true,
   exactReplayStartedNoSecondCloudJob: true,
+  canonicalLifecycleLaunchPersistedAndReread: true,
   rawCloudLaunchPortRejectedBeforeCall: true,
   unknownOutcomeBlockedRetry: true,
   userTriggeredScaleFromZero: created.userTriggeredScaleFromZero,
@@ -240,6 +255,7 @@ function createOwner(input: {
         return input.resolveLaunchPort()
       },
     },
+    gpuLifecycleStore: fixture.gpuLifecycleStore,
     repository: input.repository,
   })
 }

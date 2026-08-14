@@ -530,6 +530,349 @@ export interface CanonicalProfessionalGpuJobLifecycleStore {
   }): Promise<'created' | 'already_exists'>
 }
 
+export interface CanonicalProfessionalGpuExecutionReservationStore
+  extends CanonicalProfessionalGpuJobLifecycleStore {
+  rereadAdmissionConsumption(input: {
+    readonly admissionId: string
+  }): Promise<CanonicalProfessionalGpuAdmissionConsumption | null>
+  rereadLaunchRecord(input: {
+    readonly launchRecordId: string
+  }): Promise<CanonicalProfessionalGpuJobLaunch | null>
+}
+
+export interface CanonicalProfessionalGpuExecutionReservation {
+  readonly admission: CanonicalProfessionalToolGpuDispatchAdmission
+  readonly target: CanonicalProfessionalGpuRuntimeLaunchTarget
+  readonly consumption: CanonicalProfessionalGpuAdmissionConsumption
+  readonly envelope: CanonicalProfessionalGpuExecutionEnvelope
+  readonly admissionConsumptionRef: z.infer<typeof evidenceRefSchema>
+  readonly executionEnvelopeRef: z.infer<typeof evidenceRefSchema>
+  readonly persistenceDisposition: 'created' | 'identical_replay'
+}
+
+export async function reserveCanonicalProfessionalGpuJobExecution(input: {
+  readonly admission: unknown
+  readonly target: unknown
+  readonly executionEnvelopeId: string
+  readonly store: CanonicalProfessionalGpuExecutionReservationStore
+  readonly reservedAt: string
+}): Promise<CanonicalProfessionalGpuExecutionReservation> {
+  const admission = assertCanonicalProfessionalToolGpuDispatchAdmission(
+    input.admission,
+  )
+  const target = assertCanonicalProfessionalGpuRuntimeLaunchTarget(
+    input.target,
+  )
+  assertAdmissionTargetAndTime({
+    admission,
+    target,
+    at: input.reservedAt,
+  })
+  const envelopeId = safeId.parse(input.executionEnvelopeId)
+  const consumptionPayload = admissionConsumptionWithoutHashSchema.parse({
+    schemaVersion: 'canonical-professional-gpu-admission-consumption-v1',
+    source: 'canonical_professional_gpu_job_lifecycle_owner',
+    admissionRef: ref(admission.admissionId, admission.admissionHash),
+    admissionHash: admission.admissionHash,
+    runtimeReleaseRef: admission.runtimeReleaseRef,
+    executionAttemptRef: admission.scope.executionAttemptRef,
+    approvedWorkItemRef: admission.scope.approvedWorkItemRef,
+    fundedReservationRef: admission.scope.fundedReservationRef,
+    userTriggerRecordRef: admission.scope.userTriggerRecordRef,
+    idempotencyKey: admission.scope.idempotencyKey,
+    toolId: admission.toolId,
+    operationId: admission.operationId,
+    routeId: admission.routeId,
+    consumedBeforeCloudJobCreation: true,
+    oneAdmissionMayCreateAtMostOneCloudJob: true,
+    retryAfterUnknownOutcomeAllowed: false,
+    customerCreditsMutated: false,
+    consumedAt: input.reservedAt,
+  })
+  const consumption = admissionConsumptionSchema.parse({
+    ...consumptionPayload,
+    consumptionHash: sha256AuthorityValue(consumptionPayload),
+  })
+  const consumptionDisposition =
+    await input.store.consumeAdmissionCreateOnly({ record: consumption })
+  const consumptionReread = assertCanonicalProfessionalGpuAdmissionConsumption(
+    await input.store.rereadAdmissionConsumption({
+      admissionId: admission.admissionId,
+    }),
+  )
+  if (consumptionReread.consumptionHash !== consumption.consumptionHash) {
+    throw new Error('GPU admission-consumption reservation changed.')
+  }
+  const admissionConsumptionRef = ref(
+    consumption.admissionRef.id,
+    consumption.consumptionHash,
+  )
+  const envelopePayload = executionEnvelopeWithoutHashSchema.parse({
+    schemaVersion: CANONICAL_PROFESSIONAL_GPU_EXECUTION_ENVELOPE_VERSION,
+    source: 'canonical_professional_gpu_job_lifecycle_owner',
+    envelopeId,
+    admissionRef: consumption.admissionRef,
+    admissionConsumptionRef,
+    runtimeReleaseRef: target.releaseRef,
+    approvedSnapshotRef: admission.scope.approvedSnapshotRef,
+    confirmedOutputFrameRef: admission.scope.confirmedOutputFrameRef,
+    masterTimingRef: admission.scope.masterTimingRef,
+    approvedWorkItemRef: admission.scope.approvedWorkItemRef,
+    workerLeaseRef: admission.scope.workerLeaseRef,
+    fundedReservationRef: admission.scope.fundedReservationRef,
+    userTriggerRecordRef: admission.scope.userTriggerRecordRef,
+    executionAttemptRef: admission.scope.executionAttemptRef,
+    fixedServerTaskContractRef: target.fixedServerTaskContractRef,
+    toolId: admission.toolId,
+    operationId: admission.operationId,
+    routeId: admission.routeId,
+    immutableImageDigest: target.immutableImageDigest,
+    byteFreeEnvelope: true,
+    privateWorkerRereadsEnvelopeByExactRef: true,
+    callerCodeCommandImageModelPathUrlOrEnvironmentIncluded: false,
+    rawChatMediaBytesCredentialsOrSecretsIncluded: false,
+    runtimeDownloadAllowed: false,
+    cpuOnlySubstantiveExecutionAllowed: false,
+    createdBeforeCloudJob: true,
+    createOnlyAndExactRereadRequired: true,
+  })
+  const envelope = canonicalProfessionalGpuExecutionEnvelopeSchema.parse({
+    ...envelopePayload,
+    envelopeHash: sha256AuthorityValue(envelopePayload),
+  })
+  const envelopeDisposition = await input.store.createExecutionEnvelopeOnly({
+    record: envelope,
+  })
+  const envelopeReread = assertCanonicalProfessionalGpuExecutionEnvelope(
+    await input.store.rereadExecutionEnvelope({ envelopeId }),
+  )
+  if (envelopeReread.envelopeHash !== envelope.envelopeHash) {
+    throw new Error('GPU execution-envelope reservation changed.')
+  }
+  if ((consumptionDisposition === 'created') !==
+    (envelopeDisposition === 'created')) {
+    throw new Error('GPU execution reservation is only partially persisted.')
+  }
+  return Object.freeze({
+    admission,
+    target,
+    consumption: consumptionReread,
+    envelope: envelopeReread,
+    admissionConsumptionRef,
+    executionEnvelopeRef: ref(envelope.envelopeId, envelope.envelopeHash),
+    persistenceDisposition: consumptionDisposition === 'created'
+      ? 'created' as const : 'identical_replay' as const,
+  })
+}
+
+export async function rereadCanonicalProfessionalGpuJobExecutionReservation(
+  input: {
+    readonly admission: unknown
+    readonly target: unknown
+    readonly executionEnvelopeId: string
+    readonly store: CanonicalProfessionalGpuExecutionReservationStore
+    readonly at: string
+  },
+): Promise<CanonicalProfessionalGpuExecutionReservation> {
+  const admission = assertCanonicalProfessionalToolGpuDispatchAdmission(
+    input.admission,
+  )
+  const target = assertCanonicalProfessionalGpuRuntimeLaunchTarget(
+    input.target,
+  )
+  assertAdmissionTargetAndTime({ admission, target, at: input.at })
+  const consumption = assertCanonicalProfessionalGpuAdmissionConsumption(
+    await input.store.rereadAdmissionConsumption({
+      admissionId: admission.admissionId,
+    }),
+  )
+  const envelopeId = safeId.parse(input.executionEnvelopeId)
+  const envelope = assertCanonicalProfessionalGpuExecutionEnvelope(
+    await input.store.rereadExecutionEnvelope({ envelopeId }),
+  )
+  const admissionConsumptionRef = ref(
+    consumption.admissionRef.id,
+    consumption.consumptionHash,
+  )
+  const executionEnvelopeRef = ref(envelope.envelopeId, envelope.envelopeHash)
+  if (!sameRef(consumption.admissionRef,
+    ref(admission.admissionId, admission.admissionHash))
+    || !sameRef(consumption.runtimeReleaseRef, target.releaseRef)
+    || !sameRef(envelope.admissionRef, consumption.admissionRef)
+    || !sameRef(envelope.admissionConsumptionRef, admissionConsumptionRef)
+    || !sameRef(envelope.runtimeReleaseRef, target.releaseRef)
+    || !sameRef(envelope.executionAttemptRef,
+      admission.scope.executionAttemptRef)
+    || !sameRef(envelope.fixedServerTaskContractRef,
+      target.fixedServerTaskContractRef)
+    || envelope.toolId !== admission.toolId
+    || envelope.operationId !== admission.operationId
+    || envelope.routeId !== admission.routeId
+    || envelope.immutableImageDigest !== target.immutableImageDigest) {
+    throw new Error('GPU execution reservation lineage changed.')
+  }
+  return Object.freeze({
+    admission,
+    target,
+    consumption,
+    envelope,
+    admissionConsumptionRef,
+    executionEnvelopeRef,
+    persistenceDisposition: 'identical_replay' as const,
+  })
+}
+
+export async function startCanonicalProfessionalGpuReservedJob(input: {
+  readonly launchRecordId: string
+  readonly reservation: CanonicalProfessionalGpuExecutionReservation
+  readonly durableSingleUseLaunchIntentPersistedBeforeCloudCreate: true
+  readonly launchPort: CanonicalProfessionalGpuCloudJobLaunchPort
+  readonly store: CanonicalProfessionalGpuExecutionReservationStore
+  readonly startedAt: string
+}): Promise<CanonicalProfessionalGpuJobLaunch> {
+  const launchRecordId = safeId.parse(input.launchRecordId)
+  const { admission, target, admissionConsumptionRef, executionEnvelopeRef } =
+    input.reservation
+  assertAdmissionTargetAndTime({ admission, target, at: input.startedAt })
+  assertCanonicalProfessionalGpuFixedTaskPreparingLaunchPort({
+    launchPort: input.launchPort,
+    toolId: admission.toolId,
+    operationId: admission.operationId,
+    fixedServerTaskContractRef: target.fixedServerTaskContractRef,
+  })
+  const existing = await input.store.rereadLaunchRecord({ launchRecordId })
+  if (existing) return assertCanonicalProfessionalGpuJobLaunch(existing)
+  const launchResult = await callCloudLaunchPort({
+    admission,
+    target,
+    admissionConsumptionRef,
+    executionEnvelopeRef,
+    launchPort: input.launchPort,
+    startedAt: input.startedAt,
+  })
+  const record = buildCanonicalProfessionalGpuJobLaunchRecord({
+    launchRecordId,
+    admission,
+    target,
+    admissionConsumptionRef,
+    executionEnvelopeRef,
+    launchResult,
+  })
+  if (await input.store.createLaunchRecordOnly({ record }) !== 'created') {
+    throw new Error('GPU reserved launch record already exists.')
+  }
+  const reread = assertCanonicalProfessionalGpuJobLaunch(
+    await input.store.rereadLaunchRecord({ launchRecordId }),
+  )
+  if (reread.launchHash !== record.launchHash) {
+    throw new Error('GPU reserved launch record changed after persistence.')
+  }
+  return reread
+}
+
+function assertAdmissionTargetAndTime(input: {
+  admission: CanonicalProfessionalToolGpuDispatchAdmission
+  target: CanonicalProfessionalGpuRuntimeLaunchTarget
+  at: string
+}): void {
+  if (Date.parse(input.at) < Date.parse(input.admission.admittedAt)
+    || Date.parse(input.at) >= Date.parse(input.admission.expiresAt)
+    || !sameRef(input.target.releaseRef,
+      input.admission.runtimeReleaseRef)
+    || input.target.toolId !== input.admission.toolId
+    || input.target.operationId !== input.admission.operationId
+    || input.target.routeId !== input.admission.routeId) {
+    throw new Error('GPU reservation differs from current dispatch authority.')
+  }
+}
+
+async function callCloudLaunchPort(input: {
+  admission: CanonicalProfessionalToolGpuDispatchAdmission
+  target: CanonicalProfessionalGpuRuntimeLaunchTarget
+  admissionConsumptionRef: z.infer<typeof evidenceRefSchema>
+  executionEnvelopeRef: z.infer<typeof evidenceRefSchema>
+  launchPort: CanonicalProfessionalGpuCloudJobLaunchPort
+  startedAt: string
+}): Promise<CanonicalProfessionalGpuCloudLaunchResult> {
+  try {
+    const value = await input.launchPort.startOneShotJob({
+      admission: input.admission,
+      target: input.target,
+      admissionConsumptionRef: input.admissionConsumptionRef,
+      executionEnvelopeRef: input.executionEnvelopeRef,
+    })
+    assertPlainSerializedData(value, 'gpu_reserved_cloud_launch_result')
+    return cloudLaunchResultSchema.parse(value)
+  } catch {
+    return cloudLaunchResultSchema.parse({
+      disposition: 'outcome_unknown',
+      cloudJobExecutionRef: null,
+      cloudJobCreateRequestRef: ref(
+        `${input.admission.admissionId}.cloud-create-unknown`,
+        input.admission.admissionHash,
+      ),
+      providerRequestIdDigestSha256: null,
+      observedAt: input.startedAt,
+      providerInferenceOrSubstantiveWorkKnownExecuted: 'unknown',
+    })
+  }
+}
+
+function buildCanonicalProfessionalGpuJobLaunchRecord(input: {
+  launchRecordId: string
+  admission: CanonicalProfessionalToolGpuDispatchAdmission
+  target: CanonicalProfessionalGpuRuntimeLaunchTarget
+  admissionConsumptionRef: z.infer<typeof evidenceRefSchema>
+  executionEnvelopeRef: z.infer<typeof evidenceRefSchema>
+  launchResult: CanonicalProfessionalGpuCloudLaunchResult
+}): CanonicalProfessionalGpuJobLaunch {
+  const launchDisposition = input.launchResult.disposition === 'accepted'
+    ? 'job_created' as const
+    : input.launchResult.disposition === 'rejected_before_creation'
+      ? 'job_rejected_before_creation' as const
+      : 'job_creation_outcome_unknown' as const
+  const payload = launchWithoutHashSchema.parse({
+    schemaVersion: CANONICAL_PROFESSIONAL_GPU_JOB_LAUNCH_VERSION,
+    source: 'canonical_professional_gpu_job_lifecycle_owner',
+    launchRecordId: input.launchRecordId,
+    admissionRef: ref(
+      input.admission.admissionId,
+      input.admission.admissionHash,
+    ),
+    admissionConsumptionRef: input.admissionConsumptionRef,
+    runtimeReleaseRef: input.target.releaseRef,
+    executionEnvelopeRef: input.executionEnvelopeRef,
+    toolId: input.admission.toolId,
+    operationId: input.admission.operationId,
+    routeId: input.target.routeId,
+    runtimeRegion: input.target.runtimeRegion,
+    executionTarget: input.target.executionTarget,
+    accelerator: input.target.accelerator,
+    immutableImageDigest: input.target.immutableImageDigest,
+    cloudJobCreateRequestRef: input.launchResult.cloudJobCreateRequestRef,
+    cloudJobExecutionRef: input.launchResult.cloudJobExecutionRef,
+    launchDisposition,
+    providerInferenceOrSubstantiveWorkKnownExecuted:
+      input.launchResult.providerInferenceOrSubstantiveWorkKnownExecuted,
+    createOnlyAdmissionConsumedBeforeLaunch: true,
+    duplicateLaunchAllowed: false,
+    unknownOutcomeRetryAllowed: false,
+    noApprovedAdmissionMeansZeroGpuJobs: true,
+    minimumIdleInstances: 0,
+    prewarmingKeepaliveOrAlwaysOnPoolAllowed: false,
+    cpuOnlySubstantiveExecutionAllowed: false,
+    customerCreditsMutated: false,
+    qaApproved: false,
+    publicDeliveryAuthorized: false,
+    productionAuthorityGranted: false,
+    launchedAt: input.launchResult.observedAt,
+  })
+  return canonicalProfessionalGpuJobLaunchSchema.parse({
+    ...payload,
+    launchHash: sha256AuthorityValue(payload),
+  })
+}
+
 export async function startCanonicalProfessionalGpuJob(input: {
   readonly launchRecordId: string
   readonly admission: unknown

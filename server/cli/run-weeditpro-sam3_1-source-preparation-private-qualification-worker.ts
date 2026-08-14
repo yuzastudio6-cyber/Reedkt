@@ -1,6 +1,7 @@
 import { Storage } from '@google-cloud/storage'
 import { z } from 'zod'
 
+import { ApiError } from '../errors/api-error'
 import {
   createCanonicalGcsSourceAnalysisJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
@@ -242,6 +243,7 @@ try {
             : {}),
         }))
       : [],
+    canonicalFailure: canonicalFailure(error),
     gpuProcessState: gpuProcessEntered
       ? 'unknown_requires_terminal_reconciliation'
       : 'not_started',
@@ -254,4 +256,21 @@ try {
     productionAuthorityGranted: false,
   }))
   process.exitCode = 1
+}
+
+function canonicalFailure(error: unknown) {
+  if (!(error instanceof ApiError)) return null
+  const details = error.details
+  const requiredGate = details && typeof details === 'object'
+    && Object.getPrototypeOf(details) === Object.prototype
+    && typeof (details as { requiredGate?: unknown }).requiredGate === 'string'
+    && /^sam31_source_preparation_[a-z0-9_]+$/u.test(
+      (details as { requiredGate: string }).requiredGate,
+    )
+    ? (details as { requiredGate: string }).requiredGate
+    : null
+  return Object.freeze({
+    code: error.code,
+    requiredGate,
+  })
 }

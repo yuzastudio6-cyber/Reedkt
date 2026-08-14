@@ -79,6 +79,15 @@ assert.match(
   serverBuild,
   /run-weeditpro-sam3_1-source-preparation-private-qualification-worker\.ts/u,
 )
+const qualificationEntrypoint = readFileSync(
+  'server/cli/run-weeditpro-sam3_1-source-preparation-private-qualification-worker.ts',
+  'utf8',
+)
+assert.match(qualificationEntrypoint, /canonicalFailure: canonicalFailure/u)
+assert.match(qualificationEntrypoint,
+  /\^sam31_source_preparation_\[a-z0-9_\]\+\$/u)
+assert.doesNotMatch(qualificationEntrypoint,
+  /error\.message|error\.stack|internalCause/u)
 
 assert.match(operator, /git status --porcelain --untracked-files=all/u)
 assert.match(operator, /git merge-base --is-ancestor/u)
@@ -135,7 +144,7 @@ assert.doesNotMatch(dockerfile, /FROM python|pip install|sam2|sam2\.1/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-eight-minute-source-preparation-image-build',
-  checks: 69,
+  checks: 72,
   product: 'WeEditPro',
   exactCleanPublishedGitArchiveRequired: true,
   purposeBoundL4Image: true,

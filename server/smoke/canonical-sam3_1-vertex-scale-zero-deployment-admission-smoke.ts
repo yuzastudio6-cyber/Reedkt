@@ -9,8 +9,10 @@ import {
   type CanonicalSam31VertexCloudImageBuildAuthority,
 } from '../model-artifacts/canonical-sam3_1-vertex-cloud-image-build-authority'
 import {
+  assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2,
   observeCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority,
   type CanonicalCurrentGoogleCloudVertexA100ServingRateAuthority,
+  type CanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2,
 } from '../tool-cost-metering/canonical-current-google-cloud-vertex-a100-serving-rate-authority'
 import {
   admitCanonicalSam31VertexScaleZeroDeploymentProfile,
@@ -126,6 +128,28 @@ const accountEffectiveRateAuthorityRef = {
   version: authority.rateAuthorityVersion,
   contentHash: `sha256:${authority.rateAuthorityHash}` as const,
 }
+const { rateAuthorityHash: _v1RateHash, ...v1RatePayload } = authority
+void _v1RateHash
+const v2RatePayload = {
+  ...v1RatePayload,
+  schemaVersion:
+    'canonical-current-google-cloud-vertex-a100-serving-rate-authority-v2' as const,
+  rateAuthorityId: 'vertex-a100-serving-rate:admission-smoke-v2',
+  endpointCapacityObservationRef: ref('vertex-capacity-observation', '9'),
+  maximumConcurrentInvocations: 1,
+  exactCurrentEndpointCapacityReread: true as const,
+  perReplicaPricingNotMultipliedByConfiguredMaximum: true as const,
+}
+const v2RateAuthority =
+  assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2({
+    ...v2RatePayload,
+    rateAuthorityHash: sha256AuthorityValue(v2RatePayload),
+  })
+const v2RateAuthorityRef = {
+  id: v2RateAuthority.rateAuthorityId,
+  version: v2RateAuthority.rateAuthorityVersion,
+  contentHash: `sha256:${v2RateAuthority.rateAuthorityHash}` as const,
+}
 const quotaAuthority =
   await observeCanonicalCurrentGoogleCloudVertexA100ServingQuotaAuthority({
     quotaAuthorityId: 'vertex-serving-a100-quota',
@@ -212,7 +236,10 @@ const request = {
   accountEffectiveRateAuthorityRef,
   recordedAt: '2026-08-11T18:00:01.000Z',
 }
-const repository = (value: CanonicalCurrentGoogleCloudVertexA100ServingRateAuthority | null) => ({
+const repository = (value:
+  | CanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2
+  | CanonicalCurrentGoogleCloudVertexA100ServingRateAuthority
+  | null) => ({
   async persistCreateOnly(): Promise<never> {
     throw new Error('not used')
   },
@@ -272,6 +299,47 @@ assert.equal(
   false,
 )
 assert.equal(profile.qualificationGate.customerDispatchAllowed, false)
+
+const v2Profile = await admitCanonicalSam31VertexScaleZeroDeploymentProfile({
+  request: {
+    ...request,
+    accountEffectiveRateAuthorityRef: v2RateAuthorityRef,
+  },
+  rateAuthorityRepository: repository(v2RateAuthority),
+  quotaAuthorityRepository: quotaRepository(quotaAuthority),
+  imageSupplyChainReleaseRepository:
+    imageReleaseRepository(imageSupplyChainRelease),
+  imageBuildRepository: imageBuildRepository(imageBuildAuthority),
+  sourceCheckpointQualificationReleaseReadPort:
+    sourceReleaseReadPort(sourceCheckpointRelease),
+})
+assert.equal(v2Profile.accountEffectiveRateAuthorityRef.id,
+  'vertex-a100-serving-rate:admission-smoke-v2')
+
+const { rateAuthorityHash: _invalidV2Hash, ...invalidV2Payload } = {
+  ...v2RateAuthority,
+  maximumConcurrentInvocations: 2,
+}
+void _invalidV2Hash
+await assert.rejects(() => admitCanonicalSam31VertexScaleZeroDeploymentProfile({
+  request: {
+    ...request,
+    accountEffectiveRateAuthorityRef: {
+      ...v2RateAuthorityRef,
+      contentHash: `sha256:${sha256AuthorityValue(invalidV2Payload)}`,
+    },
+  },
+  rateAuthorityRepository: repository({
+    ...invalidV2Payload,
+    rateAuthorityHash: sha256AuthorityValue(invalidV2Payload),
+  } as CanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2),
+  quotaAuthorityRepository: quotaRepository(quotaAuthority),
+  imageSupplyChainReleaseRepository:
+    imageReleaseRepository(imageSupplyChainRelease),
+  imageBuildRepository: imageBuildRepository(imageBuildAuthority),
+  sourceCheckpointQualificationReleaseReadPort:
+    sourceReleaseReadPort(sourceCheckpointRelease),
+}))
 
 await assert.rejects(() => admitCanonicalSam31VertexScaleZeroDeploymentProfile({
   request,
@@ -363,7 +431,7 @@ await assert.rejects(() => admitCanonicalSam31VertexScaleZeroDeploymentProfile({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-scale-zero-deployment-admission',
-  checks: 21,
+  checks: 25,
   accountEffectiveServingRateReread: true,
   liveServingQuotaReread: true,
   exactImageSupplyChainReleaseReread: true,
@@ -371,6 +439,8 @@ console.log(JSON.stringify({
   exactCurrentSourceCheckpointReleaseReread: true,
   callerSuppliedRateRefAloneAccepted: false,
   currentEvidenceVersionsAccepted: true,
+  currentServingRateV2Accepted: true,
+  v2CapacityMismatchRejected: true,
   prematureRuntimeReleaseRejected: true,
   endpointOrGpuJobStarted: false,
   customerDispatchAllowed: false,

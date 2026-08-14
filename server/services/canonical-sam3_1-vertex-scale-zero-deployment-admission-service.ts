@@ -16,6 +16,9 @@ import {
 } from '../model-artifacts/canonical-sam3_1-source-checkpoint-qualified-authority'
 import {
   assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority,
+  assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2,
+  type CanonicalCurrentGoogleCloudVertexA100ServingRateAuthority,
+  type CanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2,
 } from '../tool-cost-metering/canonical-current-google-cloud-vertex-a100-serving-rate-authority'
 import type {
   CanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityRepository,
@@ -121,11 +124,13 @@ export async function admitCanonicalSam31VertexScaleZeroDeploymentProfile(
       'Current SAM 3.1 image, checkpoint, rate, or quota authority was not found.',
     )
   }
-  const rateAuthority =
-    assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority(
-      untrustedRateAuthority,
-      request.recordedAt,
-    )
+  const rateAuthority = assertServingRateAuthority(
+    untrustedRateAuthority,
+    request.recordedAt,
+  )
+  const rateAuthorityV2 = rateAuthority.schemaVersion ===
+    'canonical-current-google-cloud-vertex-a100-serving-rate-authority-v2'
+      ? rateAuthority : null
   const exactRateReference = {
     id: rateAuthority.rateAuthorityId,
     version: rateAuthority.rateAuthorityVersion,
@@ -179,6 +184,11 @@ export async function admitCanonicalSam31VertexScaleZeroDeploymentProfile(
     || rateAuthority.acceleratorCount !== 1
     || rateAuthority.minimumReplicaCount !== 0
     || rateAuthority.maximumReplicaCount !== 1
+    || (rateAuthorityV2 !== null && (
+      rateAuthorityV2.maximumConcurrentInvocations !== 1
+      || !rateAuthorityV2.exactCurrentEndpointCapacityReread
+      || !rateAuthorityV2.perReplicaPricingNotMultipliedByConfiguredMaximum
+    ))
     || rateAuthority.minimumWarmBillingWindowSeconds !== 300
     || rateAuthority.trainingOrCustomJobSkuSetIncluded
     || rateAuthority.computeEngineVmSkuSetIncluded
@@ -252,4 +262,25 @@ export async function admitCanonicalSam31VertexScaleZeroDeploymentProfile(
     )
   }
   return createCanonicalSam31VertexScaleZeroDeploymentProfile(request)
+}
+
+function assertServingRateAuthority(
+  value: unknown,
+  at: string,
+): CanonicalCurrentGoogleCloudVertexA100ServingRateAuthority
+  | CanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2 {
+  if (
+    value && typeof value === 'object'
+    && Reflect.get(value, 'schemaVersion') ===
+      'canonical-current-google-cloud-vertex-a100-serving-rate-authority-v2'
+  ) {
+    return assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2(
+      value,
+      at,
+    )
+  }
+  return assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthority(
+    value,
+    at,
+  )
 }

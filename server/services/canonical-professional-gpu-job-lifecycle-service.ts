@@ -480,6 +480,32 @@ export function createCanonicalProfessionalGpuFixedTaskPreparingLaunchPort(
   return port
 }
 
+export function assertCanonicalProfessionalGpuFixedTaskPreparingLaunchPort(
+  input: {
+    readonly launchPort: CanonicalProfessionalGpuCloudJobLaunchPort
+    readonly toolId: string
+    readonly operationId: string
+    readonly fixedServerTaskContractRef: z.infer<typeof evidenceRefSchema>
+  },
+): CanonicalProfessionalGpuCloudJobLaunchPort {
+  const descriptor = fixedTaskPreparingLaunchPorts.get(input.launchPort)
+  if (!descriptor
+    || descriptor.toolId !== input.toolId
+    || descriptor.operationId !== input.operationId
+    || descriptor.fixedServerTaskContractRef.id !==
+      input.fixedServerTaskContractRef.id
+    || descriptor.fixedServerTaskContractRef.version !==
+      input.fixedServerTaskContractRef.version
+    || descriptor.fixedServerTaskContractRef.contentHash !==
+      input.fixedServerTaskContractRef.contentHash) {
+    throw new Error(
+      `${input.toolId} ${input.operationId} requires its canonical fixed-task `
+      + 'preparing launch port.',
+    )
+  }
+  return input.launchPort
+}
+
 export interface CanonicalProfessionalGpuTerminalObservationPort {
   rereadTerminalUsagePriceAndCost(input: {
     readonly launch: CanonicalProfessionalGpuJobLaunch
@@ -714,21 +740,12 @@ function assertFixedTaskPreparingLaunchPortRequired(input: {
       && input.admission.operationId === 'tool.kornia.refine_mask.v1'
     )
   if (!requiresCanonicalFixedTaskPreparation) return
-  const descriptor = fixedTaskPreparingLaunchPorts.get(input.launchPort)
-  if (!descriptor
-    || descriptor.toolId !== input.admission.toolId
-    || descriptor.operationId !== input.admission.operationId
-    || descriptor.fixedServerTaskContractRef.id !==
-      input.target.fixedServerTaskContractRef.id
-    || descriptor.fixedServerTaskContractRef.version !==
-      input.target.fixedServerTaskContractRef.version
-    || descriptor.fixedServerTaskContractRef.contentHash !==
-      input.target.fixedServerTaskContractRef.contentHash) {
-    throw new Error(
-      `${input.admission.toolId} ${input.admission.operationId} requires `
-      + 'its canonical fixed-task preparing launch port.',
-    )
-  }
+  assertCanonicalProfessionalGpuFixedTaskPreparingLaunchPort({
+    launchPort: input.launchPort,
+    toolId: input.admission.toolId,
+    operationId: input.admission.operationId,
+    fixedServerTaskContractRef: input.target.fixedServerTaskContractRef,
+  })
 }
 
 export async function recordCanonicalProfessionalGpuJobTerminal(input: {

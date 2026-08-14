@@ -114,7 +114,7 @@ const materializationRepository =
     prefix: 'private/smoke/sam31-private-task-materializations',
   })
 
-const specializedPayload = {
+const specializedPayload: Record<string, unknown> = {
   ...(a100.context.specializedRuntimeRelease as Record<string, unknown>),
   qualifiedAt: '2026-08-13T15:30:00.000Z',
   expiresAt: '2026-08-13T16:30:00.000Z',
@@ -245,6 +245,18 @@ const first = await owner.materialize({
   chunkOrdinal: 1,
   materializedAt: '2026-08-13T16:12:00.000Z',
 })
+
+export const canonicalSam31PrivateCompleteSourceLaunchSmokeFixture =
+  Object.freeze({
+    plan,
+    planRef,
+    planRepository,
+    taskStore,
+    materializationRepository,
+    first,
+    authorityForChunk,
+  })
+
 assert.equal(owner.privateInternalOnly, true)
 assert.equal(owner.customerOrPublicDispatchAuthorized, false)
 assert.equal(first.status, 'private_chunk_task_materialized_not_dispatched')

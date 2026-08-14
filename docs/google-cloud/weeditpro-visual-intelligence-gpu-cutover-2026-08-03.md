@@ -30,6 +30,20 @@ not authorize public or production use.
   mutation, QA approval, delivery, and production authority false. The
   original customer admission still rereads the 16-capacity customer-dispatch
   authority unchanged.
+- The complete-source bridge now materializes each of the exact 49 prepared
+  chunks as a canonical fixed SAM 3.1 task and persists that task before any
+  cloud call. Chunk N+1 cannot materialize until chunk N has an exact terminal
+  response/output/account-effective-cost/scale-zero reread. This preserves a
+  maximum of one active private route attempt rather than requiring or
+  simulating public concurrency.
+- The next bridge layer now persists a create-only, single-use launch intent
+  before calling the route-specific cloud launch port. It accepts only the
+  canonical fixed-task-preparing SAM 3.1 port; a raw cloud port is rejected
+  before invocation. An identical replay starts no second job, while an
+  uncertain cloud-create outcome is persisted as unknown and blocks every
+  retry or fallback until canonical reconciliation. Successful private launch
+  evidence still leaves customer credits, public dispatch, QA approval,
+  delivery, and production authority false.
 
 ## 2026-08-10 Vertex transport and same-region fallback source milestone
 

@@ -357,6 +357,7 @@
     "smoke:sam3_1-private-internal-dispatch-readiness": "tsx server/smoke/canonical-sam3_1-private-internal-dispatch-readiness-owner-smoke.ts",
     "smoke:sam3_1-private-complete-source-execution-plan": "tsx server/smoke/canonical-sam3_1-private-complete-source-execution-plan-owner-smoke.ts",
     "smoke:sam3_1-private-complete-source-task-materialization": "tsx server/smoke/canonical-sam3_1-private-complete-source-task-materialization-owner-smoke.ts",
+    "smoke:sam3_1-private-complete-source-chunk-launch": "tsx server/smoke/canonical-sam3_1-private-complete-source-chunk-launch-owner-smoke.ts",
     "smoke:sam3_1-complete-source-chunk-coordinator": "tsx server/smoke/canonical-sam3_1-complete-source-chunk-coordinator-smoke.ts",
     "smoke:sam3_1-vertex-serving-capacity-mutation": "tsx server/smoke/canonical-sam3_1-vertex-serving-capacity-mutation-smoke.ts",
     "observe:sam3_1-complete-source-capacity": "tsx server/cli/observe-canonical-sam3_1-complete-source-capacity.ts",

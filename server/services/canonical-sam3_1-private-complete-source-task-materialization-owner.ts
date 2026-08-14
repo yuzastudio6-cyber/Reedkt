@@ -605,7 +605,8 @@ export function createCanonicalSam31PrivateCompleteSourceTaskMaterializationRepo
     }
     return record
   }
-  return Object.freeze({
+  const repository:
+    CanonicalSam31PrivateCompleteSourceTaskMaterializationRepository = {
     schemaVersion:
       'canonical-sam3_1-private-complete-source-task-materialization-repository-v1' as const,
     async persistCreateOnly({ materialization: untrusted }) {
@@ -632,7 +633,8 @@ export function createCanonicalSam31PrivateCompleteSourceTaskMaterializationRepo
     },
     reread: ({ executionPlanId, chunkOrdinal }) =>
       reread(executionPlanId, chunkOrdinal),
-  })
+  }
+  return Object.freeze(repository)
 }
 
 async function readPriorTerminal(input: {

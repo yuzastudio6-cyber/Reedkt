@@ -44,6 +44,11 @@ import {
   type CanonicalSam31CurrentA100CustomerDispatchReadinessReadPort,
 } from './canonical-sam3_1-current-a100-customer-dispatch-readiness'
 import {
+  assertCanonicalSam31PrivateInternalDispatchAllowed,
+  assertCanonicalSam31PrivateInternalDispatchReadiness,
+  type CanonicalSam31PrivateInternalDispatchReadinessReadPort,
+} from './canonical-sam3_1-private-internal-dispatch-readiness-owner'
+import {
   CANONICAL_SAM3_1_OPERATION_ID,
 } from '../model-artifacts/canonical-sam3_1-source-runtime-candidate'
 
@@ -55,6 +60,8 @@ export const CANONICAL_PROFESSIONAL_GPU_ATTEMPT_START_AUTHORITY_VERSION =
   'canonical-professional-gpu-attempt-start-authority-v1' as const
 export const CANONICAL_PROFESSIONAL_GPU_FUNDED_DISPATCH_ADMISSION_VERSION =
   'canonical-professional-gpu-funded-dispatch-admission-v1' as const
+export const CANONICAL_PROFESSIONAL_GPU_PRIVATE_INTERNAL_FUNDED_DISPATCH_ADMISSION_VERSION =
+  'canonical-professional-gpu-private-internal-funded-dispatch-admission-v1' as const
 
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -316,6 +323,51 @@ export const canonicalProfessionalGpuFundedDispatchAdmissionSchema =
 export type CanonicalProfessionalGpuFundedDispatchAdmission = z.infer<
   typeof canonicalProfessionalGpuFundedDispatchAdmissionSchema
 >
+
+const privateInternalFundedAdmissionWithoutHashSchema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_PROFESSIONAL_GPU_PRIVATE_INTERNAL_FUNDED_DISPATCH_ADMISSION_VERSION,
+  ),
+  source: z.literal(
+    'canonical_server_professional_gpu_private_internal_funded_dispatch_owner',
+  ),
+  status: z.literal('private_internal_sequential_dispatch_admitted'),
+  privateInternalDispatchReadinessRef: evidenceRefSchema,
+  fundedDispatchAdmission:
+    canonicalProfessionalGpuFundedDispatchAdmissionSchema,
+  runtimeReleaseRef: evidenceRefSchema,
+  currentRateAuthorityRef: evidenceRefSchema,
+  exactPrivateInternalReadinessReleaseAndRateReread: z.literal(true),
+  customerPlanEstimateApprovalAndReservationStillRequired: z.literal(true),
+  privateInternalQualificationOnly: z.literal(true),
+  customerOrPublicDispatchAuthorized: z.literal(false),
+  customerCreditsMutated: z.literal(false),
+  cloudJobCreated: z.literal(false),
+  qaApproved: z.literal(false),
+  publicDeliveryAuthorized: z.literal(false),
+  productionAuthorityGranted: z.literal(false),
+  admittedAt: timestamp,
+  expiresAt: timestamp,
+}).strict().superRefine((value, context) => {
+  const tool = value.fundedDispatchAdmission.toolDispatchAdmission
+  if (!sameRef(value.runtimeReleaseRef, tool.runtimeReleaseRef)
+    || !sameRef(value.currentRateAuthorityRef, tool.currentRateAuthorityRef)
+    || value.admittedAt !== value.fundedDispatchAdmission.admittedAt
+    || value.expiresAt !== value.fundedDispatchAdmission.expiresAt) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Private-internal GPU admission lost its funded lineage.',
+    })
+  }
+})
+export const canonicalProfessionalGpuPrivateInternalFundedDispatchAdmissionSchema =
+  privateInternalFundedAdmissionWithoutHashSchema.extend({
+    privateInternalFundedAdmissionHash: sha256,
+  }).strict()
+export type CanonicalProfessionalGpuPrivateInternalFundedDispatchAdmission =
+  z.infer<
+    typeof canonicalProfessionalGpuPrivateInternalFundedDispatchAdmissionSchema
+  >
 
 export interface CanonicalProfessionalGpuPlanPricingAuthorityReadPort {
   rereadPrivatePricingAuthority(input: {
@@ -649,7 +701,7 @@ export function createCanonicalProfessionalGpuAttemptStartAuthority(input: {
   }, input.triggeredAt)
 }
 
-export async function admitCanonicalProfessionalGpuPlanFundedDispatch(input: {
+type CanonicalProfessionalGpuPlanFundedDispatchBaseInput = {
   readonly fundedAdmissionId: string
   readonly workspaceId: string
   readonly snapshotId: string
@@ -662,11 +714,130 @@ export async function admitCanonicalProfessionalGpuPlanFundedDispatch(input: {
     CanonicalProfessionalGpuAttemptStartAuthorityReadPort
   readonly runtimeContextReadPort:
     CanonicalProfessionalGpuRuntimeDispatchContextReadPort
-  readonly a100CustomerDispatchReadinessReadPort?:
-    CanonicalSam31CurrentA100CustomerDispatchReadinessReadPort
   readonly admittedAt: string
   readonly expiresAt: string
-}): Promise<CanonicalProfessionalGpuFundedDispatchAdmission> {
+}
+
+export async function admitCanonicalProfessionalGpuPlanFundedDispatch(
+  input: CanonicalProfessionalGpuPlanFundedDispatchBaseInput & {
+    readonly a100CustomerDispatchReadinessReadPort?:
+      CanonicalSam31CurrentA100CustomerDispatchReadinessReadPort
+  },
+): Promise<CanonicalProfessionalGpuFundedDispatchAdmission> {
+  return admitCanonicalProfessionalGpuPlanFundedDispatchForAudience({
+    ...input,
+    dispatchAudience: 'customer_or_public',
+  })
+}
+
+export async function admitCanonicalProfessionalGpuPlanFundedPrivateInternalDispatch(
+  input: CanonicalProfessionalGpuPlanFundedDispatchBaseInput & {
+    readonly privateInternalDispatchReadinessReadPort:
+      CanonicalSam31PrivateInternalDispatchReadinessReadPort
+  },
+): Promise<CanonicalProfessionalGpuPrivateInternalFundedDispatchAdmission> {
+  let capturedReadiness: unknown = null
+  const exactReadinessPort:
+    CanonicalSam31PrivateInternalDispatchReadinessReadPort = Object.freeze({
+      schemaVersion:
+        'canonical-sam3_1-private-internal-dispatch-readiness-read-port-v1',
+      privateInternalOnly: true,
+      customerOrPublicDispatchAuthorized: false,
+      async rereadCurrent(query: Parameters<
+        CanonicalSam31PrivateInternalDispatchReadinessReadPort[
+          'rereadCurrent'
+        ]
+      >[0]) {
+        const parsed = assertCanonicalSam31PrivateInternalDispatchReadiness(
+          await input.privateInternalDispatchReadinessReadPort
+            .rereadCurrent(query),
+          query.at,
+        )
+        if (capturedReadiness !== null) {
+          const prior = assertCanonicalSam31PrivateInternalDispatchReadiness(
+            capturedReadiness,
+            query.at,
+          )
+          if (prior.readinessHash !== parsed.readinessHash) {
+            throw new TypeError(
+              'Private-internal dispatch readiness changed during admission.',
+            )
+          }
+        }
+        capturedReadiness = parsed
+        return parsed
+      },
+    })
+  const fundedDispatchAdmission =
+    await admitCanonicalProfessionalGpuPlanFundedDispatchForAudience({
+    ...input,
+    privateInternalDispatchReadinessReadPort: exactReadinessPort,
+    dispatchAudience: 'private_internal',
+  })
+  const tool = fundedDispatchAdmission.toolDispatchAdmission
+  if (tool.routeId !== 'a100_80gb_heavy_primary'
+    && tool.routeId !== 'l4_heavy_fallback') {
+    throw new TypeError('Private-internal SAM dispatch selected another tool.')
+  }
+  const reread = assertCanonicalSam31PrivateInternalDispatchReadiness(
+    capturedReadiness,
+    input.admittedAt,
+  )
+  const readiness = assertCanonicalSam31PrivateInternalDispatchAllowed({
+    readiness: reread,
+    routeId: tool.routeId,
+    runtimeReleaseRef: tool.runtimeReleaseRef,
+    rateAuthorityRef: tool.currentRateAuthorityRef,
+    immutableImageDigest: tool.routeId === 'a100_80gb_heavy_primary'
+      ? reread.a100ImmutableImageDigest
+      : reread.l4ImmutableImageDigest,
+    at: input.admittedAt,
+  })
+  const payload = privateInternalFundedAdmissionWithoutHashSchema.parse({
+    schemaVersion:
+      CANONICAL_PROFESSIONAL_GPU_PRIVATE_INTERNAL_FUNDED_DISPATCH_ADMISSION_VERSION,
+    source:
+      'canonical_server_professional_gpu_private_internal_funded_dispatch_owner',
+    status: 'private_internal_sequential_dispatch_admitted',
+    privateInternalDispatchReadinessRef: ref(
+      readiness.readinessId,
+      readiness.readinessHash,
+    ),
+    fundedDispatchAdmission,
+    runtimeReleaseRef: tool.runtimeReleaseRef,
+    currentRateAuthorityRef: tool.currentRateAuthorityRef,
+    exactPrivateInternalReadinessReleaseAndRateReread: true,
+    customerPlanEstimateApprovalAndReservationStillRequired: true,
+    privateInternalQualificationOnly: true,
+    customerOrPublicDispatchAuthorized: false,
+    customerCreditsMutated: false,
+    cloudJobCreated: false,
+    qaApproved: false,
+    publicDeliveryAuthorized: false,
+    productionAuthorityGranted: false,
+    admittedAt: input.admittedAt,
+    expiresAt: input.expiresAt,
+  })
+  return assertCanonicalProfessionalGpuPrivateInternalFundedDispatchAdmission({
+    ...payload,
+    privateInternalFundedAdmissionHash: sha256AuthorityValue(payload),
+  })
+}
+
+async function admitCanonicalProfessionalGpuPlanFundedDispatchForAudience(
+  input: CanonicalProfessionalGpuPlanFundedDispatchBaseInput & (
+    | {
+      readonly dispatchAudience: 'customer_or_public'
+      readonly a100CustomerDispatchReadinessReadPort?:
+        CanonicalSam31CurrentA100CustomerDispatchReadinessReadPort
+    }
+    | {
+      readonly dispatchAudience: 'private_internal'
+      readonly privateInternalDispatchReadinessReadPort:
+        CanonicalSam31PrivateInternalDispatchReadinessReadPort
+    }
+  ),
+): Promise<CanonicalProfessionalGpuFundedDispatchAdmission> {
   const [untrustedBundle, untrustedFunding, untrustedAttempt] =
     await Promise.all([
       input.pricingAuthorityReadPort.rereadPrivatePricingAuthority({
@@ -803,7 +974,8 @@ export async function admitCanonicalProfessionalGpuPlanFundedDispatch(input: {
     untrustedRate,
     input.admittedAt,
   )
-  if (attempt.routeId === 'a100_80gb_heavy_primary') {
+  if (attempt.routeId === 'a100_80gb_heavy_primary'
+    && input.dispatchAudience === 'customer_or_public') {
     if (!input.a100CustomerDispatchReadinessReadPort) {
       throw new Error(
         'Current A100 customer-dispatch readiness port is not mounted.',
@@ -832,6 +1004,37 @@ export async function admitCanonicalProfessionalGpuPlanFundedDispatch(input: {
     )
     assertCanonicalSam31CurrentA100CustomerDispatchAllowed({
       readiness,
+      runtimeReleaseRef,
+      rateAuthorityRef,
+      immutableImageDigest: release.immutableImageDigest,
+      at: input.admittedAt,
+    })
+  }
+  if ((attempt.routeId === 'a100_80gb_heavy_primary'
+      || attempt.routeId === 'l4_heavy_fallback')
+    && input.dispatchAudience === 'private_internal') {
+    const runtimeReleaseRef = ref(
+      release.releaseId,
+      release.releaseHash,
+      release.releaseVersion,
+    )
+    const rateAuthorityRef = ref(
+      rate.rateAuthorityId,
+      rate.rateAuthorityHash,
+      rate.rateAuthorityVersion,
+    )
+    const readiness = await input.privateInternalDispatchReadinessReadPort
+      .rereadCurrent({
+        runtimeReleaseRef,
+        rateAuthorityRef,
+        at: input.admittedAt,
+      })
+    if (!readiness) throw new Error(
+      'Current SAM 3.1 private-internal dispatch readiness is missing.',
+    )
+    assertCanonicalSam31PrivateInternalDispatchAllowed({
+      readiness,
+      routeId: attempt.routeId,
       runtimeReleaseRef,
       rateAuthorityRef,
       immutableImageDigest: release.immutableImageDigest,
@@ -1025,6 +1228,26 @@ export function assertCanonicalProfessionalGpuFundedDispatchAdmission(
     || toolAdmission.admittedAt !== admission.admittedAt
     || toolAdmission.expiresAt !== admission.expiresAt
   ) throw new Error('Funded GPU dispatch admission is invalid.')
+  return admission
+}
+
+export function assertCanonicalProfessionalGpuPrivateInternalFundedDispatchAdmission(
+  value: unknown,
+): CanonicalProfessionalGpuPrivateInternalFundedDispatchAdmission {
+  assertPlainSerializedData(value,
+    'gpu_private_internal_funded_dispatch_admission')
+  const admission =
+    canonicalProfessionalGpuPrivateInternalFundedDispatchAdmissionSchema
+      .parse(value)
+  const { privateInternalFundedAdmissionHash, ...payload } = admission
+  const funded = assertCanonicalProfessionalGpuFundedDispatchAdmission(
+    admission.fundedDispatchAdmission,
+  )
+  if (privateInternalFundedAdmissionHash !== sha256AuthorityValue(payload)
+    || funded.fundedAdmissionHash !==
+      admission.fundedDispatchAdmission.fundedAdmissionHash) {
+    throw new Error('Private-internal GPU funded admission is invalid.')
+  }
   return admission
 }
 

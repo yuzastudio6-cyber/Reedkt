@@ -4,6 +4,9 @@ import {
   createCanonicalSam31PrivateInternalReleaseReadinessOwner,
   assertCanonicalSam31PrivateInternalReleaseReadiness,
 } from '../services/canonical-sam3_1-private-internal-release-readiness-owner'
+import type {
+  CanonicalSam31GpuRuntimeReleaseReadinessObservation,
+} from '../services/canonical-sam3_1-gpu-runtime-release-readiness-observer'
 import {
   createCanonicalSam31PrivateQualificationCapacityOwner,
   createCanonicalSam31PrivateQualificationCapacityRepository,
@@ -16,16 +19,22 @@ import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
 
-const at = '2026-08-14T18:00:00.000Z'
-const expiresAt = '2026-08-14T18:15:00.000Z'
+const at = '2026-08-02T16:00:00.000Z'
+const expiresAt = '2026-08-02T16:15:00.000Z'
 const ref = (id: string) => ({
   id,
   version: 1 as const,
   contentHash: `sha256:${id.padEnd(64, 'a').slice(0, 64)}`,
 })
-const readyObservation = (
+const componentKinds = [
+  'driver_and_cuda',
+  'deterministic_run_set',
+  'eight_minute_performance',
+  'independent_temporal_quality',
+] as const
+export const readyObservation = (
   routeId: 'a100_80gb_heavy_primary' | 'l4_heavy_fallback',
-) => ({
+): CanonicalSam31GpuRuntimeReleaseReadinessObservation => ({
   schemaVersion:
     'canonical-sam3_1-gpu-runtime-release-readiness-observation-v2' as const,
   source:
@@ -36,12 +45,7 @@ const readyObservation = (
   qualificationId: `sam31-${routeId}-private-internal`,
   immutableImageDigest: `sha256:${'b'.repeat(64)}`,
   validatedComponentRecordCount: 4,
-  componentStatuses: [
-    'driver_and_cuda',
-    'deterministic_run_set',
-    'eight_minute_performance',
-    'independent_temporal_quality',
-  ].map((componentKind, index) => ({
+  componentStatuses: componentKinds.map((componentKind, index) => ({
     componentKind,
     status: 'ready' as const,
     componentRef: ref(`${index + 1}`),
@@ -62,8 +66,8 @@ const readyObservation = (
   productionAuthorityGranted: false as const,
 })
 
-const capacity = await privateCapacity({ a100: 1, l4: 3 })
-const ready = createCanonicalSam31PrivateInternalReleaseReadinessOwner()
+export const capacity = await privateCapacity({ a100: 1, l4: 3 })
+export const ready = createCanonicalSam31PrivateInternalReleaseReadinessOwner()
   .observe({
     readinessId: 'sam31-private-internal-ready-1a100-3l4',
     capacityObservation: capacity,

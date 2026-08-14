@@ -6,6 +6,31 @@ This receipt distinguishes implemented source architecture from live cloud
 qualification. It does not call an unavailable candidate “installed” and does
 not authorize public or production use.
 
+## 2026-08-14 private/internal finish line versus public capacity
+
+- The current finish line is private/internal WeEditPro end-to-end use, not
+  public SaaS concurrency. Private qualification and internal execution require
+  one current A100 80 GB route plus at least one independently qualified L4
+  route, with at most one attempt on each accelerator at a time. The currently
+  observed one A100 and three L4 quota can therefore support sequential
+  private qualification without waiting for a 16-GPU fleet.
+- Sixteen A100 and sixteen L4 capacity remain explicit future public-release
+  targets. Their shortfall must not block private/internal qualification, but
+  it continues to block the existing customer/public dispatch authority. No
+  private receipt may be cast or relabeled as customer capacity.
+- This separation does not weaken quality. Both private routes still require
+  their own driver/CUDA evidence, deterministic run set, complete eight-minute
+  performance evidence, independent full-interval temporal-quality evidence,
+  exact immutable release, current billing-account-effective rate, and
+  scale-to-zero lifecycle. CPU-only substantive execution, automatic quality
+  reduction, and an unqualified L4 fallback remain forbidden.
+- The source boundary now publishes separate private-internal release and
+  dispatch-readiness records. The latter wraps the exact funded plan admission
+  under a private-only identity and keeps customer/public dispatch, credit
+  mutation, QA approval, delivery, and production authority false. The
+  original customer admission still rereads the 16-capacity customer-dispatch
+  authority unchanged.
+
 ## 2026-08-10 Vertex transport and same-region fallback source milestone
 
 This section supersedes the older Batch-primary and cross-region L4 source

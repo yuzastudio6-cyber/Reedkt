@@ -38,6 +38,7 @@ import {
 } from '../services/canonical-confirmed-output-frame-authority'
 import {
   admitCanonicalProfessionalGpuPlanFundedDispatch,
+  admitCanonicalProfessionalGpuPlanFundedPrivateInternalDispatch,
   canonicalProfessionalGpuApprovedFundingObservationSchema,
   createCanonicalProfessionalGpuAttemptStartAuthority,
   createCanonicalProfessionalGpuPlanPricingAuthorityBundle,
@@ -588,6 +589,45 @@ assert.equal(fundedAdmission.cloudJobCreated, false)
 assert.equal(fundedAdmission.customerCreditsMutated, false)
 assert.equal(fundedAdmission.toolDispatchAdmission.routeId,
   'l4_standard_primary')
+await assert.rejects(() =>
+  admitCanonicalProfessionalGpuPlanFundedPrivateInternalDispatch({
+    fundedAdmissionId: 'ffmpeg-private-internal-admission-refused',
+    workspaceId: approvedFunding.scope.workspaceId,
+    snapshotId: approvedFunding.approvedSnapshotRef.id,
+    workItemKey: approvedFunding.approvedWorkItem.workItemKey,
+    pricingAuthorityReadPort: pricingStore,
+    approvedFundingReadPort: {
+      async rereadApprovedFunding() {
+        return structuredClone(approvedFunding)
+      },
+    },
+    attemptStartReadPort: {
+      async rereadCreateOnlyAttemptStart() {
+        return structuredClone(attemptStart)
+      },
+    },
+    runtimeContextReadPort: {
+      async rereadQualifiedRuntimeRelease() {
+        return runtimeRelease()
+      },
+      async rereadApprovedCurrentRate() {
+        return structuredClone(rates.l4_standard_primary)
+      },
+    },
+    privateInternalDispatchReadinessReadPort: {
+      schemaVersion:
+        'canonical-sam3_1-private-internal-dispatch-readiness-read-port-v1',
+      privateInternalOnly: true,
+      customerOrPublicDispatchAuthorized: false,
+      async rereadCurrent() {
+        throw new Error('Non-SAM work must not read SAM private readiness.')
+      },
+    },
+    admittedAt: createdAt,
+    expiresAt: '2026-08-03T14:15:00.000Z',
+  }),
+  /selected another tool/u,
+)
 
 const lifecycleObjects = new Map<string, Buffer>()
 const durableLifecycleStore =
@@ -1078,7 +1118,7 @@ assert.throws(() => applyCanonicalProfessionalGpuPlanPricing({
 
 console.log(JSON.stringify({
   smoke: 'canonical-professional-gpu-plan-pricing-authority',
-  checks: 117,
+  checks: 118,
   sourceFixtureOnly: true,
   liveCloudRateRead: false,
   liveGpuRuntimeExecuted: false,
@@ -1095,6 +1135,7 @@ console.log(JSON.stringify({
   approvalPricingAuthorityRereadVerified: true,
   createOnlyPricingAuthorityPersistenceVerified: true,
   fundedReservationRereadBeforeDispatch: true,
+  nonSamPrivateInternalAdmissionRefused: true,
   userTriggeredAttemptAuthorityRequired: true,
   unsafeHeavyFallbackRejected: true,
   fundedDispatchAdmissionCreatedCloudJob: fundedAdmission.cloudJobCreated,

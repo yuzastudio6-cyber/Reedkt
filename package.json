@@ -510,6 +510,8 @@
     "smoke:sam3_1-vertex-scale-zero-deployment-admission": "tsx server/smoke/canonical-sam3_1-vertex-scale-zero-deployment-admission-smoke.ts",
     "smoke:sam3_1-vertex-scale-zero-deployment-request-compiler": "tsx server/smoke/canonical-sam3_1-vertex-scale-zero-deployment-request-compiler-smoke.ts",
     "smoke:sam3_1-vertex-model-version-successor-request-compiler": "tsx server/smoke/canonical-sam3_1-vertex-model-version-successor-request-compiler-smoke.ts",
+    "smoke:sam3_1-vertex-model-version-successor-rollout": "tsx server/smoke/canonical-sam3_1-vertex-model-version-successor-rollout-smoke.ts",
+    "rollout:sam3_1-vertex-model-version-successor": "tsx server/cli/rollout-canonical-sam3_1-vertex-model-version-successor.ts",
     "smoke:sam3_1-vertex-scale-zero-control-plane": "tsx server/smoke/canonical-sam3_1-vertex-scale-zero-control-plane-smoke.ts",
     "smoke:sam3_1-vertex-scale-zero-control-plane-repository": "tsx server/smoke/canonical-sam3_1-vertex-scale-zero-control-plane-repository-smoke.ts",
     "smoke:sam3_1-vertex-scale-zero-deployment-operator": "tsx server/smoke/canonical-sam3_1-vertex-scale-zero-deployment-operator-smoke.ts",

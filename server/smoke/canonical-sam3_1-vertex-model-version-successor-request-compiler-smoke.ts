@@ -7,6 +7,7 @@ import {
   assertCanonicalSam31VertexModelVersionSuccessorRequest,
   createCanonicalSam31VertexModelVersionSuccessorDeployRequest,
   createCanonicalSam31VertexModelVersionSuccessorUploadRequest,
+  createCanonicalSam31VertexPreviousDeploymentUndeployRequest,
 } from '../services/canonical-sam3_1-vertex-model-version-successor-request-compiler'
 
 const hash = (character: string) => `sha256:${character.repeat(64)}` as const
@@ -40,6 +41,9 @@ const deploy = createCanonicalSam31VertexModelVersionSuccessorDeployRequest({
   modelVersionResourceName:
     'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@3',
 })
+const undeploy = createCanonicalSam31VertexPreviousDeploymentUndeployRequest(
+  profile,
+)
 assert.deepEqual(
   [upload, deploy].map((request) =>
     assertCanonicalSam31VertexModelVersionSuccessorRequest(request).stage),
@@ -87,6 +91,12 @@ assert.equal(deploy.existingModelAndEndpointRereadRequired, true)
 assert.equal(deploy.previousModelVersionRetainedForRollback, true)
 assert.equal(deploy.previousDeployedModelReceivesTraffic, false)
 assert.equal(deploy.automaticRetryAllowed, false)
+assert.equal(undeploy.stage, 'previous_deployed_model_undeploy')
+assert.deepEqual(undeploy.body, {
+  deployedModelId: '3101000004',
+  trafficSplit: { '3101000005': 100 },
+})
+assert.equal(undeploy.previousModelVersionRetainedForRollback, true)
 assert.equal(deploy.requestResponsePayloadLoggingEnabled, false)
 assert.equal(deploy.customerRequestOrGpuInferenceStarted, false)
 assert.equal(deploy.walletOrCreditMutationAuthorityGranted, false)
@@ -109,9 +119,10 @@ assert.throws(() => assertCanonicalSam31VertexModelVersionSuccessorRequest({
 console.log(JSON.stringify({
   smoke:
     'canonical-sam3_1-vertex-model-version-successor-request-compiler',
-  checks: 30,
+  checks: 34,
   existingModelAndEndpointRereadRequired: true,
   previousModelVersionRetainedForRollback: true,
+  previousDeploymentRemovedAfterCutover: true,
   candidateAlias: 'cold-start-health-fix-candidate',
   deployedModelId: '3101000005',
   a100HeavyPrimary: true,

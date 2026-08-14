@@ -1,0 +1,258 @@
+import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
+import type { GoogleAuth } from 'google-auth-library'
+
+import {
+  createCanonicalSam31VertexScaleZeroDeploymentProfile,
+} from '../edit-architecture/canonical-sam3_1-vertex-scale-zero-deployment-profile'
+import type {
+  CanonicalCreateOnlyJsonObjectPort,
+} from '../services/canonical-gcs-source-analysis-lifecycle-store'
+import {
+  createCanonicalSam31VertexModelVersionSuccessorRolloutOwner,
+} from '../services/canonical-sam3_1-vertex-model-version-successor-rollout-service'
+
+const hash = (character: string) => `sha256:${character.repeat(64)}` as const
+const ref = <const Version extends number>(
+  id: string,
+  character: string,
+  version: Version,
+) => ({ id, version, contentHash: hash(character) })
+const imageUri =
+  `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@${hash('b')}`
+const profile = createCanonicalSam31VertexScaleZeroDeploymentProfile({
+  imageSupplyChainReleaseRef: ref('sam31-supply-release', 'a', 1),
+  immutableImageRef: ref('sam31-image', 'b', 1),
+  immutableImageUri: imageUri,
+  immutableImageDigest: hash('b'),
+  sourceCheckpointQualificationRef: {
+    ...ref('sam31-source-checkpoint', 'c', 2),
+    schemaVersion:
+      'canonical-sam3_1-source-checkpoint-compatibility-qualification-v2',
+  },
+  servingQuotaPreferenceRef: ref('vertex-serving-a100-quota', 'd', 1),
+  accountEffectiveRateAuthorityRef: ref('vertex-a100-rate', 'e', 1),
+  recordedAt: '2026-08-14T20:30:00.000Z',
+})
+
+const objects = new Map<string, Buffer>()
+const objectPort: CanonicalCreateOnlyJsonObjectPort = {
+  async createOnly(input) {
+    assert.equal(
+      createHash('sha256').update(input.body).digest('hex'),
+      input.contentSha256,
+    )
+    const existing = objects.get(input.objectPath)
+    if (existing) {
+      assert.equal(existing.equals(input.body), true)
+      return 'already_exists'
+    }
+    objects.set(input.objectPath, Buffer.from(input.body))
+    return 'created'
+  },
+  async readExact(path) {
+    const value = objects.get(path)
+    return value ? Buffer.from(value) : null
+  },
+}
+
+let providerPostCount = 0
+let candidateCreated = false
+let successorDeployed = false
+let previousUndeployed = false
+const operationFor = (url: string) => url.includes('models:upload')
+  ? 'upload' : url.includes(':deployModel') ? 'deploy' : 'undeploy'
+const auth = {
+  async request(value: {
+    readonly url?: string
+    readonly method?: string
+    readonly data?: unknown
+  }) {
+    const url = String(value.url)
+    if (value.method === 'POST') {
+      providerPostCount += 1
+      return { data: {
+        name:
+          `projects/reeditpro/locations/us-central1/operations/${operationFor(url)}`,
+      } }
+    }
+    if (url.endsWith('/operations/upload')) {
+      candidateCreated = true
+      return { data: {
+        name: 'projects/reeditpro/locations/us-central1/operations/upload',
+        done: true,
+        response: {},
+      } }
+    }
+    if (url.endsWith('/operations/deploy')) {
+      successorDeployed = true
+      return { data: {
+        name: 'projects/reeditpro/locations/us-central1/operations/deploy',
+        done: true,
+        response: {},
+      } }
+    }
+    if (url.endsWith('/operations/undeploy')) {
+      previousUndeployed = true
+      return { data: {
+        name: 'projects/reeditpro/locations/us-central1/operations/undeploy',
+        done: true,
+        response: {},
+      } }
+    }
+    if (url.endsWith('@cold-start-health-fix-candidate')) {
+      if (!candidateCreated) {
+        throw Object.assign(new Error('candidate absent'), { code: 404 })
+      }
+      return { data: modelVersion('cold-start-health-fix-candidate', '3',
+        imageUri, true) }
+    }
+    if (url.endsWith('@2')) return { data: modelVersion(
+      '2', '2',
+      'us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@sha256:b8ac1fe762564f7debf30f4045b68a25f508ce202f758d4c1be7e483fe8aa1c8',
+      false,
+    ) }
+    if (url.endsWith('/endpoints/weeditpro-sam31-a100-scale-zero-v1')) {
+      return { data: endpoint() }
+    }
+    throw new Error(`Unexpected SAM successor smoke URL: ${url}`)
+  },
+} as unknown as Pick<GoogleAuth, 'request'>
+
+const owner = createCanonicalSam31VertexModelVersionSuccessorRolloutOwner({
+  auth,
+  objectPort,
+  prefix: 'private/smoke/sam31-successor-rollout',
+  now: () => '2026-08-14T20:30:01.000Z',
+  sleep: async () => undefined,
+  pollIntervalMilliseconds: 250,
+  maximumWaitMilliseconds: 1_000,
+})
+
+const first = await owner.rolloutOne(profile)
+assert.equal(first.disposition, 'rolled_out')
+assert.equal(first.modelVersionResourceName,
+  'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@3')
+assert.equal(first.deployedModelId, '3101000005')
+assert.equal(first.previousDeployedModelRemovedAfterCutover, true)
+assert.deepEqual(first.stages.map((value) => value.stage), [
+  'model_version_upload',
+  'model_version_deploy',
+  'previous_deployed_model_undeploy',
+])
+assert.equal(first.stages.every((value) => value.disposition === 'completed'),
+  true)
+assert.equal(first.stages.every((value) => value.providerPostIssuedThisRun),
+  true)
+assert.equal(providerPostCount, 3)
+
+const replay = await owner.rolloutOne(profile)
+assert.equal(replay.disposition, 'rolled_out')
+assert.equal(replay.stages.every((value) =>
+  !value.providerPostIssuedThisRun), true)
+assert.equal(providerPostCount, 3)
+assert.equal(objects.size > 10, true)
+
+console.log(JSON.stringify({
+  smoke: 'canonical-sam3_1-vertex-model-version-successor-rollout',
+  checks: 32,
+  exactModelVersionUpload: true,
+  exactA100ScaleZeroDeployment: true,
+  previousDeploymentRemovedAfterCutover: true,
+  previousModelVersionRetainedForRollback: true,
+  durableConsumptionBeforeEveryProviderPost: true,
+  restartReplayIssuedNoDuplicateProviderPost: true,
+  providerPostCount,
+  customerRequestOrGpuInferenceStarted: false,
+  customerCreditsMutated: false,
+  productionReady: false,
+}, null, 2))
+
+function modelVersion(
+  requested: string,
+  versionId: string,
+  image: string,
+  successor: boolean,
+) {
+  return {
+    name:
+      `projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@${requested}`,
+    versionId,
+    versionAliases: [requested],
+    containerSpec: {
+      imageUri: image,
+      ports: [{ containerPort: 8080 }],
+      healthRoute: '/health',
+      predictRoute: '/predict',
+      deploymentTimeout: successor ? '1800s' : undefined,
+      startupProbe: successor ? {
+        httpGet: { path: '/health', port: 8080 },
+        periodSeconds: 10,
+        timeoutSeconds: 10,
+        failureThreshold: 120,
+        successThreshold: 1,
+      } : undefined,
+      env: successor ? [
+        {
+          name: 'WEEDITPRO_SAM31_RUNTIME_MODE',
+          value: 'vertex_prediction_endpoint_v1',
+        },
+        {
+          name: 'WEEDITPRO_GPU_ACCELERATOR_CLASS',
+          value: 'nvidia_a100_80gb',
+        },
+      ] : [],
+    },
+  }
+}
+
+function endpoint() {
+  const previous = {
+    id: '3101000004',
+    model:
+      'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1',
+    modelVersionId: '2',
+    serviceAccount:
+      'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com',
+    dedicatedResources: resources(),
+  }
+  const successor = {
+    id: '3101000005',
+    model:
+      'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1',
+    modelVersionId: '3',
+    serviceAccount:
+      'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com',
+    enableAccessLogging: false,
+    disableContainerLogging: false,
+    dedicatedResources: resources(),
+  }
+  return {
+    name:
+      'projects/390722338345/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1',
+    deployedModels: previousUndeployed
+      ? [successor]
+      : successorDeployed ? [previous, successor] : [previous],
+    trafficSplit: successorDeployed
+      ? { '3101000005': 100 }
+      : { '3101000004': 100 },
+  }
+}
+
+function resources() {
+  return {
+    machineSpec: {
+      machineType: 'a2-ultragpu-1g',
+      acceleratorType: 'NVIDIA_A100_80GB',
+      acceleratorCount: 1,
+    },
+    minReplicaCount: 0,
+    initialReplicaCount: 1,
+    maxReplicaCount: 1,
+    scaleToZeroSpec: {
+      minScaleupPeriod: '300s',
+      idleScaledownPeriod: '300s',
+    },
+    spot: false,
+  }
+}

@@ -9,20 +9,26 @@ import { sha256AuthorityValue } from './private-edit-authority-store'
 export const CANONICAL_SAM3_1_VERTEX_MODEL_VERSION_SUCCESSOR_REQUEST_VERSION =
   'canonical-sam3_1-vertex-model-version-successor-request-v1' as const
 
-const API_ORIGIN = 'https://us-central1-aiplatform.googleapis.com' as const
-const PARENT = 'projects/reeditpro/locations/us-central1' as const
-const MODEL_RESOURCE =
-  `${PARENT}/models/weeditpro-sam31-a100-scale-zero-v1` as const
-const ENDPOINT_RESOURCE =
-  `${PARENT}/endpoints/weeditpro-sam31-a100-scale-zero-v1` as const
-const CANDIDATE_ALIAS = 'cold-start-health-fix-candidate' as const
-const DEPLOYED_MODEL_ID = '3101000005' as const
-const SERVICE_ACCOUNT =
+export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_API_ORIGIN =
+  'https://us-central1-aiplatform.googleapis.com' as const
+export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_PARENT =
+  'projects/reeditpro/locations/us-central1' as const
+export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_MODEL_RESOURCE =
+  `${CANONICAL_SAM3_1_VERTEX_SUCCESSOR_PARENT}/models/weeditpro-sam31-a100-scale-zero-v1` as const
+export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_ENDPOINT_RESOURCE =
+  `${CANONICAL_SAM3_1_VERTEX_SUCCESSOR_PARENT}/endpoints/weeditpro-sam31-a100-scale-zero-v1` as const
+export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_ALIAS =
+  'cold-start-health-fix-candidate' as const
+export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_DEPLOYED_MODEL_ID =
+  '3101000005' as const
+export const CANONICAL_SAM3_1_VERTEX_PREVIOUS_DEPLOYED_MODEL_ID =
+  '3101000004' as const
+export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_SERVICE_ACCOUNT =
   'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com' as const
 
 const safeUrl = z.string().url().refine((value) => {
   const url = new URL(value)
-  return url.origin === API_ORIGIN
+  return url.origin === CANONICAL_SAM3_1_VERTEX_SUCCESSOR_API_ORIGIN
     && url.username === ''
     && url.password === ''
     && url.hash === ''
@@ -38,7 +44,11 @@ const requestWithoutDigestSchema = z.object({
   source: z.literal(
     'canonical_backend_sam3_1_vertex_model_version_successor_request_compiler',
   ),
-  stage: z.enum(['model_version_upload', 'model_version_deploy']),
+  stage: z.enum([
+    'model_version_upload',
+    'model_version_deploy',
+    'previous_deployed_model_undeploy',
+  ]),
   method: z.literal('POST'),
   url: safeUrl,
   contentType: z.literal('application/json'),
@@ -70,10 +80,10 @@ export function createCanonicalSam31VertexModelVersionSuccessorUploadRequest(
   const profile = acceptProfile(value)
   return createRequest({
     stage: 'model_version_upload',
-    url: `${API_ORIGIN}/v1beta1/${PARENT}/models:upload`,
+    url: `${CANONICAL_SAM3_1_VERTEX_SUCCESSOR_API_ORIGIN}/v1beta1/${CANONICAL_SAM3_1_VERTEX_SUCCESSOR_PARENT}/models:upload`,
     profileHash: profile.profileHash,
     body: {
-      parentModel: MODEL_RESOURCE,
+      parentModel: CANONICAL_SAM3_1_VERTEX_SUCCESSOR_MODEL_RESOURCE,
       model: {
         displayName: profile.endpoint.displayName,
         description:
@@ -83,12 +93,12 @@ export function createCanonicalSam31VertexModelVersionSuccessorUploadRequest(
           'weeditpro-route': 'a100-heavy-primary',
           'weeditpro-release': 'cold-start-health-fix',
         },
-        versionAliases: [CANDIDATE_ALIAS],
+        versionAliases: [CANONICAL_SAM3_1_VERTEX_SUCCESSOR_ALIAS],
         versionDescription:
           'Source-bound successor with early HTTP liveness and fail-closed checkpoint readiness.',
         containerSpec: containerSpec(profile),
       },
-      serviceAccount: SERVICE_ACCOUNT,
+      serviceAccount: CANONICAL_SAM3_1_VERTEX_SUCCESSOR_SERVICE_ACCOUNT,
     },
   })
 }
@@ -103,14 +113,14 @@ export function createCanonicalSam31VertexModelVersionSuccessorDeployRequest(
   const model = modelVersionResource.parse(input.modelVersionResourceName)
   return createRequest({
     stage: 'model_version_deploy',
-    url: `${API_ORIGIN}/v1beta1/${ENDPOINT_RESOURCE}:deployModel`,
+    url: `${CANONICAL_SAM3_1_VERTEX_SUCCESSOR_API_ORIGIN}/v1beta1/${CANONICAL_SAM3_1_VERTEX_SUCCESSOR_ENDPOINT_RESOURCE}:deployModel`,
     profileHash: profile.profileHash,
     body: {
       deployedModel: {
-        id: DEPLOYED_MODEL_ID,
+        id: CANONICAL_SAM3_1_VERTEX_SUCCESSOR_DEPLOYED_MODEL_ID,
         model,
         displayName: profile.endpoint.displayName,
-        serviceAccount: SERVICE_ACCOUNT,
+        serviceAccount: CANONICAL_SAM3_1_VERTEX_SUCCESSOR_SERVICE_ACCOUNT,
         enableAccessLogging: false,
         disableContainerLogging: false,
         dedicatedResources: {
@@ -128,6 +138,23 @@ export function createCanonicalSam31VertexModelVersionSuccessorDeployRequest(
         },
       },
       trafficSplit: { '0': 100 },
+    },
+  })
+}
+
+export function createCanonicalSam31VertexPreviousDeploymentUndeployRequest(
+  value: CanonicalSam31VertexScaleZeroDeploymentProfile,
+): CanonicalSam31VertexModelVersionSuccessorRequest {
+  const profile = acceptProfile(value)
+  return createRequest({
+    stage: 'previous_deployed_model_undeploy',
+    url: `${CANONICAL_SAM3_1_VERTEX_SUCCESSOR_API_ORIGIN}/v1beta1/${CANONICAL_SAM3_1_VERTEX_SUCCESSOR_ENDPOINT_RESOURCE}:undeployModel`,
+    profileHash: profile.profileHash,
+    body: {
+      deployedModelId: CANONICAL_SAM3_1_VERTEX_PREVIOUS_DEPLOYED_MODEL_ID,
+      trafficSplit: {
+        [CANONICAL_SAM3_1_VERTEX_SUCCESSOR_DEPLOYED_MODEL_ID]: 100,
+      },
     },
   })
 }
@@ -166,7 +193,8 @@ function acceptProfile(
     || profile.container.predictRoute !== '/predict'
     || profile.container.runtimeMode !== 'vertex_prediction_endpoint_v1'
     || profile.container.acceleratorClass !== 'nvidia_a100_80gb'
-    || profile.serviceIdentity.email !== SERVICE_ACCOUNT
+    || profile.serviceIdentity.email !==
+      CANONICAL_SAM3_1_VERTEX_SUCCESSOR_SERVICE_ACCOUNT
   ) throw new Error('SAM 3.1 Vertex successor deployment profile changed.')
   return profile
 }
@@ -206,6 +234,7 @@ function containerSpec(
 
 function createRequest(input: {
   readonly stage: 'model_version_upload' | 'model_version_deploy'
+    | 'previous_deployed_model_undeploy'
   readonly url: string
   readonly profileHash: string
   readonly body: Record<string, unknown>

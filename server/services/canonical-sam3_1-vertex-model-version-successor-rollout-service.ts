@@ -101,11 +101,17 @@ const submissionWithoutHashSchema = z.object({
   requestDigestSha256: sha256,
   disposition: z.enum([
     'submitted',
+    'provider_rejected_not_executed',
     'outcome_unknown_requires_reconciliation',
   ]),
   providerCallStarted: z.literal(true),
-  providerOutcome: z.enum(['executed', 'unknown']),
+  providerOutcome: z.enum(['executed', 'not_executed', 'unknown']),
   operationName: operationName.nullable(),
+  providerErrorRef: z.object({
+    httpStatus: z.number().int().min(400).max(499),
+    providerCode: z.number().int().nonnegative().safe(),
+    messageDigestSha256: sha256,
+  }).strict().optional(),
   submittedAt: timestamp,
   automaticRetryAllowed: z.literal(false),
   customerRequestOrGpuInferenceStarted: z.literal(false),
@@ -114,9 +120,12 @@ const submissionWithoutHashSchema = z.object({
   productionAuthorityGranted: z.literal(false),
 }).strict().superRefine((value, context) => {
   const submitted = value.disposition === 'submitted'
+  const rejected = value.disposition === 'provider_rejected_not_executed'
   if (
     submitted !== (value.providerOutcome === 'executed')
     || submitted !== (value.operationName !== null)
+    || rejected !== (value.providerOutcome === 'not_executed')
+    || rejected !== (value.providerErrorRef !== undefined)
   ) context.addIssue({
     code: 'custom',
     message: 'SAM 3.1 successor submission outcome changed.',
@@ -427,6 +436,17 @@ export function createCanonicalSam31VertexModelVersionSuccessorRolloutOwner(
         providerPostIssuedThisRun,
       })
     }
+    if (submission.disposition === 'provider_rejected_not_executed') {
+      return stageResult({
+        stage: request.stage,
+        disposition: 'terminal_failure',
+        requestRef,
+        consumptionRef,
+        submissionRef,
+        observation: null,
+        providerPostIssuedThisRun,
+      })
+    }
 
     const startedAt = Date.now()
     while (true) {
@@ -471,7 +491,17 @@ export function createCanonicalSam31VertexModelVersionSuccessorRolloutOwner(
         operationName: operation.name,
         submittedAt,
       })
-    } catch {
+    } catch (error) {
+      const rejection = providerRejection(error)
+      if (rejection) return createSubmission({
+        stage: request.stage,
+        requestDigestSha256: request.requestDigestSha256,
+        disposition: 'provider_rejected_not_executed',
+        providerOutcome: 'not_executed',
+        operationName: null,
+        providerErrorRef: rejection,
+        submittedAt,
+      })
       return createSubmission({
         stage: request.stage,
         requestDigestSha256: request.requestDigestSha256,
@@ -598,7 +628,7 @@ export function createCanonicalSam31VertexModelVersionSuccessorRolloutOwner(
     profile: CanonicalSam31VertexScaleZeroDeploymentProfile,
     currentStage: Stage,
   ) {
-    const version = await readCandidateVersion(profile, true)
+    const version = await readCandidateVersion(profile)
     if (!version) return null
     if (currentStage === 'model_version_upload') return {
       modelVersionResourceName: version.resource,
@@ -644,7 +674,7 @@ export function createCanonicalSam31VertexModelVersionSuccessorRolloutOwner(
     currentStage: Stage,
   ): Promise<void> {
     if (currentStage === 'model_version_upload') {
-      const candidate = await readCandidateVersion(profile, false)
+      const candidate = await readCandidateVersion(profile)
       if (candidate) {
         throw new Error('SAM 3.1 successor alias already exists before POST.')
       }
@@ -663,7 +693,7 @@ export function createCanonicalSam31VertexModelVersionSuccessorRolloutOwner(
       ) throw new Error('SAM 3.1 successor upload preflight changed.')
       return
     }
-    const candidate = await readCandidateVersion(profile, true)
+    const candidate = await readCandidateVersion(profile)
     if (!candidate) {
       throw new Error('SAM 3.1 successor candidate reread is absent.')
     }
@@ -700,7 +730,6 @@ export function createCanonicalSam31VertexModelVersionSuccessorRolloutOwner(
 
   async function readCandidateVersion(
     profile: CanonicalSam31VertexScaleZeroDeploymentProfile,
-    required: boolean,
   ) {
     try {
       const version = await readModelVersion(
@@ -738,7 +767,7 @@ export function createCanonicalSam31VertexModelVersionSuccessorRolloutOwner(
           `${CANONICAL_SAM3_1_VERTEX_SUCCESSOR_MODEL_RESOURCE}@${version.versionId}`,
       }
     } catch (error) {
-      if (cloudStatus(error) === 404 && !required) return null
+      if (cloudStatus(error) === 404) return null
       throw error
     }
   }
@@ -980,9 +1009,15 @@ function createSubmission(input: {
   readonly stage: Stage
   readonly requestDigestSha256: string
   readonly disposition: 'submitted'
+    | 'provider_rejected_not_executed'
     | 'outcome_unknown_requires_reconciliation'
-  readonly providerOutcome: 'executed' | 'unknown'
+  readonly providerOutcome: 'executed' | 'not_executed' | 'unknown'
   readonly operationName: string | null
+  readonly providerErrorRef?: {
+    readonly httpStatus: number
+    readonly providerCode: number
+    readonly messageDigestSha256: string
+  }
   readonly submittedAt: string
 }): Submission {
   const payload = submissionWithoutHashSchema.parse({
@@ -1001,6 +1036,29 @@ function createSubmission(input: {
     ...payload,
     submissionHash: sha256AuthorityValue(payload),
   })
+}
+
+function providerRejection(error: unknown) {
+  if (!error || typeof error !== 'object'
+    || !('response' in error) || !error.response
+    || typeof error.response !== 'object') return null
+  const response = error.response
+  const httpStatus = 'status' in response ? Number(response.status) : NaN
+  if (!Number.isInteger(httpStatus) || httpStatus < 400 || httpStatus > 499
+    || !('data' in response) || !response.data
+    || typeof response.data !== 'object') return null
+  const parsed = z.object({
+    error: z.object({
+      code: z.number().int().nonnegative().safe(),
+      message: z.string().min(1).max(16_384),
+    }).passthrough(),
+  }).passthrough().safeParse(response.data)
+  if (!parsed.success) return null
+  return {
+    httpStatus,
+    providerCode: parsed.data.error.code,
+    messageDigestSha256: sha256AuthorityValue(parsed.data.error.message),
+  }
 }
 
 function createObservation(input: {

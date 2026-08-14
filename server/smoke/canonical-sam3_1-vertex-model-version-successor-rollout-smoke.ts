@@ -153,15 +153,114 @@ assert.equal(replay.stages.every((value) =>
 assert.equal(providerPostCount, 3)
 assert.equal(objects.size > 10, true)
 
+const unknownObjects = new Map<string, Buffer>()
+let rejectedPostCount = 0
+const unknownOwner =
+  createCanonicalSam31VertexModelVersionSuccessorRolloutOwner({
+    auth: {
+      async request(value: { readonly url?: string; readonly method?: string }) {
+        const url = String(value.url)
+        if (value.method === 'POST') {
+          rejectedPostCount += 1
+          throw new Error('network outcome unknown')
+        }
+        if (url.endsWith('@cold-start-health-fix-candidate')) {
+          throw Object.assign(new Error('candidate absent'), { code: 404 })
+        }
+        if (url.endsWith('@2')) return { data: modelVersion(
+          '2', '2',
+          'us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@sha256:b8ac1fe762564f7debf30f4045b68a25f508ce202f758d4c1be7e483fe8aa1c8',
+          false,
+        ) }
+        if (url.endsWith(
+          '/endpoints/weeditpro-sam31-a100-scale-zero-v1')) {
+          return { data: oldEndpoint() }
+        }
+        throw new Error(`Unexpected unknown-outcome URL: ${url}`)
+      },
+    } as unknown as Pick<GoogleAuth, 'request'>,
+    objectPort: mapObjectPort(unknownObjects),
+    prefix: 'private/smoke/sam31-successor-unknown',
+    now: () => '2026-08-14T20:31:01.000Z',
+    sleep: async () => undefined,
+    pollIntervalMilliseconds: 250,
+    maximumWaitMilliseconds: 1_000,
+  })
+const unknown = await unknownOwner.rolloutOne(profile)
+assert.equal(unknown.disposition,
+  'outcome_unknown_requires_reconciliation')
+assert.equal(unknown.stages.length, 1)
+assert.equal(unknown.stages[0]?.providerPostIssuedThisRun, true)
+assert.equal(rejectedPostCount, 1)
+
+const providerRejectedObjects = new Map<string, Buffer>()
+let providerRejectedPostCount = 0
+const providerRejectedOwner =
+  createCanonicalSam31VertexModelVersionSuccessorRolloutOwner({
+    auth: {
+      async request(value: { readonly url?: string; readonly method?: string }) {
+        const url = String(value.url)
+        if (value.method === 'POST') {
+          providerRejectedPostCount += 1
+          throw {
+            response: {
+              status: 400,
+              data: { error: {
+                code: 9,
+                message: 'service identity cannot read repository',
+              } },
+            },
+          }
+        }
+        if (url.endsWith('@cold-start-health-fix-candidate')) {
+          throw Object.assign(new Error('candidate absent'), { code: 404 })
+        }
+        if (url.endsWith('@2')) return { data: modelVersion(
+          '2', '2',
+          'us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@sha256:b8ac1fe762564f7debf30f4045b68a25f508ce202f758d4c1be7e483fe8aa1c8',
+          false,
+        ) }
+        if (url.endsWith(
+          '/endpoints/weeditpro-sam31-a100-scale-zero-v1')) {
+          return { data: oldEndpoint() }
+        }
+        throw new Error(`Unexpected provider-rejection URL: ${url}`)
+      },
+    } as unknown as Pick<GoogleAuth, 'request'>,
+    objectPort: mapObjectPort(providerRejectedObjects),
+    prefix: 'private/smoke/sam31-successor-provider-rejected',
+    now: () => '2026-08-14T20:32:01.000Z',
+    sleep: async () => undefined,
+    pollIntervalMilliseconds: 250,
+    maximumWaitMilliseconds: 1_000,
+  })
+const providerRejected = await providerRejectedOwner.rolloutOne(profile)
+assert.equal(providerRejected.disposition, 'terminal_failure')
+assert.equal(providerRejected.stages.length, 1)
+assert.equal(providerRejected.stages[0]?.observation, null)
+assert.equal(providerRejectedPostCount, 1)
+const providerRejectedReplay = await providerRejectedOwner.rolloutOne(profile)
+assert.equal(providerRejectedReplay.disposition, 'terminal_failure')
+assert.equal(providerRejectedReplay.stages[0]?.providerPostIssuedThisRun, false)
+assert.equal(providerRejectedPostCount, 1)
+const unknownReplay = await unknownOwner.rolloutOne(profile)
+assert.equal(unknownReplay.disposition,
+  'outcome_unknown_requires_reconciliation')
+assert.equal(unknownReplay.stages[0]?.providerPostIssuedThisRun, false)
+assert.equal(rejectedPostCount, 1)
+
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-model-version-successor-rollout',
-  checks: 32,
+  checks: 48,
   exactModelVersionUpload: true,
   exactA100ScaleZeroDeployment: true,
   previousDeploymentRemovedAfterCutover: true,
   previousModelVersionRetainedForRollback: true,
   durableConsumptionBeforeEveryProviderPost: true,
   restartReplayIssuedNoDuplicateProviderPost: true,
+  absentAliasReconciledWithoutThrowing: true,
+  rejectedOrUnknownPostNotRetried: true,
+  providerHttpRejectionClassifiedNotExecuted: true,
   providerPostCount,
   customerRequestOrGpuInferenceStarted: false,
   customerCreditsMutated: false,
@@ -254,5 +353,42 @@ function resources() {
       idleScaledownPeriod: '300s',
     },
     spot: false,
+  }
+}
+
+function oldEndpoint() {
+  return {
+    name:
+      'projects/390722338345/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1',
+    deployedModels: [{
+      id: '3101000004',
+      model:
+        'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1',
+      modelVersionId: '2',
+      serviceAccount:
+        'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com',
+      dedicatedResources: resources(),
+    }],
+    trafficSplit: { '3101000004': 100 },
+  }
+}
+
+function mapObjectPort(
+  values: Map<string, Buffer>,
+): CanonicalCreateOnlyJsonObjectPort {
+  return {
+    async createOnly(input) {
+      const existing = values.get(input.objectPath)
+      if (existing) {
+        assert.equal(existing.equals(input.body), true)
+        return 'already_exists'
+      }
+      values.set(input.objectPath, Buffer.from(input.body))
+      return 'created'
+    },
+    async readExact(path) {
+      const value = values.get(path)
+      return value ? Buffer.from(value) : null
+    },
   }
 }

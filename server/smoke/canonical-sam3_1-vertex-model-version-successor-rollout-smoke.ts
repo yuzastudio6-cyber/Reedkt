@@ -119,11 +119,15 @@ const auth = {
   },
 } as unknown as Pick<GoogleAuth, 'request'>
 
+let currentTimeOffsetMilliseconds = 0
 const owner = createCanonicalSam31VertexModelVersionSuccessorRolloutOwner({
   auth,
   objectPort,
   prefix: 'private/smoke/sam31-successor-rollout',
-  now: () => '2026-08-14T20:30:01.000Z',
+  now: () => new Date(
+    Date.parse('2026-08-14T20:30:01.000Z')
+      + currentTimeOffsetMilliseconds++,
+  ).toISOString(),
   sleep: async () => undefined,
   pollIntervalMilliseconds: 250,
   maximumWaitMilliseconds: 1_000,
@@ -254,9 +258,10 @@ assert.equal(rejectedPostCount, 1)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-model-version-successor-rollout',
-  checks: 53,
+  checks: 54,
   exactModelVersionUpload: true,
   exactExistingCandidateAdoptedWithoutDuplicateUpload: true,
+  restartReusedOriginalConsumptionTimestamp: true,
   exactA100ScaleZeroDeployment: true,
   previousDeploymentRemovedBeforeSuccessorDeployment: true,
   capacityOneReplacementSequence: true,

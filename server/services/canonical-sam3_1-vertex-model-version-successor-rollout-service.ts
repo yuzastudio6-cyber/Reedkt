@@ -361,26 +361,41 @@ export function createCanonicalSam31VertexModelVersionSuccessorRolloutOwner(
       'requests', request.requestDigestSha256, request,
       `sam31-vertex-${request.stage}-request`,
     )
-    const consumedAt = timestamp.parse(now())
-    const consumption = createConsumption(profile, request, consumedAt)
     const consumptionPath = pathFor(
       'consumptions', request.requestDigestSha256,
     )
-    const consumptionCreated = await createOnly(
-      consumptionPath,
-      consumption,
-    )
-    const rereadConsumption = await readExact(
+    let rereadConsumption = await readExact(
       consumptionPath,
       assertConsumption,
     )
+    let consumptionCreated = false
+    if (!rereadConsumption) {
+      const consumption = createConsumption(
+        profile,
+        request,
+        timestamp.parse(now()),
+      )
+      consumptionCreated = await createOnly(consumptionPath, consumption)
+      rereadConsumption = await readExact(
+        consumptionPath,
+        assertConsumption,
+      )
+      if (
+        !rereadConsumption
+        || rereadConsumption.consumptionHash !== consumption.consumptionHash
+      ) throw new Error(
+        'SAM 3.1 successor consumption exact reread changed.',
+      )
+    }
     if (
-      !rereadConsumption
-      || rereadConsumption.consumptionHash !== consumption.consumptionHash
-    ) throw new Error('SAM 3.1 successor consumption exact reread changed.')
+      rereadConsumption.stage !== request.stage
+      || rereadConsumption.profileHash !== profile.profileHash
+      || rereadConsumption.requestDigestSha256 !== request.requestDigestSha256
+    ) throw new Error('SAM 3.1 successor consumption lineage changed.')
+    const consumedAt = rereadConsumption.consumedAt
     const consumptionRef = recordRef(
       `sam31-vertex-${request.stage}-consumption`,
-      consumption.consumptionHash,
+      rereadConsumption.consumptionHash,
     )
 
     const submissionPath = pathFor(

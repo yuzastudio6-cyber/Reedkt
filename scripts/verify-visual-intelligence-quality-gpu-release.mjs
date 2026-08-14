@@ -128,6 +128,7 @@ const smokes = [
   'server/smoke/canonical-sam3_1-vertex-serving-qualification-output-smoke.ts',
   'server/smoke/canonical-sam3_1-vertex-serving-thirty-run-qualification-smoke.ts',
   'server/smoke/canonical-sam3_1-private-qualification-capacity-owner-smoke.ts',
+  'server/smoke/canonical-sam3_1-private-internal-release-readiness-owner-smoke.ts',
   'server/smoke/canonical-sam3_1-eight-minute-qualification-source-owner-smoke.ts',
   'server/smoke/canonical-sam3_1-eight-minute-source-preparation-fixed-process-port-smoke.ts',
   'server/smoke/canonical-sam3_1-eight-minute-source-preparation-admission-owner-smoke.ts',

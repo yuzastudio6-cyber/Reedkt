@@ -48,6 +48,84 @@ const requestSchema = z.object({
     independentTemporalQualityRef: refSchema.nullable(),
   }).strict(),
 }).strict()
+const componentStatusSchema = z.object({
+  componentKind: z.enum([
+    'driver_and_cuda',
+    'deterministic_run_set',
+    'eight_minute_performance',
+    'independent_temporal_quality',
+  ]),
+  status: z.enum(['missing', 'ready', 'ambiguous']),
+  componentRef: refSchema.nullable(),
+  expectedComponentRef: refSchema.nullable(),
+  matchingCandidateCount: z.number().int().nonnegative().max(
+    MAXIMUM_COMPONENT_RECORDS,
+  ),
+}).strict()
+export const canonicalSam31GpuRuntimeReleaseReadinessObservationSchema =
+  z.object({
+    schemaVersion: z.literal(
+      'canonical-sam3_1-gpu-runtime-release-readiness-observation-v2',
+    ),
+    source: z.literal(
+      'canonical_server_sam3_1_gpu_runtime_release_readiness_observer',
+    ),
+    evidenceClass: z.literal('canonical_component_index_exact_read'),
+    disposition: z.enum([
+      'ready_for_release_publication_request',
+      'blocked_missing_or_ambiguous_components',
+    ]),
+    routeId: routeIdSchema,
+    qualificationId: safeId,
+    immutableImageDigest: prefixedSha256,
+    validatedComponentRecordCount: z.number().int().nonnegative().max(
+      MAXIMUM_COMPONENT_RECORDS,
+    ),
+    componentStatuses: z.array(componentStatusSchema).length(4),
+    blockers: z.array(safeId).max(16),
+    exactCanonicalComponentBodiesAndObjectPathsValidated: z.literal(true),
+    everyExpectedComponentRefProvided: z.boolean(),
+    exactExpectedComponentRefsAppliedBeforeReadiness: z.boolean(),
+    callerQualificationOrReadinessClaimsAccepted: z.literal(false),
+    releasePublisherMayBeInvoked: z.boolean(),
+    gpuJobDispatched: z.literal(false),
+    customerCreditsMutated: z.literal(false),
+    qaApprovalGranted: z.literal(false),
+    runtimeReleaseGranted: z.literal(false),
+    publicDeliveryAuthorized: z.literal(false),
+    productionAuthorityGranted: z.literal(false),
+  }).strict().superRefine((value, context) => {
+    const expectedKinds = [
+      'driver_and_cuda',
+      'deterministic_run_set',
+      'eight_minute_performance',
+      'independent_temporal_quality',
+    ]
+    const exactKinds = value.componentStatuses.every(
+      (status, index) => status.componentKind === expectedKinds[index],
+    )
+    const ready = value.blockers.length === 0
+      && value.componentStatuses.every((status) => status.status === 'ready'
+        && status.componentRef !== null
+        && status.expectedComponentRef !== null)
+    const allExpected = value.componentStatuses.every(
+      (status) => status.expectedComponentRef !== null,
+    )
+    if (!exactKinds
+      || value.everyExpectedComponentRefProvided !== allExpected
+      || value.exactExpectedComponentRefsAppliedBeforeReadiness !== allExpected
+      || value.releasePublisherMayBeInvoked !== ready
+      || (value.disposition === 'ready_for_release_publication_request') !==
+        ready) {
+      context.addIssue({
+        code: 'custom',
+        message: 'SAM 3.1 runtime-release readiness disposition changed.',
+      })
+    }
+  })
+export type CanonicalSam31GpuRuntimeReleaseReadinessObservation = z.infer<
+  typeof canonicalSam31GpuRuntimeReleaseReadinessObservationSchema
+>
 const COMPONENT_KINDS = [
   'driver_and_cuda',
   'deterministic_run_set',
@@ -131,7 +209,8 @@ export function createCanonicalSam31GpuRuntimeReleaseReadinessObserver(input: {
         (status) => status.expectedComponentRef !== null,
       )
       const ready = blockers.length === 0
-      return Object.freeze({
+      return Object.freeze(
+        canonicalSam31GpuRuntimeReleaseReadinessObservationSchema.parse({
         schemaVersion:
           'canonical-sam3_1-gpu-runtime-release-readiness-observation-v2',
         source: 'canonical_server_sam3_1_gpu_runtime_release_readiness_observer',
@@ -157,9 +236,19 @@ export function createCanonicalSam31GpuRuntimeReleaseReadinessObserver(input: {
         runtimeReleaseGranted: false as const,
         publicDeliveryAuthorized: false as const,
         productionAuthorityGranted: false as const,
-      })
+        }),
+      )
     },
   })
+}
+
+export function assertCanonicalSam31GpuRuntimeReleaseReadinessObservation(
+  value: unknown,
+): CanonicalSam31GpuRuntimeReleaseReadinessObservation {
+  assertPlainSerializedData(value, 'sam31_gpu_release_readiness_observation')
+  return Object.freeze(
+    canonicalSam31GpuRuntimeReleaseReadinessObservationSchema.parse(value),
+  )
 }
 
 function sameRef(

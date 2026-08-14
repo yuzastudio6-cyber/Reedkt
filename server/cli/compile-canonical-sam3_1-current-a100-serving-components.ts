@@ -9,11 +9,11 @@ import {
 const CONFIRMATION =
   'compile-one-weeditpro-sam31-current-a100-serving-component-set-v1' as const
 const SOURCE_SET_ID =
-  'sam31-a100-serving-memory-safe-thirty-run-release-candidate-20260812-v1' as const
+  'sam31-a100-serving-v3-thirty-run-qualified-20260814-v2' as const
 const SOURCE_SET_HASH =
-  '19c341f5cd536d6851e2f2d87a5f1c610ecca846bf449a3576e65f01ae1e882c' as const
+  'bfd7af0743a68f2a0657b9c72f718daff5e1d0df4ff275be00936151a379a074' as const
 const TARGET_QUALIFICATION_ID =
-  'sam31-complete-source-a100-4k-20260814-v1' as const
+  'sam31-complete-source-a100-4k-20260814-v2' as const
 
 if (process.env.WEEDITPRO_SAM31_A100_COMPONENT_CONFIRMATION !== CONFIRMATION) {
   throw new Error('Current A100 serving component compilation is not confirmed.')

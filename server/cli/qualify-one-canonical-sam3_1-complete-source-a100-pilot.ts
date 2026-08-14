@@ -95,7 +95,7 @@ const CONFIRMATION =
   'qualify-one-weeditpro-sam31-complete-source-a100-pilot-v1' as const
 const CONTROL_BUCKET =
   'reeditpro-production-reeditpro-control-plane-state' as const
-const QUALIFICATION_ID = 'sam31-complete-source-a100-4k-20260814-v1' as const
+const QUALIFICATION_ID = 'sam31-complete-source-a100-4k-20260814-v2' as const
 const SOURCE_PLAN_ID = 'sam31-eight-minute-qualification-source-v2' as const
 const SOURCE_PREPARATION_ID =
   'sam31-eight-minute-qualification-source-v2:preparation:sam31-source-prep-canonical-20260814T180041Z' as const
@@ -123,13 +123,13 @@ const DRIVER_COMPONENT_REF = {
   id: `${QUALIFICATION_ID}:vertex-serving-driver-and-cuda`,
   version: 1,
   contentHash:
-    'sha256:f47de68460085e4286530c907a5a0493a719226a5ecada895eacefa47828404c',
+    'sha256:e6c18d66f75be00186876b81fb7acc93e9c459c7d43f5ce1b01a174e747b6d1c',
 } as const
 const DETERMINISTIC_COMPONENT_REF = {
   id: `${QUALIFICATION_ID}:vertex-serving-deterministic-run-set`,
   version: 1,
   contentHash:
-    'sha256:f1ab5dc13821e954e2c8a2d082b917796e2f14500b131d6d4615c7a7e8d19d06',
+    'sha256:83a28e189491aa22d879a2309921622bfaa772baeb756a4311d15217bc1249b3',
 } as const
 
 const environment = z.object({

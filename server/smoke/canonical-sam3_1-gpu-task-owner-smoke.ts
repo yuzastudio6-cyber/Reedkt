@@ -700,9 +700,12 @@ await assert.rejects(() => admitCanonicalSam31GpuRuntimeResult({
   admittedAt: '2026-08-02T18:08:00.000Z',
 }))
 
+const l4Target = l4.target
+
 export {
   task as canonicalSam31A100TaskFixture,
   l4Task as canonicalSam31L4TaskFixture,
+  l4Target as canonicalSam31L4TargetFixture,
   runtimeResponse as canonicalSam31A100RuntimeResponseFixture,
   launch as canonicalSam31A100LaunchFixture,
   terminal as canonicalSam31A100TerminalFixture,

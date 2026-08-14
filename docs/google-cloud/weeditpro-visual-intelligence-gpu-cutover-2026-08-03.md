@@ -1192,6 +1192,18 @@ does not spend customer credits, and cannot create customer/public prelaunch
 records. The public 16/16 concurrency target remains recorded only as a future
 release gate.
 
+The private chunk launch/terminal bridge now consumes the generic professional
+GPU admission and execution envelope before any cloud create. It persists one
+single-use launch intent, records the resulting generic A100 or L4 launch, and
+blocks replay, unknown-outcome retry, and cross-route relabeling. The A100 and
+independently qualified L4 terminal finalizers project the same provider-neutral
+SAM 3.1 runtime-result contract only after exact task, response, output,
+account-effective attempt-cost, worker-stop, and scale-to-zero rereads. Route
+selection remains explicit: an A100 result cannot satisfy an L4 request and an
+L4 result cannot satisfy an A100 request. Independent mask artifact QA,
+manifest reconciliation, renderer admission, customer credit settlement,
+public delivery, and production authority remain closed.
+
 ### 2026-08-14 live deterministic route evidence
 
 - The A100 80 GB primary qualification

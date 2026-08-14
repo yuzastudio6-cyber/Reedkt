@@ -60,7 +60,8 @@ EXPECTED_IMAGE="${IMAGE}" \
 VERIFY_EXPECTED_ENTRYPOINT="${EXPECTED_ENTRYPOINT}" \
 node <<'NODE'
 const job = JSON.parse(process.env.DESCRIPTION || '{}')
-const task = job.spec?.template?.spec?.template?.spec
+const execution = job.spec?.template?.spec
+const task = execution?.template?.spec
 const container = task?.containers?.[0]
 const env = Object.fromEntries((container?.env || []).map((item) => [
   item.name,
@@ -73,8 +74,8 @@ const exact = container?.image === process.env.EXPECTED_IMAGE
   ])
   && task?.nodeSelector?.['run.googleapis.com/accelerator'] === 'nvidia-l4'
   && Number(task?.maxRetries) === 0
-  && Number(task?.taskCount) === 1
-  && Number(task?.parallelism) === 1
+  && Number(execution?.taskCount) === 1
+  && Number(execution?.parallelism) === 1
   && env.REEDITPRO_ENV === 'production'
   && env.WORKER_GROUP === 'l4_standard_primary'
   && env.GCS_CONTROL_PLANE_STATE_BUCKET ===

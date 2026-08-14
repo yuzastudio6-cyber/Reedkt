@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto'
+
 import { z } from 'zod'
 
 import {
@@ -19,14 +21,22 @@ import {
 import {
   assertPlainSerializedData,
 } from './canonical-professional-gpu-job-lifecycle-service'
+import type {
+  CanonicalCreateOnlyJsonObjectPort,
+} from './canonical-gcs-source-analysis-lifecycle-store'
 import {
   sha256AuthorityValue,
+  stableAuthorityStringify,
 } from './private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_PRIVATE_INTERNAL_DISPATCH_READINESS_VERSION =
   'canonical-sam3_1-private-internal-dispatch-readiness-v1' as const
 export const CANONICAL_SAM3_1_PRIVATE_INTERNAL_DISPATCH_READINESS_OWNER_VERSION =
   'canonical-sam3_1-private-internal-dispatch-readiness-owner-v1' as const
+
+const DEFAULT_PREFIX =
+  'private/canonical-professional-gpu/sam3_1/v1/private-internal-dispatch-readiness'
+const MAXIMUM_RECORD_BYTES = 1024 * 1024
 
 const safeId = z.string().trim().min(1).max(512)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:/+-]*$/u)
@@ -128,6 +138,21 @@ export interface CanonicalSam31PrivateInternalDispatchReadinessReadPort {
     readonly rateAuthorityRef: z.infer<typeof refSchema>
     readonly at: string
   }): Promise<unknown | null>
+}
+
+export interface CanonicalSam31PrivateInternalDispatchReadinessRepository {
+  readonly schemaVersion:
+    'canonical-sam3_1-private-internal-dispatch-readiness-repository-v1'
+  readonly privateInternalOnly: true
+  readonly customerOrPublicDispatchAuthorized: false
+  persistCreateOnly(input: {
+    readonly readiness: CanonicalSam31PrivateInternalDispatchReadiness
+  }): Promise<'created' | 'identical_replay'>
+  rereadCurrent(input: {
+    readonly runtimeReleaseRef: z.infer<typeof refSchema>
+    readonly rateAuthorityRef: z.infer<typeof refSchema>
+    readonly at: string
+  }): Promise<CanonicalSam31PrivateInternalDispatchReadiness | null>
 }
 
 export function createCanonicalSam31PrivateInternalDispatchReadinessOwner() {
@@ -311,6 +336,117 @@ export function assertCanonicalSam31PrivateInternalDispatchAllowed(input: {
   return readiness
 }
 
+export function createCanonicalSam31PrivateInternalDispatchReadinessRepository(
+  input: {
+    readonly objectPort: CanonicalCreateOnlyJsonObjectPort
+    readonly prefix?: string
+  },
+): CanonicalSam31PrivateInternalDispatchReadinessRepository {
+  if (typeof input.objectPort?.createOnly !== 'function'
+    || typeof input.objectPort?.readExact !== 'function') {
+    throw new TypeError('SAM 3.1 private dispatch readiness store is absent.')
+  }
+  const prefix = z.string().trim().min(1).max(512)
+    .regex(/^[A-Za-z0-9][A-Za-z0-9._/-]*$/u)
+    .refine((value) => !value.includes('..')
+      && !value.includes('//') && !value.endsWith('/'))
+    .parse(input.prefix ?? DEFAULT_PREFIX)
+  const reread = async (request: {
+    readonly runtimeReleaseRef: z.infer<typeof refSchema>
+    readonly rateAuthorityRef: z.infer<typeof refSchema>
+    readonly at: string
+  }) => {
+    const runtimeReleaseRef = refSchema.parse(request.runtimeReleaseRef)
+    const rateAuthorityRef = refSchema.parse(request.rateAuthorityRef)
+    const at = timestamp.parse(request.at)
+    const index = indexKey(runtimeReleaseRef, rateAuthorityRef)
+    const body = await input.objectPort.readExact(`${prefix}/${index}.json`)
+    if (!body) return null
+    if (!Buffer.isBuffer(body) || body.byteLength < 2
+      || body.byteLength > MAXIMUM_RECORD_BYTES) {
+      throw new TypeError('SAM 3.1 private dispatch readiness bytes changed.')
+    }
+    const readiness = assertCanonicalSam31PrivateInternalDispatchReadiness(
+      JSON.parse(body.toString('utf8')) as unknown,
+      at,
+    )
+    const matchesA100 = sameRef(runtimeReleaseRef,
+      readiness.a100RuntimeReleaseRef)
+      && sameRef(rateAuthorityRef, readiness.currentA100RateAuthorityRef)
+    const matchesL4 = sameRef(runtimeReleaseRef, readiness.l4RuntimeReleaseRef)
+      && sameRef(rateAuthorityRef, readiness.currentL4RateAuthorityRef)
+    if ((!matchesA100 && !matchesL4)
+      || stableAuthorityStringify(readiness) !== body.toString('utf8')) {
+      throw new TypeError('SAM 3.1 private dispatch readiness index changed.')
+    }
+    return readiness
+  }
+  return Object.freeze({
+    schemaVersion:
+      'canonical-sam3_1-private-internal-dispatch-readiness-repository-v1' as const,
+    privateInternalOnly: true as const,
+    customerOrPublicDispatchAuthorized: false as const,
+    async persistCreateOnly({ readiness: untrusted }: {
+      readonly readiness: CanonicalSam31PrivateInternalDispatchReadiness
+    }) {
+      const readiness = assertCanonicalSam31PrivateInternalDispatchReadiness(
+        untrusted,
+      )
+      const body = Buffer.from(stableAuthorityStringify(readiness), 'utf8')
+      if (body.byteLength > MAXIMUM_RECORD_BYTES) {
+        throw new TypeError('SAM 3.1 private dispatch readiness is too large.')
+      }
+      const indexes = [
+        indexKey(readiness.a100RuntimeReleaseRef,
+          readiness.currentA100RateAuthorityRef),
+        indexKey(readiness.l4RuntimeReleaseRef,
+          readiness.currentL4RateAuthorityRef),
+      ]
+      let created = false
+      for (const index of indexes) {
+        const disposition = await input.objectPort.createOnly({
+          objectPath: `${prefix}/${index}.json`,
+          body,
+          contentSha256: createHash('sha256').update(body).digest('hex'),
+        })
+        created ||= disposition === 'created'
+      }
+      const [a100, l4] = await Promise.all([
+        reread({ runtimeReleaseRef: readiness.a100RuntimeReleaseRef,
+          rateAuthorityRef: readiness.currentA100RateAuthorityRef,
+          at: readiness.observedAt }),
+        reread({ runtimeReleaseRef: readiness.l4RuntimeReleaseRef,
+          rateAuthorityRef: readiness.currentL4RateAuthorityRef,
+          at: readiness.observedAt }),
+      ])
+      if (!a100 || !l4 || a100.readinessHash !== readiness.readinessHash
+        || l4.readinessHash !== readiness.readinessHash) {
+        throw new TypeError('SAM 3.1 private dispatch readiness reread changed.')
+      }
+      return created ? 'created' as const : 'identical_replay' as const
+    },
+    rereadCurrent: reread,
+  })
+}
+
+export function createCanonicalSam31PrivateInternalDispatchReadPort(
+  repository: Pick<
+    CanonicalSam31PrivateInternalDispatchReadinessRepository,
+    'rereadCurrent'
+  >,
+): CanonicalSam31PrivateInternalDispatchReadinessReadPort {
+  if (typeof repository?.rereadCurrent !== 'function') {
+    throw new TypeError('SAM 3.1 private dispatch readiness read is absent.')
+  }
+  return Object.freeze({
+    schemaVersion:
+      'canonical-sam3_1-private-internal-dispatch-readiness-read-port-v1' as const,
+    privateInternalOnly: true as const,
+    customerOrPublicDispatchAuthorized: false as const,
+    rereadCurrent: repository.rereadCurrent.bind(repository),
+  })
+}
+
 function observationRef(value: ReturnType<
   typeof assertCanonicalSam31GpuRuntimeReleaseReadinessObservation
 >) {
@@ -351,4 +487,14 @@ function sameRef(
   return left.id === right.id
     && left.version === right.version
     && left.contentHash === right.contentHash
+}
+
+function indexKey(
+  runtimeReleaseRef: z.infer<typeof refSchema>,
+  rateAuthorityRef: z.infer<typeof refSchema>,
+) {
+  return createHash('sha256').update(stableAuthorityStringify({
+    runtimeReleaseRef,
+    rateAuthorityRef,
+  })).digest('hex')
 }

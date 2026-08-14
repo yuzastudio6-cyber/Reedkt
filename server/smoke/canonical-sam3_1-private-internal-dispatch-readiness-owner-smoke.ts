@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
 
 import {
   canonicalProfessionalToolGpuRuntimeReleaseSchema,
@@ -9,8 +10,13 @@ import {
 import {
   assertCanonicalSam31PrivateInternalDispatchAllowed,
   assertCanonicalSam31PrivateInternalDispatchReadiness,
+  createCanonicalSam31PrivateInternalDispatchReadPort,
   createCanonicalSam31PrivateInternalDispatchReadinessOwner,
+  createCanonicalSam31PrivateInternalDispatchReadinessRepository,
 } from '../services/canonical-sam3_1-private-internal-dispatch-readiness-owner'
+import type {
+  CanonicalCreateOnlyJsonObjectPort,
+} from '../services/canonical-gcs-source-analysis-lifecycle-store'
 import {
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'
@@ -74,6 +80,52 @@ assert.deepEqual(assertCanonicalSam31PrivateInternalDispatchAllowed({
   at: observedAt,
 }), dispatchReadiness)
 
+const objects = new Map<string, Buffer>()
+const objectPort: CanonicalCreateOnlyJsonObjectPort = {
+  async createOnly(input) {
+    assert.equal(createHash('sha256').update(input.body).digest('hex'),
+      input.contentSha256)
+    const prior = objects.get(input.objectPath)
+    if (prior) {
+      assert.deepEqual(prior, input.body)
+      return 'already_exists'
+    }
+    objects.set(input.objectPath, Buffer.from(input.body))
+    return 'created'
+  },
+  async readExact(path) {
+    const value = objects.get(path)
+    return value ? Buffer.from(value) : null
+  },
+}
+const repository =
+  createCanonicalSam31PrivateInternalDispatchReadinessRepository({
+    objectPort,
+    prefix: 'private/smoke/sam31-private-dispatch-readiness',
+  })
+assert.equal(await repository.persistCreateOnly({
+  readiness: dispatchReadiness,
+}), 'created')
+assert.equal(await repository.persistCreateOnly({
+  readiness: dispatchReadiness,
+}), 'identical_replay')
+const readPort = createCanonicalSam31PrivateInternalDispatchReadPort(repository)
+assert.deepEqual(await readPort.rereadCurrent({
+  runtimeReleaseRef: a100ReleaseRef,
+  rateAuthorityRef: a100RateRef,
+  at: observedAt,
+}), dispatchReadiness)
+assert.deepEqual(await readPort.rereadCurrent({
+  runtimeReleaseRef: releaseRef(l4Release),
+  rateAuthorityRef: rateRef(l4Fallback),
+  at: observedAt,
+}), dispatchReadiness)
+assert.equal(await readPort.rereadCurrent({
+  runtimeReleaseRef: a100ReleaseRef,
+  rateAuthorityRef: rateRef(l4Fallback),
+  at: observedAt,
+}), null)
+
 assert.throws(() => owner.observe({
   readinessId: 'sam31-private-internal-crossed-release',
   privateInternalReleaseReadiness: ready,
@@ -135,7 +187,7 @@ assert.throws(() => assertCanonicalSam31PrivateInternalDispatchReadiness({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-private-internal-dispatch-readiness-owner',
-  checks: 32,
+  checks: 41,
   oneA100AndQualifiedL4CanAuthorizePrivateSequentialDispatch: true,
   sixteenA100OrL4RequiredForPrivateInternal: false,
   exactReleaseRateCapacityAndFourComponentLineageRequired: true,

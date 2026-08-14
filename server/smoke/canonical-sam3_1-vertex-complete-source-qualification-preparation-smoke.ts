@@ -391,7 +391,12 @@ function ref(id: string, hash = sha256AuthorityValue(id), version = 1) {
   }
 }
 
-function sameRef(left: ReturnType<typeof ref>, right: ReturnType<typeof ref>) {
+function sameRef(
+  left: { readonly id: string; readonly version: number;
+    readonly contentHash: string },
+  right: { readonly id: string; readonly version: number;
+    readonly contentHash: string },
+) {
   return left.id === right.id && left.version === right.version
     && left.contentHash === right.contentHash
 }

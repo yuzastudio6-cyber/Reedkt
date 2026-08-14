@@ -681,7 +681,7 @@ function buildAdmission(input: {
   a100Rate: CanonicalCurrentGoogleCloudVertexA100RateAuthority
   l4Rate: CanonicalCurrentGoogleCloudGpuRateAuthority
   quota: ReturnType<typeof assertCanonicalSam31VertexQualificationQuotaObservation>
-  refs: ReturnType<typeof buildQualificationRefs>
+  refs: CanonicalSam31A100QualificationRefs
   admittedAt: string
   expiresAt: string
 }): CanonicalSam31A100RuntimeQualificationAdmission {
@@ -746,7 +746,7 @@ function buildLifecycleConsumption(input: {
   admission: Pick<CanonicalSam31A100RuntimeQualificationAdmission,
     'admissionId' | 'admissionHash'>
   release: Readonly<{ releaseRef: z.infer<typeof evidenceRefSchema> }>
-  refs: ReturnType<typeof buildQualificationRefs>
+  refs: CanonicalSam31A100QualificationRefs
   consumedAt: string
 }): CanonicalProfessionalGpuAdmissionConsumption {
   const payload = {
@@ -783,7 +783,7 @@ function buildExecutionEnvelope(input: {
     releaseRef: z.infer<typeof evidenceRefSchema>
     immutableImageDigest: string
   }>
-  refs: ReturnType<typeof buildQualificationRefs>
+  refs: CanonicalSam31A100QualificationRefs
   consumptionRef: z.infer<typeof evidenceRefSchema>
 }): CanonicalProfessionalGpuExecutionEnvelope {
   const payload = {
@@ -829,7 +829,7 @@ function buildQualificationTask(input: {
   release: Readonly<{ releaseRef: z.infer<typeof evidenceRefSchema> }>
   source: ReturnType<typeof projectCanonicalSam31QualifiedSourceCheckpointRelease>
   image: CanonicalSam31CloudImageSupplyChainRelease
-  refs: ReturnType<typeof buildQualificationRefs>
+  refs: CanonicalSam31A100QualificationRefs
   consumptionRef: z.infer<typeof evidenceRefSchema>
   envelopeRef: z.infer<typeof evidenceRefSchema>
   sourceMedia: z.infer<typeof canonicalSam31GpuSourceMediaSchema>
@@ -993,7 +993,7 @@ function buildVertexRelease(input: {
   image: CanonicalSam31CloudImageSupplyChainRelease
   a100Rate: CanonicalCurrentGoogleCloudVertexA100RateAuthority
   quota: ReturnType<typeof assertCanonicalSam31VertexQualificationQuotaObservation>
-  refs: ReturnType<typeof buildQualificationRefs>
+  refs: CanonicalSam31A100QualificationRefs
   admittedAt: string
 }) {
   const expiresAt = earliest(
@@ -1071,7 +1071,7 @@ function buildVertexRelease(input: {
 function buildVertexAuthority(input: {
   admission: CanonicalSam31A100RuntimeQualificationAdmission
   release: ReturnType<typeof assertCanonicalA100VertexCustomJobRelease>
-  refs: ReturnType<typeof buildQualificationRefs>
+  refs: CanonicalSam31A100QualificationRefs
   envelopeRef: z.infer<typeof evidenceRefSchema>
 }) {
   const payload = {
@@ -1175,7 +1175,7 @@ function buildLifecycleLaunch(input: {
   )
 }
 
-function buildProbeSourceMedia(refs: ReturnType<typeof buildQualificationRefs>) {
+function buildProbeSourceMedia(refs: CanonicalSam31A100QualificationRefs) {
   const fixture = CANONICAL_SAM3_1_OFFICIAL_PROBE_FIXTURE
   return canonicalSam31GpuSourceMediaSchema.parse({
     mediaForm: 'private_read_only_mp4',
@@ -1313,6 +1313,12 @@ function buildQualificationRefs(input: {
     }),
   })
 }
+
+type WidenLiteralString<T> = T extends string ? string : T
+export type CanonicalSam31A100QualificationRefs = Readonly<{
+  [Key in keyof ReturnType<typeof buildQualificationRefs>]:
+    WidenLiteralString<ReturnType<typeof buildQualificationRefs>[Key]>
+}>
 
 export const createCanonicalSam31A100QualificationRefs =
   buildQualificationRefs

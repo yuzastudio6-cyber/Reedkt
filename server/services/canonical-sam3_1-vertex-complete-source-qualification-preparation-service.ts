@@ -114,6 +114,7 @@ const refSchema = z.object({
   version: z.number().int().positive().safe(),
   contentHash: prefixedSha256,
 }).strict()
+const versionOneRefSchema = refSchema.extend({ version: z.literal(1) }).strict()
 type EvidenceRef = z.infer<typeof refSchema>
 type PreparedChunk = CanonicalSam31EightMinuteQualificationSourcePreparation[
   'preparedChunks'
@@ -349,7 +350,9 @@ export function createCanonicalSam31VertexCompleteSourceQualificationPreparation
             request.sourceCheckpointQualificationRef,
         }),
         input.imageSupplyChainReadPort.rereadQualifiedRelease({
-          releaseRef: parent.imageSupplyChainReleaseRef,
+          releaseRef: versionOneRefSchema.parse(
+            parent.imageSupplyChainReleaseRef,
+          ),
         }),
         input.a100ServingRateRepository.reread({
           rateAuthorityRef: request.currentA100ServingRateAuthorityRef,
@@ -408,7 +411,9 @@ export function createCanonicalSam31VertexCompleteSourceQualificationPreparation
         runOrdinal: parent.runOrdinal,
         sourceCheckpointQualificationRef:
           request.sourceCheckpointQualificationRef,
-        imageSupplyChainReleaseRef: parent.imageSupplyChainReleaseRef,
+        imageSupplyChainReleaseRef: versionOneRefSchema.parse(
+          parent.imageSupplyChainReleaseRef,
+        ),
         currentA100RateAuthorityRef:
           request.currentA100ServingRateAuthorityRef,
         currentL4FallbackRateAuthorityRef:
@@ -570,7 +575,8 @@ export function createCanonicalSam31VertexCompleteSourceQualificationPreparation
     preparation:
       canonicalSam31VertexCompleteSourceQualificationPreparationSchema,
   }).strict()
-  return Object.freeze({
+  const repository:
+  CanonicalSam31VertexCompleteSourceQualificationPreparationRepository = {
     async persistCreateOnly({ admission, consumption, envelope,
       preparation }) {
       const record = recordSchema.parse({
@@ -608,7 +614,8 @@ export function createCanonicalSam31VertexCompleteSourceQualificationPreparation
       }
       return structuredClone(preparation)
     },
-  })
+  }
+  return Object.freeze(repository)
 }
 
 export function createCanonicalGcpSam31VertexCompleteSourceQualificationPreparationService(
@@ -703,7 +710,13 @@ export function createCanonicalSam31GcsEightMinuteQualificationChunkReadPort(
   }
   const refs = sourceRefs({ plan, preparation, chunk })
   return Object.freeze({
-    async rereadExactApprovedMaskProxy(request) {
+    async rereadExactApprovedMaskProxy(
+      request: Parameters<
+        CanonicalSam31GpuPreparedMaskProxyReadPort[
+          'rereadExactApprovedMaskProxy'
+        ]
+      >[0],
+    ) {
       if (!sameRef(request.sourceBindingRef, refs.sourceBindingRef)
         || !sameRef(request.finalizedSourceArtifactRef,
           plan.exactEightMinuteSourceRef)

@@ -43,15 +43,36 @@ export function createWeEditProGcpLocalOperatorAuth(input: {
 }
 
 function readEphemeralAccessToken(): string {
+  const impersonationArgs = [
+    'print-access-token',
+    `--impersonate-service-account=${API_SERVICE_ACCOUNT}`,
+    '--quiet',
+  ] as const
   try {
     return execFileSync(
       'gcloud',
       [
         'auth',
-        'print-access-token',
-        `--impersonate-service-account=${API_SERVICE_ACCOUNT}`,
+        ...impersonationArgs,
         '--project=reeditpro',
-        '--quiet',
+      ],
+      {
+        encoding: 'utf8',
+        maxBuffer: 8 * 1_024,
+        stdio: ['ignore', 'pipe', 'ignore'],
+        timeout: 15_000,
+      },
+    ).trim()
+  } catch {
+    // The Application Default credential below is the approved fallback.
+  }
+  try {
+    return execFileSync(
+      'gcloud',
+      [
+        'auth',
+        'application-default',
+        ...impersonationArgs,
       ],
       {
         encoding: 'utf8',

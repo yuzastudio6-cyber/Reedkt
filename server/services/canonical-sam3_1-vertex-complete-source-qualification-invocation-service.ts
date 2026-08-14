@@ -467,7 +467,8 @@ export function createCanonicalSam31VertexCompleteSourceQualificationInvocationR
     }
     return structuredClone(parsed)
   }
-  return Object.freeze({
+  const repository:
+  CanonicalSam31VertexCompleteSourceQualificationInvocationRepository = {
     persistAttemptCreateOnly: ({ attempt }) => persist('attempt',
       assertCanonicalSam31VertexCompleteSourceQualificationAttempt(attempt)),
     rereadAttempt: ({ invocationId }) => read('attempt', invocationId),
@@ -496,7 +497,8 @@ export function createCanonicalSam31VertexCompleteSourceQualificationInvocationR
       return persist('terminal', accepted)
     },
     rereadTerminal: ({ invocationId }) => read('terminal', invocationId),
-  })
+  }
+  return Object.freeze(repository)
 }
 
 export function createCanonicalGcpSam31VertexCompleteSourceQualificationInvocationService(

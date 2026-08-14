@@ -27,7 +27,7 @@ const CONTROL_PLANE_BUCKET =
   'reeditpro-production-reeditpro-control-plane-state' as const
 const PRIVATE_CHUNK_BUCKET = 'reeditpro-production-reeditpro-masks' as const
 const QUALIFICATION_SOURCE_ID =
-  'sam31-eight-minute-qualification-source-v1' as const
+  'sam31-eight-minute-qualification-source-v2' as const
 const SOURCE_SHA256 =
   'c13eda5816aba31ed60f5dce838d178ed8307f825972eec7aacf9fb29d8c47cb'
 
@@ -227,10 +227,18 @@ try {
     ok: false,
     status: 'rejected',
     errorCode: error instanceof z.ZodError
-      ? 'SAM31_SOURCE_PREPARATION_QUALIFICATION_ENVIRONMENT_INVALID'
+      ? gpuProcessEntered
+        ? 'SAM31_SOURCE_PREPARATION_QUALIFICATION_OUTPUT_INVALID'
+        : 'SAM31_SOURCE_PREPARATION_QUALIFICATION_ENVIRONMENT_INVALID'
       : gpuProcessEntered
         ? 'SAM31_SOURCE_PREPARATION_QUALIFICATION_EXECUTION_FAILED'
         : 'SAM31_SOURCE_PREPARATION_QUALIFICATION_BOOTSTRAP_FAILED',
+    validationIssues: error instanceof z.ZodError
+      ? error.issues.slice(0, 16).map((issue) => ({
+          code: issue.code,
+          path: issue.path.map((part) => String(part)).join('.'),
+        }))
+      : [],
     gpuProcessState: gpuProcessEntered
       ? 'unknown_requires_terminal_reconciliation'
       : 'not_started',

@@ -23,6 +23,8 @@ const SOURCE_DURATION_MILLISECONDS = 480_000
 const SOURCE_FRAME_COUNT = 11_520
 const SOURCE_WIDTH = 3_840
 const SOURCE_HEIGHT = 2_160
+const SOURCE_OBJECT_FPS_NUMERATOR = 77_200
+const SOURCE_OBJECT_FPS_DENOMINATOR = 3_217
 const FPS_NUMERATOR = 24
 const FPS_DENOMINATOR = 1
 const SOURCE_SLICE_FRAME_COUNT = 384
@@ -119,8 +121,8 @@ const planWithoutHashSchema = z.object({
   sourceObjectWidth: z.literal(SOURCE_WIDTH),
   sourceObjectHeight: z.literal(SOURCE_HEIGHT),
   sourceObjectFrameCount: z.literal(386),
-  sourceObjectFpsNumerator: z.literal(FPS_NUMERATOR),
-  sourceObjectFpsDenominator: z.literal(FPS_DENOMINATOR),
+  sourceObjectFpsNumerator: z.literal(SOURCE_OBJECT_FPS_NUMERATOR),
+  sourceObjectFpsDenominator: z.literal(SOURCE_OBJECT_FPS_DENOMINATOR),
   sourceSliceFrameCount: z.literal(SOURCE_SLICE_FRAME_COUNT),
   sourceSliceStartFrameInclusive: z.literal(0),
   sourceSliceEndFrameInclusive: z.literal(SOURCE_SLICE_FRAME_COUNT - 1),
@@ -324,8 +326,8 @@ export function buildCanonicalSam31EightMinuteQualificationSourcePlan(input: {
     sourceObjectWidth: SOURCE_WIDTH,
     sourceObjectHeight: SOURCE_HEIGHT,
     sourceObjectFrameCount: 386,
-    sourceObjectFpsNumerator: FPS_NUMERATOR,
-    sourceObjectFpsDenominator: FPS_DENOMINATOR,
+    sourceObjectFpsNumerator: SOURCE_OBJECT_FPS_NUMERATOR,
+    sourceObjectFpsDenominator: SOURCE_OBJECT_FPS_DENOMINATOR,
     sourceSliceFrameCount: SOURCE_SLICE_FRAME_COUNT,
     sourceSliceStartFrameInclusive: 0,
     sourceSliceEndFrameInclusive: SOURCE_SLICE_FRAME_COUNT - 1,

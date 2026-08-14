@@ -22,6 +22,10 @@ const qualificationStorageGrant = readFileSync(
   'utf8',
 )
 const serverBuild = readFileSync('vite.server.config.ts', 'utf8')
+const sourceProvenance = readFileSync(
+  'docker/prod/gpu-worker/sam3_1-source-preparation/source-provenance.lock',
+  'utf8',
+)
 
 assert.match(cloudBuild, /gcr\.io\/cloud-builders\/docker@sha256:[a-f0-9]{64}/u)
 assert.match(cloudBuild, /--platform=linux\/amd64/u)
@@ -35,6 +39,10 @@ assert.match(cloudBuild, /reeditpro-image-builder-sa@reeditpro/u)
 assert.match(cloudBuild, /source-preparation-l4/u)
 assert.match(cloudBuild, /machineType: E2_HIGHCPU_8/u)
 assert.doesNotMatch(cloudBuild, /secret|availableSecrets|sam3_1\.pt/u)
+assert.match(sourceProvenance,
+  /qualification_source_average_frame_rate=77200\/3217/u)
+assert.match(sourceProvenance, /prepared_output_frame_rate=24\/1/u)
+assert.match(sourceProvenance, /gpu_cfr_normalization=true/u)
 
 assert.match(
   dockerfile,
@@ -127,7 +135,7 @@ assert.doesNotMatch(dockerfile, /FROM python|pip install|sam2|sam2\.1/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-eight-minute-source-preparation-image-build',
-  checks: 66,
+  checks: 69,
   product: 'WeEditPro',
   exactCleanPublishedGitArchiveRequired: true,
   purposeBoundL4Image: true,

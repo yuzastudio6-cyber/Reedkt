@@ -31,6 +31,10 @@ assert.equal(plan.sourceDurationMilliseconds, 480_000)
 assert.equal(plan.sourceFrameCount, 11_520)
 assert.equal(plan.sourceWidth, 3_840)
 assert.equal(plan.sourceHeight, 2_160)
+assert.equal(plan.sourceObjectFpsNumerator, 77_200)
+assert.equal(plan.sourceObjectFpsDenominator, 3_217)
+assert.equal(plan.fpsNumerator, 24)
+assert.equal(plan.fpsDenominator, 1)
 assert.equal(plan.repeatedSequenceCount, 30)
 assert.equal(plan.sequence.length, 30)
 assert.equal(plan.sequence[0]?.canonicalStartFrameInclusive, 0)
@@ -193,7 +197,7 @@ assert.throws(() =>
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-eight-minute-qualification-source-owner',
-  checks: 52,
+  checks: 56,
   exactDurationMilliseconds: plan.sourceDurationMilliseconds,
   exactFrameCount: plan.sourceFrameCount,
   exactChunkCount: ready.exactChunkCount,

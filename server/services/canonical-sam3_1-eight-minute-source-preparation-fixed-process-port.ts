@@ -93,6 +93,14 @@ const ffprobeSchema = z.object({
   metadataOnly: z.literal(true),
 }).strict()
 
+const sourceFfprobeSchema = ffprobeSchema.omit({
+  averageFrameRate: true,
+  decodedFrameCount: true,
+}).extend({
+  averageFrameRate: z.literal('77200/3217'),
+  decodedFrameCount: z.literal(386),
+}).strict()
+
 const chunkOutputSchema = z.object({
   chunkOrdinal: z.number().int().min(1).max(CHUNK_COUNT),
   canonicalStartFrameInclusive: z.number().int().nonnegative().safe(),
@@ -134,9 +142,7 @@ const outputWithoutHashSchema = z.object({
   sourceObjectSha256: sha256,
   sourceObjectByteLength: z.number().int().positive()
     .max(MAXIMUM_SOURCE_BYTES).safe(),
-  sourceProbe: ffprobeSchema.extend({
-    decodedFrameCount: z.literal(386),
-  }).strict(),
+  sourceProbe: sourceFfprobeSchema,
   baseSlice: z.object({
     byteLength: z.number().int().positive().max(MAXIMUM_CHUNK_BYTES).safe(),
     sha256,
@@ -724,6 +730,7 @@ async function runFixedNativeProcess(input: {
     invocationId: input.invocationId,
     path: sourcePath,
     expectedFrameCount: input.plan.sourceObjectFrameCount,
+    expectedAverageFrameRate: '77200/3217',
   })
   const basePath = join(input.invocationRoot, 'base-384.mp4')
   await runNativeCommand({
@@ -883,7 +890,7 @@ function fixedEncodeArguments(input: {
     '-frames:v', String(input.frameCount),
     '-c:v', 'h264_nvenc', '-preset', 'p7', '-tune', 'hq',
     '-rc', 'constqp', '-qp', '20', '-g', '24', '-bf', '0',
-    '-fps_mode', 'passthrough', '-pix_fmt', 'yuv420p',
+    '-r', '24', '-fps_mode', 'cfr', '-pix_fmt', 'yuv420p',
     '-color_range', 'tv', '-colorspace', 'bt709',
     '-color_trc', 'bt709', '-color_primaries', 'bt709',
     '-movflags', '+faststart', input.outputPath,
@@ -894,6 +901,7 @@ async function probeExactVideo(input: {
   invocationId: string
   path: string
   expectedFrameCount: number
+  expectedAverageFrameRate?: '24/1' | '77200/3217'
 }) {
   const metadata = await runNativeCommand({
     invocationId: input.invocationId,
@@ -919,7 +927,7 @@ async function probeExactVideo(input: {
     width: z.literal(3_840),
     height: z.literal(2_160),
     pix_fmt: z.literal('yuv420p'),
-    avg_frame_rate: z.literal('24/1'),
+    avg_frame_rate: z.enum(['24/1', '77200/3217']),
     color_range: z.union([z.literal('tv'), z.literal('unknown')]).nullable()
       .optional(),
     color_space: z.literal('bt709'),
@@ -927,11 +935,15 @@ async function probeExactVideo(input: {
     color_primaries: z.literal('bt709'),
   }).strict().parse(z.object({ streams: z.array(z.unknown()).length(1) })
     .strict().parse(root).streams[0])
+  const expectedAverageFrameRate = input.expectedAverageFrameRate ?? '24/1'
+  if (stream.avg_frame_rate !== expectedAverageFrameRate) {
+    throw conflict('sam31_source_preparation_frame_rate_changed')
+  }
   const decodedFrameCount = await countExactGpuDecodedFrames(input)
   if (decodedFrameCount !== input.expectedFrameCount) {
     throw conflict('sam31_source_preparation_gpu_frame_count_changed')
   }
-  return ffprobeSchema.parse({
+  const observed = {
     codecName: stream.codec_name,
     width: stream.width,
     height: stream.height,
@@ -942,8 +954,11 @@ async function probeExactVideo(input: {
     colorSpace: stream.color_space,
     colorTransfer: stream.color_transfer,
     colorPrimaries: stream.color_primaries,
-    metadataOnly: true,
-  })
+    metadataOnly: true as const,
+  }
+  return expectedAverageFrameRate === '77200/3217'
+    ? sourceFfprobeSchema.parse(observed)
+    : ffprobeSchema.parse(observed)
 }
 
 async function countExactGpuDecodedFrames(input: {

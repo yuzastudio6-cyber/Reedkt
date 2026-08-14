@@ -36,6 +36,8 @@ assert.doesNotMatch(port, /nvidia-smi/u)
 assert.match(port, /'-hwaccel', 'cuda'/u)
 assert.match(port, /'-c:v', 'h264_cuvid'/u)
 assert.match(port, /'-c:v', 'h264_nvenc'/u)
+assert.match(port, /'-r', '24', '-fps_mode', 'cfr'/u)
+assert.match(port, /expectedAverageFrameRate: '77200\/3217'/u)
 assert.match(port, /'-progress', 'pipe:1'/u)
 assert.match(port, /'-an', '-sn', '-dn'/u)
 assert.doesNotMatch(port, /scale_cuda|sam3_1-source-preparation-runner\.py/u)
@@ -74,7 +76,7 @@ const outputWithoutHash = {
   sourceObjectSha256:
     'c13eda5816aba31ed60f5dce838d178ed8307f825972eec7aacf9fb29d8c47cb',
   sourceObjectByteLength: 90_971_927,
-  sourceProbe: ffprobe(386),
+  sourceProbe: sourceFfprobe(),
   baseSlice: {
     byteLength: 25_000_000,
     sha256: hash('base-slice'),
@@ -154,7 +156,7 @@ assert.throws(() => parseCanonicalSam31EightMinuteSourceGpuOutput({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-eight-minute-source-preparation-fixed-process-port',
-  checks: 58,
+  checks: 60,
   exactSourceGenerationReread: true,
   l4NvdecNvencFixedProcess: true,
   gpuDecodedFrameCountVerified: true,
@@ -196,5 +198,12 @@ function ffprobe(decodedFrameCount: number) {
     colorTransfer: 'bt709' as const,
     colorPrimaries: 'bt709' as const,
     metadataOnly: true as const,
+  }
+}
+
+function sourceFfprobe() {
+  return {
+    ...ffprobe(386),
+    averageFrameRate: '77200/3217' as const,
   }
 }

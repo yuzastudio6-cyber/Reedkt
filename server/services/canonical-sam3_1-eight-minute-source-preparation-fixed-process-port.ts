@@ -779,6 +779,7 @@ async function runFixedNativeProcess(input: {
     path: sourcePath,
     expectedFrameCount: input.plan.sourceObjectFrameCount,
     expectedAverageFrameRate: '77200/3217',
+    stage: 'source',
   })
   const basePath = join(input.invocationRoot, 'base-384.mp4')
   await runNativeCommand({
@@ -791,11 +792,13 @@ async function runFixedNativeProcess(input: {
     }),
     timeoutMilliseconds: 900_000,
     stdoutBound: 64 * 1024,
+    failureGate: 'sam31_source_preparation_base_encode_failed',
   })
   const baseProbe = await probeExactVideo({
     invocationId: input.invocationId,
     path: basePath,
     expectedFrameCount: SOURCE_SLICE_FRAME_COUNT,
+    stage: 'base',
   })
   const baseIdentity = await readExactLocalFile(
     basePath,
@@ -839,11 +842,13 @@ async function runFixedNativeProcess(input: {
       }),
       timeoutMilliseconds: 900_000,
       stdoutBound: 64 * 1024,
+      failureGate: 'sam31_source_preparation_chunk_encode_failed',
     })
     const ffprobe = await probeExactVideo({
       invocationId: input.invocationId,
       path: outputPath,
       expectedFrameCount: frameCount,
+      stage: 'chunk',
     })
     const identity = await readExactLocalFile(
       outputPath,
@@ -950,6 +955,7 @@ async function probeExactVideo(input: {
   path: string
   expectedFrameCount: number
   expectedAverageFrameRate?: '24/1' | '77200/3217'
+  stage: 'source' | 'base' | 'chunk'
 }) {
   const metadata = await runNativeCommand({
     invocationId: input.invocationId,
@@ -962,6 +968,7 @@ async function probeExactVideo(input: {
     ],
     timeoutMilliseconds: 120_000,
     stdoutBound: 128 * 1024,
+    failureGate: `sam31_source_preparation_${input.stage}_ffprobe_failed`,
   })
   let root: unknown
   try {
@@ -994,6 +1001,7 @@ async function countExactGpuDecodedFrames(input: {
   invocationId: string
   path: string
   expectedFrameCount: number
+  stage: 'source' | 'base' | 'chunk'
 }): Promise<number> {
   const result = await runNativeCommand({
     invocationId: input.invocationId,
@@ -1007,6 +1015,8 @@ async function countExactGpuDecodedFrames(input: {
     ],
     timeoutMilliseconds: 240_000,
     stdoutBound: 256 * 1024,
+    failureGate:
+      `sam31_source_preparation_${input.stage}_gpu_decode_failed`,
   })
   const counts = Array.from(
     result.stdout.toString('utf8').matchAll(/^frame=([0-9]+)$/gmu),
@@ -1113,7 +1123,11 @@ async function runNativeCommand(input: {
   arguments: readonly string[]
   timeoutMilliseconds: number
   stdoutBound: number
+  failureGate: string
 }): Promise<{ readonly stdout: Buffer }> {
+  const failureGate = z.string()
+    .regex(/^sam31_source_preparation_[a-z0-9_]+$/u)
+    .parse(input.failureGate)
   const result = await new Promise<{
     exitCode: number
     stdout: Buffer
@@ -1171,7 +1185,7 @@ async function runNativeCommand(input: {
     })
   })
   if (result.exitCode !== 0 || result.timedOut || result.overflow) {
-    throw notReady('sam31_source_preparation_fixed_process_failed')
+    throw notReady(failureGate)
   }
   return { stdout: result.stdout }
 }

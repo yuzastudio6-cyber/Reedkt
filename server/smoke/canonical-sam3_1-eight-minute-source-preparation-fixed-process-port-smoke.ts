@@ -40,6 +40,11 @@ assert.match(port, /'-c:v', 'h264_nvenc'/u)
 assert.match(port, /'-r', '24', '-fps_mode', 'cfr'/u)
 assert.match(port, /expectedAverageFrameRate: '77200\/3217'/u)
 assert.match(port, /'-progress', 'pipe:1'/u)
+assert.match(port, /sam31_source_preparation_base_encode_failed/u)
+assert.match(port, /sam31_source_preparation_chunk_encode_failed/u)
+assert.match(port, /sam31_source_preparation_\$\{input\.stage\}_ffprobe_failed/u)
+assert.match(port,
+  /sam31_source_preparation_\$\{input\.stage\}_gpu_decode_failed/u)
 assert.match(port, /'-an', '-sn', '-dn'/u)
 assert.doesNotMatch(port, /scale_cuda|sam3_1-source-preparation-runner\.py/u)
 assert.match(port, /shell: false/u)
@@ -185,7 +190,7 @@ assert.throws(() => parseCanonicalSam31EightMinuteSourceGpuOutput({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-eight-minute-source-preparation-fixed-process-port',
-  checks: 63,
+  checks: 67,
   exactSourceGenerationReread: true,
   l4NvdecNvencFixedProcess: true,
   gpuDecodedFrameCountVerified: true,

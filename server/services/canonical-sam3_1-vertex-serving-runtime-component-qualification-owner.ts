@@ -503,6 +503,7 @@ export function createCanonicalGcpSam31VertexServingRuntimeComponentOwner(
   const privateGpu = createCanonicalGcsSourceAnalysisJsonObjectPort({
     storage,
     bucketName: PRIVATE_GPU_BUCKET,
+    acceptedReadContentTypes: ['application/json', 'application/octet-stream'],
   })
   const receiptRepository =
     createCanonicalSam31VertexServingThirtyRunQualificationRepository({

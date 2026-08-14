@@ -31,7 +31,7 @@ const a100Release = release('a100_80gb_heavy_primary')
 const l4Release = release('l4_heavy_fallback')
 const owner = createCanonicalSam31PrivateInternalDispatchReadinessOwner()
 
-const dispatchReadiness = owner.observe({
+export const dispatchReadiness = owner.observe({
   readinessId: 'sam31-private-internal-sequential-dispatch-ready',
   privateInternalReleaseReadiness: ready,
   a100RouteReadinessObservation: a100Observation,

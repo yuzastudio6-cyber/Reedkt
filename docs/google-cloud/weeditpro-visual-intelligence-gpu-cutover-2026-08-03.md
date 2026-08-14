@@ -1128,3 +1128,25 @@ gates.
   reconciliation, and zero customer credits for platform-funded
   qualification. It grants no runtime, QA, billing-ledger, public-delivery, or
   production authority.
+
+## 2026-08-14 private complete-source execution boundary
+
+The current private/internal milestone does not require the future public
+16-A100 plus 16-L4 concurrency target. It admits at most one A100 attempt and
+one independently qualified L4 attempt, requires all chunks and both route
+runs to execute sequentially, and requires capacity to return to zero before
+the other route may begin. The 16/16 target remains an explicit later public
+release gate and grants no current customer dispatch authority.
+
+The private complete-source execution-plan owner now rereads the exact
+eight-minute 3840x2160, 11,520-frame source plan, all 49 GPU-prepared chunks,
+the terminal source-preparation/cost/scale-zero record, and the current private
+SAM 3.1 dispatch readiness. It binds one exact runtime release, immutable
+image, and billing-account-effective rate for the selected A100 or L4 route,
+then creates a durable byte-free task-materialization plan with one unique
+private invocation and transport lineage per chunk. It accepts neither public
+capacity claims nor caller-selected prices, images, chunk geometry, or storage
+coordinates. At this stage it starts no GPU work and claims neither complete
+source performance nor independent temporal quality; those remain the next
+two mandatory private qualification artifacts before Track All/SAM 3.1 can be
+called internally ready end to end.

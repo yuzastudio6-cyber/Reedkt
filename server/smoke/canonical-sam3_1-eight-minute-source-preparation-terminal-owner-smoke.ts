@@ -62,7 +62,7 @@ const sourceRepository =
     objectPort,
     prefix: 'private/smoke/sam31-source-terminal-source',
   })
-const plan = buildCanonicalSam31EightMinuteQualificationSourcePlan({
+export const plan = buildCanonicalSam31EightMinuteQualificationSourcePlan({
   qualificationSourceId: 'sam31-eight-minute-performance-source-v1',
   exactSourceObjectRef: ref(
     'sam31-private-real-source-object-generation-1779933335766660',
@@ -196,7 +196,7 @@ const launchRepository =
   })
 assert.equal(await launchRepository.persistCreateOnly({ launch }), 'created')
 
-const preparation =
+export const preparation =
   buildCanonicalSam31EightMinuteQualificationSourcePreparation({
     preparationId: `${plan.qualificationSourceId}:preparation:${invocationId}`,
     plan,
@@ -268,7 +268,7 @@ assert.ok(
   ready.provisionalAccountEffectiveInfrastructureCostCeilingUsdNanos <=
     admitted.admission.maximumApprovedInternalBudgetUsdNanos,
 )
-const exact = await terminalRepository.reread({ invocationId })
+export const exact = await terminalRepository.reread({ invocationId })
 assert.ok(exact)
 assert.equal(exact?.exactPreparedChunkCount, 49)
 assert.equal(exact?.usage.coldStartMilliseconds, 30_000)

@@ -133,6 +133,11 @@ const receipt = createCanonicalSam31L4QualificationAttemptCostReceipt({
   recordedAt,
 })
 
+export {
+  rate as canonicalSam31L4QualificationRateFixture,
+  receipt as canonicalSam31L4QualificationCostReceiptFixture,
+}
+
 assert.equal(receipt.actualUsage.totalBillableMilliseconds, 150_000)
 assert.equal(receipt.actualUsage.coldStartMilliseconds, 10_000)
 assert.equal(receipt.actualUsage.activeGpuMilliseconds, 100_000)

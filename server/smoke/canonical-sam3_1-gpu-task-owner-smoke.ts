@@ -702,6 +702,7 @@ await assert.rejects(() => admitCanonicalSam31GpuRuntimeResult({
 
 export {
   task as canonicalSam31A100TaskFixture,
+  l4Task as canonicalSam31L4TaskFixture,
   runtimeResponse as canonicalSam31A100RuntimeResponseFixture,
   launch as canonicalSam31A100LaunchFixture,
   terminal as canonicalSam31A100TerminalFixture,

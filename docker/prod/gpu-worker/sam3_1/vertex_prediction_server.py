@@ -73,6 +73,7 @@ RAW_SHA256 = re.compile(r"^[a-f0-9]{64}$")
 _execution_lock = threading.Lock()
 _checkpoint_ready = False
 _checkpoint_download_performed_at_startup = False
+_checkpoint_initialization_failed = False
 
 
 def stable_json_bytes(value: Any) -> bytes:
@@ -550,6 +551,18 @@ class Handler(BaseHTTPRequestHandler):
         if self.path != "/health":
             self.send_json(HTTPStatus.NOT_FOUND, {"status": "not_found"})
             return
+        if _checkpoint_initialization_failed:
+            self.send_json(
+                HTTPStatus.SERVICE_UNAVAILABLE,
+                {"status": "checkpoint_initialization_failed"},
+            )
+            return
+        if not _checkpoint_ready:
+            self.send_json(
+                HTTPStatus.SERVICE_UNAVAILABLE,
+                {"status": "checkpoint_loading"},
+            )
+            return
         self.send_json(HTTPStatus.OK, {"status": "ready"})
 
     def do_POST(self) -> None:
@@ -583,8 +596,23 @@ class Handler(BaseHTTPRequestHandler):
             )
 
 
-def main() -> int:
+def initialize_checkpoint() -> None:
     global _checkpoint_ready, _checkpoint_download_performed_at_startup
+    global _checkpoint_initialization_failed
+    try:
+        _checkpoint_download_performed_at_startup = ensure_checkpoint(
+            metadata_access_token(),
+            EXACT_CHECKPOINT_BYTE_LENGTH,
+            EXACT_CHECKPOINT_SHA256,
+        )
+        _checkpoint_ready = True
+        print("sam31_vertex_checkpoint_ready", flush=True)
+    except Exception:
+        _checkpoint_initialization_failed = True
+        print("sam31_vertex_checkpoint_initialization_failed", flush=True)
+
+
+def main() -> int:
     if os.environ.get("WEEDITPRO_SAM31_RUNTIME_MODE") != (
         "vertex_prediction_endpoint_v1"
     ):
@@ -600,14 +628,14 @@ def main() -> int:
         os.chmod(directory, 0o700)
     if not Path("/dev/nvidia0").exists() or not Path("/dev/nvidiactl").exists():
         raise RuntimeError("Vertex prediction startup cannot observe NVIDIA devices")
-    _checkpoint_download_performed_at_startup = ensure_checkpoint(
-        metadata_access_token(),
-        EXACT_CHECKPOINT_BYTE_LENGTH,
-        EXACT_CHECKPOINT_SHA256,
-    )
-    _checkpoint_ready = True
     server = ThreadingHTTPServer(("0.0.0.0", port), Handler)
     server.daemon_threads = True
+    checkpoint_thread = threading.Thread(
+        target=initialize_checkpoint,
+        name="sam31-checkpoint-initializer",
+        daemon=True,
+    )
+    checkpoint_thread.start()
     server.serve_forever(poll_interval=0.5)
     return 0
 

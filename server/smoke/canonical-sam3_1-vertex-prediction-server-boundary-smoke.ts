@@ -39,7 +39,12 @@ assert.match(server,
   /0567debeec80ba4ac6369540c6c248025283cb3ff2b92827509e57e2b3541cb6/u)
 assert.match(server, /exactCheckpointBytesRereadAndHashed.*True/su)
 assert.match(server, /privateCheckpointDownloadPerformedAtReplicaStartup/su)
-assert.match(server, /_checkpoint_ready = True[\s\S]*ThreadingHTTPServer/u)
+assert.match(server,
+  /ThreadingHTTPServer[\s\S]*threading\.Thread[\s\S]*checkpoint_thread\.start/u)
+assert.match(server,
+  /if not _checkpoint_ready:[\s\S]*HTTPStatus\.SERVICE_UNAVAILABLE[\s\S]*checkpoint_loading/u)
+assert.match(server,
+  /ensure_checkpoint\([\s\S]*EXACT_CHECKPOINT_SHA256[\s\S]*_checkpoint_ready = True/u)
 assert.match(server, /storageWritePerformed.*False/su)
 assert.match(server, /\/dev\/nvidia0/u)
 assert.match(server, /response commit marker is absent/u)
@@ -71,7 +76,7 @@ assert.match(dockerfile, /chmod 0555 .*vertex_prediction_server\.py/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-prediction-server-boundary',
-  checks: 48,
+  checks: 50,
   requestIsByteFree: true,
   callerStorageOrModelControlAccepted: false,
   oneConcurrentA100Attempt: true,
@@ -79,7 +84,8 @@ console.log(JSON.stringify({
   responseUploadedLastAsCommitMarker: true,
   exactCheckpointBindingVerifiedBeforeExecution: true,
   nonCustomerGpuReadinessProbeIsByteFree: true,
-  exactCheckpointReadyBeforeHealthServerStarts: true,
+  healthServerStartsBeforeBoundedCheckpointInitialization: true,
+  healthRemainsUnavailableUntilExactCheckpointReady: true,
   completedAndFailedTerminalResultsPersisted: true,
   customerCreditsMutated: false,
   productionReady: false,

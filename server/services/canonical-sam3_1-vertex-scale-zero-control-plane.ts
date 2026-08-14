@@ -523,6 +523,8 @@ const deployedModelResourceSchema = z.object({
   serviceAccount: z.literal(
     'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com',
   ),
+  enableAccessLogging: z.literal(false).optional(),
+  disableContainerLogging: z.literal(false),
   dedicatedResources: z.object({
     machineSpec: z.object({
       machineType: z.literal('a2-ultragpu-1g'),
@@ -569,6 +571,18 @@ function parseExactModelResource(
           .length(1),
         healthRoute: z.literal('/health'),
         predictRoute: z.literal('/predict'),
+        deploymentTimeout: z.literal('1800s'),
+        startupProbe: z.object({
+          httpGet: z.object({
+            path: z.literal('/health'),
+            port: z.literal(8080),
+          }).strict(),
+          initialDelaySeconds: z.literal(0),
+          periodSeconds: z.literal(10),
+          timeoutSeconds: z.literal(10),
+          failureThreshold: z.literal(120),
+          successThreshold: z.literal(1),
+        }).strict(),
         env: z.array(z.object({ name: z.string(), value: z.string() }).strict())
           .length(2),
       }).strict(),
@@ -583,6 +597,20 @@ function parseExactModelResource(
         .length(1),
       healthRoute: z.literal('/health'),
       predictRoute: z.literal('/predict'),
+      deploymentTimeout: z.literal(
+        requested.model.containerSpec.deploymentTimeout,
+      ),
+      startupProbe: z.object({
+        httpGet: z.object({
+          path: z.literal('/health'),
+          port: z.literal(8080),
+        }).passthrough(),
+        initialDelaySeconds: z.literal(0),
+        periodSeconds: z.literal(10),
+        timeoutSeconds: z.literal(10),
+        failureThreshold: z.literal(120),
+        successThreshold: z.literal(1),
+      }).passthrough(),
       env: z.array(z.object({ name: z.string(), value: z.string() }).passthrough())
         .length(2),
     }).passthrough(),

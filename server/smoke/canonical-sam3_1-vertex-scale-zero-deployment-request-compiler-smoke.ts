@@ -53,6 +53,17 @@ assert.equal(upload.body.modelId, 'weeditpro-sam31-a100-scale-zero-v1')
 assert.equal(JSON.stringify(upload.body).includes(profile.immutableImageUri), true)
 assert.equal(JSON.stringify(upload.body).includes('/predict'), true)
 assert.equal(JSON.stringify(upload.body).includes('/health'), true)
+const uploadedModel = upload.body.model as Record<string, unknown>
+const containerSpec = uploadedModel.containerSpec as Record<string, unknown>
+assert.equal(containerSpec.deploymentTimeout, '1800s')
+assert.deepEqual(containerSpec.startupProbe, {
+  httpGet: { path: '/health', port: 8080 },
+  initialDelaySeconds: 0,
+  periodSeconds: 10,
+  timeoutSeconds: 10,
+  failureThreshold: 120,
+  successThreshold: 1,
+})
 assert.equal(endpoint.body.dedicatedEndpointEnabled, true)
 assert.equal(endpoint.body.predictRequestResponseLoggingConfig, undefined)
 const deployedModel = deploy.body.deployedModel as Record<string, unknown>
@@ -63,6 +74,8 @@ const dedicatedResources = deployedModel.dedicatedResources as Record<
 assert.equal(deployedModel.serviceAccount,
   'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com')
 assert.equal(deployedModel.id, '3101000001')
+assert.equal(deployedModel.enableAccessLogging, false)
+assert.equal(deployedModel.disableContainerLogging, false)
 assert.equal(dedicatedResources.minReplicaCount, 0)
 assert.equal(dedicatedResources.initialReplicaCount, 1)
 assert.equal(dedicatedResources.maxReplicaCount, 1)
@@ -90,12 +103,15 @@ assert.throws(() => assertCanonicalSam31VertexScaleZeroDeploymentRequest({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-scale-zero-deployment-request-compiler',
-  checks: 22,
+  checks: 26,
   vertexControlPlaneApiVersion: 'v1beta1',
   dedicatedA100Endpoint: true,
   minimumReplicaCount: 0,
   initialReplicaCount: 1,
   exactScaleToZeroSpec: true,
+  boundedCheckpointStartupProbe: true,
+  sanitizedContainerLoggingEnabled: true,
+  accessAndRequestResponseLoggingEnabled: false,
   callerCloudResourceSelectionAccepted: false,
   customerRequestOrGpuInferenceStarted: false,
   productionReady: false,

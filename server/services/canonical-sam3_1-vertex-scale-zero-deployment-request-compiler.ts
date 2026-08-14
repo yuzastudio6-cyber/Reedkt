@@ -9,7 +9,7 @@ import {
 } from './private-edit-authority-store'
 
 export const CANONICAL_SAM3_1_VERTEX_SCALE_ZERO_DEPLOYMENT_REQUEST_VERSION =
-  'canonical-sam3_1-vertex-scale-zero-deployment-request-v2' as const
+  'canonical-sam3_1-vertex-scale-zero-deployment-request-v3' as const
 
 const API_ORIGIN = 'https://us-central1-aiplatform.googleapis.com' as const
 const PARENT = 'projects/reeditpro/locations/us-central1' as const
@@ -79,6 +79,18 @@ export function createCanonicalSam31VertexScaleZeroFoundationRequests(
           ports: [{ containerPort: profile.container.port }],
           healthRoute: profile.container.healthRoute,
           predictRoute: profile.container.predictRoute,
+          deploymentTimeout: '1800s',
+          startupProbe: {
+            httpGet: {
+              path: profile.container.healthRoute,
+              port: profile.container.port,
+            },
+            initialDelaySeconds: 0,
+            periodSeconds: 10,
+            timeoutSeconds: 10,
+            failureThreshold: 120,
+            successThreshold: 1,
+          },
           env: [
             {
               name: 'WEEDITPRO_SAM31_RUNTIME_MODE',
@@ -123,7 +135,7 @@ export function createCanonicalSam31VertexScaleZeroModelDeployRequest(input: {
         displayName: profile.endpoint.displayName,
         serviceAccount: profile.serviceIdentity.email,
         enableAccessLogging: false,
-        disableContainerLogging: true,
+        disableContainerLogging: false,
         dedicatedResources: {
           machineSpec: {
             machineType: profile.dedicatedResources.machineType,

@@ -331,15 +331,17 @@ function endpoint() {
     disableContainerLogging: false,
     dedicatedResources: resources(),
   }
+  if (previousUndeployed && !successorDeployed) return {
+    name:
+      'projects/390722338345/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1',
+  }
   return {
     name:
       'projects/390722338345/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1',
-    deployedModels: successorDeployed
-      ? [successor]
-      : previousUndeployed ? [] : [previous],
+    deployedModels: successorDeployed ? [successor] : [previous],
     trafficSplit: successorDeployed
       ? { '3101000006': 100 }
-      : previousUndeployed ? {} : { '3101000004': 100 },
+      : { '3101000004': 100 },
   }
 }
 

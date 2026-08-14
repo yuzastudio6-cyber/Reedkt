@@ -904,8 +904,11 @@ export function createCanonicalSam31VertexModelVersionSuccessorRolloutOwner(
           }).strict(),
           spot: z.boolean().optional(),
         }).passthrough(),
-      }).passthrough()),
-      trafficSplit: z.record(z.string(), z.number().int().nonnegative()),
+      }).passthrough()).default([]),
+      trafficSplit: z.record(
+        z.string(),
+        z.number().int().nonnegative(),
+      ).default({}),
     }).passthrough().parse(response.data)
   }
 

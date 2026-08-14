@@ -1204,6 +1204,22 @@ L4 result cannot satisfy an A100 request. Independent mask artifact QA,
 manifest reconciliation, renderer admission, customer credit settlement,
 public delivery, and production authority remain closed.
 
+The eight-minute performance and independent temporal-quality runs now use a
+separate qualification-only admission. This removes the circular requirement
+that those runs already possess the final runtime release they are intended to
+produce. The owner exact-rereads the full source plan and 49 prepared chunks,
+the terminal scale-zero source-preparation evidence, current sequential private
+capacity, the selected route's driver/CUDA and deterministic-run components,
+the immutable supply-chain-qualified image, and the current
+billing-account-effective rate. It authorizes only one platform-funded private
+qualification route and one chunk at a time, with zero customer credits,
+minimum GPU capacity zero when idle, no substantive CPU execution, no automatic
+retry or fallback, and no resolution reduction. It explicitly cannot satisfy
+or be consumed as a final runtime release, Track All admission, QA approval,
+public dispatch, delivery, or production authority. Final release remains
+blocked until the complete-source performance and temporal-quality evidence is
+produced, exact-reread, and separately compiled.
+
 ### 2026-08-14 live deterministic route evidence
 
 - The A100 80 GB primary qualification

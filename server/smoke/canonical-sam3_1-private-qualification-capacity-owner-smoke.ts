@@ -33,7 +33,7 @@ const currentL4 = l4({
 const repository = createCanonicalSam31PrivateQualificationCapacityRepository({
   objectPort: memoryObjectPort(new Map()),
 })
-const current = await createCanonicalSam31PrivateQualificationCapacityOwner({
+export const current = await createCanonicalSam31PrivateQualificationCapacityOwner({
   a100QuotaReadPort: { async rereadCurrent() { return currentA100 } },
   l4QuotaReadPort: { async rereadCurrent() { return currentL4 } },
   repository,

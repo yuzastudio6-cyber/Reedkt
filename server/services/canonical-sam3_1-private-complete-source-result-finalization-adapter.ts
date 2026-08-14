@@ -32,7 +32,7 @@ export function createCanonicalSam31PrivateCompleteSourceResultFinalizationPort(
     || typeof input.l4?.finalize !== 'function') {
     throw new TypeError('SAM 3.1 complete-source finalizers are incomplete.')
   }
-  return Object.freeze({
+  const port: CanonicalSam31PrivateCompleteSourceChunkResultFinalizationPort = {
     schemaVersion:
       'canonical-sam3_1-private-complete-source-chunk-result-finalization-port-v1',
     privateInternalOnly: true,
@@ -61,7 +61,8 @@ export function createCanonicalSam31PrivateCompleteSourceResultFinalizationPort(
       }
       return exact
     },
-  })
+  }
+  return Object.freeze(port)
 }
 
 export function createCanonicalSam31PrivateCompleteSourceChunkResultReadPort(
@@ -77,7 +78,7 @@ export function createCanonicalSam31PrivateCompleteSourceChunkResultReadPort(
       'function') {
     throw new TypeError('SAM 3.1 complete-source result readers are incomplete.')
   }
-  return Object.freeze({
+  const port: CanonicalSam31PrivateCompleteSourceChunkResultReadPort = {
     schemaVersion:
       'canonical-sam3_1-private-complete-source-chunk-result-read-port-v1',
     privateInternalOnly: true,
@@ -127,7 +128,8 @@ export function createCanonicalSam31PrivateCompleteSourceChunkResultReadPort(
       }
       return output
     },
-  })
+  }
+  return Object.freeze(port)
 }
 
 function assertRef(

@@ -152,7 +152,7 @@ function createOwner(input: {
         'canonical-sam3_1-private-complete-source-chunk-result-read-port-v1',
       privateInternalOnly: true,
       customerOrPublicDispatchAuthorized: false,
-      async rereadLaunch() { return structuredClone(launch) },
+      async rereadLaunch() { return structuredClone(launch!) },
       async rereadTerminal() { return structuredClone(terminal) },
       async rereadResultAdmission() {
         return structuredClone(input.result)

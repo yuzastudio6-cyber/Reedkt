@@ -355,6 +355,7 @@
     "smoke:sam3_1-private-qualification-capacity": "tsx server/smoke/canonical-sam3_1-private-qualification-capacity-owner-smoke.ts",
     "smoke:sam3_1-private-internal-release-readiness": "tsx server/smoke/canonical-sam3_1-private-internal-release-readiness-owner-smoke.ts",
     "smoke:sam3_1-private-internal-dispatch-readiness": "tsx server/smoke/canonical-sam3_1-private-internal-dispatch-readiness-owner-smoke.ts",
+    "smoke:sam3_1-private-complete-source-qualification-admission": "tsx server/smoke/canonical-sam3_1-private-complete-source-qualification-admission-owner-smoke.ts",
     "smoke:sam3_1-private-complete-source-execution-plan": "tsx server/smoke/canonical-sam3_1-private-complete-source-execution-plan-owner-smoke.ts",
     "smoke:sam3_1-private-complete-source-task-materialization": "tsx server/smoke/canonical-sam3_1-private-complete-source-task-materialization-owner-smoke.ts",
     "smoke:sam3_1-private-complete-source-chunk-launch": "tsx server/smoke/canonical-sam3_1-private-complete-source-chunk-launch-owner-smoke.ts",

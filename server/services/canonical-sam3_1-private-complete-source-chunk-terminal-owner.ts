@@ -9,6 +9,8 @@ import {
   assertCanonicalProfessionalGpuJobLaunch,
   assertCanonicalProfessionalGpuJobTerminal,
   assertPlainSerializedData,
+  type CanonicalProfessionalGpuJobLaunch,
+  type CanonicalProfessionalGpuJobTerminal,
 } from './canonical-professional-gpu-job-lifecycle-service'
 import {
   assertCanonicalSam31PrivateCompleteSourceChunkLaunchResult,
@@ -33,6 +35,8 @@ import {
 import {
   assertCanonicalSam31GpuRuntimeResultAdmission,
   assertCanonicalSam31PrivateOutputRereadEvidence,
+  type CanonicalSam31GpuRuntimeResultAdmission,
+  type CanonicalSam31PrivateOutputRereadEvidence,
 } from '../workers/masks/canonical-sam3_1-gpu-runtime-result-service'
 import {
   assertCanonicalSam31GpuTaskRecord,
@@ -72,7 +76,7 @@ export interface CanonicalSam31PrivateCompleteSourceChunkResultFinalizationPort 
     readonly launchRecordId: string
     readonly executionPlanRef: EvidenceRef
     readonly chunkOrdinal: number
-  }): Promise<unknown>
+  }): Promise<CanonicalSam31GpuRuntimeResultAdmission>
 }
 
 export interface CanonicalSam31PrivateCompleteSourceChunkResultReadPort {
@@ -80,16 +84,20 @@ export interface CanonicalSam31PrivateCompleteSourceChunkResultReadPort {
     'canonical-sam3_1-private-complete-source-chunk-result-read-port-v1'
   readonly privateInternalOnly: true
   readonly customerOrPublicDispatchAuthorized: false
-  rereadLaunch(input: { readonly launchRef: EvidenceRef }): Promise<unknown>
-  rereadTerminal(input: { readonly terminalRef: EvidenceRef }): Promise<unknown>
+  rereadLaunch(input: {
+    readonly launchRef: EvidenceRef
+  }): Promise<CanonicalProfessionalGpuJobLaunch>
+  rereadTerminal(input: {
+    readonly terminalRef: EvidenceRef
+  }): Promise<CanonicalProfessionalGpuJobTerminal>
   rereadResultAdmission(input: {
     readonly invocationId: string
     readonly resultAdmissionRef: EvidenceRef
-  }): Promise<unknown>
+  }): Promise<CanonicalSam31GpuRuntimeResultAdmission>
   rereadPrivateOutputEvidence(input: {
     readonly invocationId: string
     readonly privateOutputRereadEvidenceRef: EvidenceRef
-  }): Promise<unknown>
+  }): Promise<CanonicalSam31PrivateOutputRereadEvidence>
 }
 
 export interface CanonicalSam31PrivateCompleteSourceChunkTerminalRepository

@@ -1150,3 +1150,16 @@ coordinates. At this stage it starts no GPU work and claims neither complete
 source performance nor independent temporal quality; those remain the next
 two mandatory private qualification artifacts before Track All/SAM 3.1 can be
 called internally ready end to end.
+
+The private complete-source task-materialization owner now consumes that plan
+one chunk at a time through server-owned read ports. It rereads the exact
+private funded admission, current dispatch readiness, route release, current
+account-effective rate, Track All Orchestra binding, approved frame/timing,
+specialized runtime release, prepared input, and create-only fixed task. Chunk
+one may materialize directly; every later chunk is refused until the previous
+chunk's exact task/result/output/cost terminal and scale-back-to-zero evidence
+has been reread. An identical restart is accepted only when the persisted task
+and materialization bytes are unchanged. Materialization starts no cloud job,
+does not spend customer credits, and cannot create customer/public prelaunch
+records. The public 16/16 concurrency target remains recorded only as a future
+release gate.

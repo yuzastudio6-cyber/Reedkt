@@ -36,7 +36,7 @@ const readinessPayload = {
   observedAt: '2026-08-13T16:10:30.000Z',
   expiresAt: '2026-08-13T16:30:00.000Z',
 }
-const privateInternalDispatchReadiness = {
+export const privateInternalDispatchReadiness = {
   ...readinessPayload,
   readinessHash: sha256AuthorityValue(readinessPayload),
 }
@@ -73,12 +73,12 @@ const common = {
   plannedAt,
   expiresAt,
 }
-const a100Plan = owner.build({
+export const a100Plan = owner.build({
   ...common,
   executionPlanId: 'sam31-full-source-a100-run-01',
   routeId: 'a100_80gb_heavy_primary',
 })
-const l4Plan = owner.build({
+export const l4Plan = owner.build({
   ...common,
   executionPlanId: 'sam31-full-source-l4-run-01',
   routeId: 'l4_heavy_fallback',

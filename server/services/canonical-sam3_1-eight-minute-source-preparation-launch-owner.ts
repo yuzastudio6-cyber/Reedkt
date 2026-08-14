@@ -743,9 +743,8 @@ export function getCanonicalSam31EightMinuteSourcePreparationCloudRunJobDefiniti
     && container.resources.limits.cpu === '8'
     && container.resources.limits.memory === '32Gi'
     && container.resources.limits['nvidia.com/gpu'] === '1'
-    && definition.template.template.nodeSelector[
-      'run.googleapis.com/accelerator'
-    ] === 'nvidia-l4'
+    && Object.keys(definition.template.template.nodeSelector).length === 1
+    && definition.template.template.nodeSelector.accelerator === 'nvidia-l4'
     && environment.size === 3
     && environment.get('REEDITPRO_ENV') === 'production'
     && environment.get('WORKER_GROUP') === 'l4_standard_primary'

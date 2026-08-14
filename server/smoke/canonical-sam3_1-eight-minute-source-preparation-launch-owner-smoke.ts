@@ -311,6 +311,49 @@ if (drift.status !== 'not_ready') {
 assert.equal(drift.blockerCode,
   'sam31_source_preparation_cloud_run_not_started')
 
+const staleSelectorId = 'sam31-source-prep-launch-stale-selector-1'
+admissions.set(staleSelectorId, createAdmission(staleSelectorId))
+let staleSelectorStartCalls = 0
+const staleSelectorOwner =
+  createCanonicalSam31EightMinuteSourcePreparationLaunchOwner({
+    authorityRepository,
+    launchRepository:
+      createCanonicalSam31EightMinuteSourcePreparationLaunchRepository({
+        objectPort,
+        prefix: 'private/smoke/sam31-source-prep-launch-stale-selector',
+      }),
+    cloudRunPort:
+      createGoogleCloudRunSam31EightMinuteSourcePreparationPort({
+        now: () => now,
+        auth: {
+          async request(request) {
+            const exact = request as { method?: string }
+            if (exact.method === 'POST') staleSelectorStartCalls += 1
+            const definition = createJobDefinition() as unknown as {
+              template: { template: {
+                nodeSelector: Record<string, string>
+              } }
+            }
+            definition.template.template.nodeSelector = {
+              'run.googleapis.com/accelerator': 'nvidia-l4',
+            }
+            return { data: definition } as never
+          },
+        },
+      }),
+    now: () => now,
+  })
+const staleSelector = await staleSelectorOwner.startOneShot({
+  invocationId: staleSelectorId,
+})
+assert.equal(staleSelector.status, 'not_ready')
+assert.equal(staleSelectorStartCalls, 0)
+if (staleSelector.status !== 'not_ready') {
+  throw new Error('stale selector result missing')
+}
+assert.equal(staleSelector.blockerCode,
+  'sam31_source_preparation_cloud_run_not_started')
+
 const missing = await acceptedOwner.startOneShot({
   invocationId: 'sam31-source-prep-missing-admission',
 })
@@ -323,7 +366,7 @@ await assert.rejects(() => acceptedOwner.startOneShot({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-eight-minute-source-preparation-launch-owner',
-  checks: 50,
+  checks: 54,
   exactCloudRunJobResource: release.cloudRunJobResource,
   exactLiveJobDefinitionRereadCount: acceptedDefinitionReads,
   acceptedCallCount: acceptedCalls,
@@ -331,6 +374,8 @@ console.log(JSON.stringify({
   unknownOutcomeRetryAllowed: false,
   consumedWithoutLaunchRetryAllowed: false,
   driftedLiveJobStartCallCount: driftStartCalls,
+  staleSerializedSelectorStartCallCount: staleSelectorStartCalls,
+  exactCurrentCloudRunV2AcceleratorSelector: true,
   cloudRunReceivesOnlyInvocationIdentity: true,
   customerCreditsMutated: false,
   productionAuthorityGranted: false,
@@ -440,9 +485,7 @@ function createJobDefinition(
         timeout: '3600s',
         serviceAccount:
           'reeditpro-gpu-worker-sa@reeditpro.iam.gserviceaccount.com',
-        nodeSelector: {
-          'run.googleapis.com/accelerator': 'nvidia-l4',
-        },
+        nodeSelector: { accelerator: 'nvidia-l4' },
         gpuZonalRedundancyDisabled: true,
       },
     },

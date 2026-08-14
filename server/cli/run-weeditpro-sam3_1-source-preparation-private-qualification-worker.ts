@@ -237,6 +237,9 @@ try {
       ? error.issues.slice(0, 16).map((issue) => ({
           code: issue.code,
           path: issue.path.map((part) => String(part)).join('.'),
+          ...(issue.code === 'unrecognized_keys'
+            ? { keys: [...issue.keys].sort() }
+            : {}),
         }))
       : [],
     gpuProcessState: gpuProcessEntered

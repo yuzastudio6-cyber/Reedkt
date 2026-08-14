@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs'
 
 import {
   parseCanonicalSam31EightMinuteSourceGpuOutput,
+  parseCanonicalSam31SourcePreparationFfprobeMetadataWire,
 } from '../services/canonical-sam3_1-eight-minute-source-preparation-fixed-process-port'
 import { sha256AuthorityValue } from
   '../services/private-edit-authority-store'
@@ -62,6 +63,34 @@ assert.doesNotMatch(
   docker,
   /FROM python|pip install|paddle|opencv|\/model-weights\//u,
 )
+
+const ffprobeWire = {
+  programs: [],
+  stream_groups: [],
+  streams: [{
+    codec_name: 'h264',
+    width: 3_840,
+    height: 2_160,
+    pix_fmt: 'yuv420p',
+    avg_frame_rate: '77200/3217',
+    color_range: 'tv',
+    color_space: 'bt709',
+    color_transfer: 'bt709',
+    color_primaries: 'bt709',
+    side_data_list: [{}],
+  }],
+}
+const parsedFfprobeWire =
+  parseCanonicalSam31SourcePreparationFfprobeMetadataWire(ffprobeWire)
+assert.equal(parsedFfprobeWire.averageFrameRate, '77200/3217')
+assert.throws(() => parseCanonicalSam31SourcePreparationFfprobeMetadataWire({
+  ...ffprobeWire,
+  chapters: [],
+}))
+assert.throws(() => parseCanonicalSam31SourcePreparationFfprobeMetadataWire({
+  ...ffprobeWire,
+  programs: [{}],
+}))
 
 const outputWithoutHash = {
   schemaVersion: 'canonical-sam3_1-eight-minute-source-gpu-output-v1' as const,
@@ -156,7 +185,7 @@ assert.throws(() => parseCanonicalSam31EightMinuteSourceGpuOutput({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-eight-minute-source-preparation-fixed-process-port',
-  checks: 60,
+  checks: 63,
   exactSourceGenerationReread: true,
   l4NvdecNvencFixedProcess: true,
   gpuDecodedFrameCountVerified: true,

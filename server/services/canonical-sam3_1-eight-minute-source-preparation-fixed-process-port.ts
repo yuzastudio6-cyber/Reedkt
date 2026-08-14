@@ -85,7 +85,9 @@ const ffprobeSchema = z.object({
   height: z.literal(2_160),
   pixelFormat: z.literal('yuv420p'),
   averageFrameRate: z.literal('24/1'),
-  decodedFrameCount: z.number().int().min(1).max(CHUNK_FRAME_COUNT),
+  // The fixed probe is shared by 240-frame chunks and the canonical
+  // 384-frame source slice. Per-chunk bounds remain closed below.
+  decodedFrameCount: z.number().int().min(1).max(SOURCE_SLICE_FRAME_COUNT),
   colorRange: z.union([z.literal('tv'), z.literal('unknown'), z.null()]),
   colorSpace: z.literal('bt709'),
   colorTransfer: z.literal('bt709'),
@@ -99,6 +101,32 @@ const sourceFfprobeSchema = ffprobeSchema.omit({
 }).extend({
   averageFrameRate: z.literal('77200/3217'),
   decodedFrameCount: z.literal(386),
+}).strict()
+
+const ffprobeStreamWireSchema = z.object({
+  codec_name: z.literal('h264'),
+  width: z.literal(3_840),
+  height: z.literal(2_160),
+  pix_fmt: z.literal('yuv420p'),
+  avg_frame_rate: z.enum(['24/1', '77200/3217']),
+  color_range: z.union([z.literal('tv'), z.literal('unknown')]).nullable()
+    .optional(),
+  color_space: z.literal('bt709'),
+  color_transfer: z.literal('bt709'),
+  color_primaries: z.literal('bt709'),
+  // FFprobe 8 emits the selected stream's side-data container even when
+  // -show_entries excludes every side-data field. Admit only that exact
+  // empty projection; no provider-added value can enter canonical evidence.
+  side_data_list: z.array(z.object({}).strict()).max(8).optional(),
+}).strict()
+
+const ffprobeWireSchema = z.object({
+  // FFprobe 8 emits these empty collections beside `streams`. Keeping them
+  // explicit preserves a closed provider boundary without rejecting its
+  // canonical JSON envelope as an unknown top-level field.
+  programs: z.array(z.never()).length(0).optional(),
+  stream_groups: z.array(z.never()).length(0).optional(),
+  streams: z.array(z.unknown()).length(1),
 }).strict()
 
 const chunkOutputSchema = z.object({
@@ -552,6 +580,26 @@ export function parseCanonicalSam31EightMinuteSourceGpuOutput(
   return freeze(parsed)
 }
 
+export function parseCanonicalSam31SourcePreparationFfprobeMetadataWire(
+  value: unknown,
+) {
+  assertPlainSerializedData(value, 'sam31_source_preparation_ffprobe')
+  const root = ffprobeWireSchema.parse(value)
+  const stream = ffprobeStreamWireSchema.parse(root.streams[0])
+  return Object.freeze({
+    codecName: stream.codec_name,
+    width: stream.width,
+    height: stream.height,
+    pixelFormat: stream.pix_fmt,
+    averageFrameRate: stream.avg_frame_rate,
+    colorRange: stream.color_range ?? null,
+    colorSpace: stream.color_space,
+    colorTransfer: stream.color_transfer,
+    colorPrimaries: stream.color_primaries,
+    metadataOnly: true as const,
+  })
+}
+
 async function createPrivateInvocationRoot(invocationId: string) {
   const rootStatus = await lstat(SCRATCH_ROOT).catch(() => null)
   if (!rootStatus?.isDirectory() || rootStatus.isSymbolicLink()) {
@@ -921,22 +969,12 @@ async function probeExactVideo(input: {
   } catch {
     throw conflict('sam31_source_preparation_ffprobe_json_invalid')
   }
-  assertPlainSerializedData(root, 'sam31_source_preparation_ffprobe')
-  const stream = z.object({
-    codec_name: z.literal('h264'),
-    width: z.literal(3_840),
-    height: z.literal(2_160),
-    pix_fmt: z.literal('yuv420p'),
-    avg_frame_rate: z.enum(['24/1', '77200/3217']),
-    color_range: z.union([z.literal('tv'), z.literal('unknown')]).nullable()
-      .optional(),
-    color_space: z.literal('bt709'),
-    color_transfer: z.literal('bt709'),
-    color_primaries: z.literal('bt709'),
-  }).strict().parse(z.object({ streams: z.array(z.unknown()).length(1) })
-    .strict().parse(root).streams[0])
+  const normalizedMetadata =
+    parseCanonicalSam31SourcePreparationFfprobeMetadataWire(
+      root,
+    )
   const expectedAverageFrameRate = input.expectedAverageFrameRate ?? '24/1'
-  if (stream.avg_frame_rate !== expectedAverageFrameRate) {
+  if (normalizedMetadata.averageFrameRate !== expectedAverageFrameRate) {
     throw conflict('sam31_source_preparation_frame_rate_changed')
   }
   const decodedFrameCount = await countExactGpuDecodedFrames(input)
@@ -944,17 +982,8 @@ async function probeExactVideo(input: {
     throw conflict('sam31_source_preparation_gpu_frame_count_changed')
   }
   const observed = {
-    codecName: stream.codec_name,
-    width: stream.width,
-    height: stream.height,
-    pixelFormat: stream.pix_fmt,
-    averageFrameRate: stream.avg_frame_rate,
+    ...normalizedMetadata,
     decodedFrameCount,
-    colorRange: stream.color_range ?? null,
-    colorSpace: stream.color_space,
-    colorTransfer: stream.color_transfer,
-    colorPrimaries: stream.color_primaries,
-    metadataOnly: true as const,
   }
   return expectedAverageFrameRate === '77200/3217'
     ? sourceFfprobeSchema.parse(observed)

@@ -50,12 +50,12 @@ run_gcloud run jobs deploy "${JOB}" \
   --set-env-vars="REEDITPRO_ENV=production,WORKER_GROUP=l4_standard_primary,GCS_CONTROL_PLANE_STATE_BUCKET=${CONTROL_PLANE_STATE_BUCKET}" \
   --labels="app=weeditpro,operation=sam31-source-preparation,route=l4-standard-primary,scale=zero"
 
-readonly DESCRIPTION="$(gcloud run jobs describe "${JOB}" \
+readonly JOB_DESCRIPTION="$(gcloud run jobs describe "${JOB}" \
   --project="${GCP_PROJECT_ID}" \
   --region="${REGION}" \
   --format=json)"
 
-DESCRIPTION="${DESCRIPTION}" \
+DESCRIPTION="${JOB_DESCRIPTION}" \
 EXPECTED_IMAGE="${IMAGE}" \
 EXPECTED_ENTRYPOINT="${EXPECTED_ENTRYPOINT}" \
 node <<'NODE'

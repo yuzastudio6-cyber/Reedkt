@@ -140,6 +140,11 @@ assert.equal(first.modelVersionResourceName,
 assert.equal(first.deployedModelId, '3101000006')
 assert.equal(first.previousDeployedModelRemovedBeforeSuccessorDeployment, true)
 assert.equal(first.capacityOneReplacementSequence, true)
+assert.equal(
+  first.providerEndpointRereadOmitsAcceptedScaleToZeroWriteFields,
+  true,
+)
+assert.equal(first.providerNormalizedContainerLoggingDisabled, true)
 assert.deepEqual(first.stages.map((value) => value.stage), [
   'model_version_upload',
   'previous_deployed_model_undeploy_for_capacity',
@@ -258,13 +263,15 @@ assert.equal(rejectedPostCount, 1)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-model-version-successor-rollout',
-  checks: 54,
+  checks: 58,
   exactModelVersionUpload: true,
   exactExistingCandidateAdoptedWithoutDuplicateUpload: true,
   restartReusedOriginalConsumptionTimestamp: true,
   exactA100ScaleZeroDeployment: true,
   previousDeploymentRemovedBeforeSuccessorDeployment: true,
   capacityOneReplacementSequence: true,
+  providerEndpointRereadOmitsAcceptedScaleToZeroWriteFields: true,
+  providerNormalizedContainerLoggingDisabled: true,
   previousModelVersionRetainedForRollback: true,
   durableConsumptionBeforeEveryProviderPost: true,
   restartReplayIssuedNoDuplicateProviderPost: true,
@@ -333,8 +340,8 @@ function endpoint() {
     serviceAccount:
       'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com',
     enableAccessLogging: false,
-    disableContainerLogging: false,
-    dedicatedResources: resources(),
+    disableContainerLogging: true,
+    dedicatedResources: providerVisibleResources(),
   }
   if (previousUndeployed && !successorDeployed) return {
     name:
@@ -365,6 +372,17 @@ function resources() {
       idleScaledownPeriod: '300s',
     },
     spot: false,
+  }
+}
+
+function providerVisibleResources() {
+  return {
+    machineSpec: {
+      machineType: 'a2-ultragpu-1g',
+      acceleratorType: 'NVIDIA_A100_80GB',
+      acceleratorCount: 1,
+    },
+    maxReplicaCount: 1,
   }
 }
 

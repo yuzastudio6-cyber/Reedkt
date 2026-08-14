@@ -248,6 +248,8 @@ export interface CanonicalSam31VertexModelVersionSuccessorRolloutResult {
   readonly previousModelVersionRetainedForRollback: true
   readonly previousDeployedModelRemovedBeforeSuccessorDeployment: boolean
   readonly capacityOneReplacementSequence: true
+  readonly providerEndpointRereadOmitsAcceptedScaleToZeroWriteFields: true
+  readonly providerNormalizedContainerLoggingDisabled: true
   readonly stages:
     readonly CanonicalSam31VertexModelVersionSuccessorStageResult[]
   readonly durableConsumptionBeforeEveryProviderPost: true
@@ -911,12 +913,12 @@ export function createCanonicalSam31VertexModelVersionSuccessorRolloutOwner(
             acceleratorCount: z.number().int(),
           }).passthrough(),
           minReplicaCount: z.number().int().nonnegative().optional(),
-          initialReplicaCount: z.number().int().nonnegative(),
+          initialReplicaCount: z.number().int().nonnegative().optional(),
           maxReplicaCount: z.number().int().positive(),
           scaleToZeroSpec: z.object({
             minScaleupPeriod: z.string(),
             idleScaledownPeriod: z.string(),
-          }).strict(),
+          }).strict().optional(),
           spot: z.boolean().optional(),
         }).passthrough(),
       }).passthrough()).default([]),
@@ -935,16 +937,25 @@ export function createCanonicalSam31VertexModelVersionSuccessorRolloutOwner(
       && value.serviceAccount ===
         CANONICAL_SAM3_1_VERTEX_SUCCESSOR_SERVICE_ACCOUNT
       && (value.enableAccessLogging ?? false) === false
-      && (value.disableContainerLogging ?? false) === false
+      && value.disableContainerLogging === true
       && value.dedicatedResources.machineSpec.machineType === 'a2-ultragpu-1g'
       && value.dedicatedResources.machineSpec.acceleratorType ===
         'NVIDIA_A100_80GB'
       && value.dedicatedResources.machineSpec.acceleratorCount === 1
       && (value.dedicatedResources.minReplicaCount ?? 0) === 0
-      && value.dedicatedResources.initialReplicaCount === 1
+      && (
+        value.dedicatedResources.initialReplicaCount === undefined
+        || value.dedicatedResources.initialReplicaCount === 1
+      )
       && value.dedicatedResources.maxReplicaCount === 1
-      && value.dedicatedResources.scaleToZeroSpec.minScaleupPeriod === '300s'
-      && value.dedicatedResources.scaleToZeroSpec.idleScaledownPeriod === '300s'
+      && (
+        value.dedicatedResources.scaleToZeroSpec === undefined
+        || (
+          value.dedicatedResources.scaleToZeroSpec.minScaleupPeriod === '300s'
+          && value.dedicatedResources.scaleToZeroSpec.idleScaledownPeriod ===
+            '300s'
+        )
+      )
       && (value.dedicatedResources.spot ?? false) === false
   }
 
@@ -1249,6 +1260,8 @@ function rolloutResult(
         'previous_deployed_model_undeploy_for_capacity'
         && stageResult.disposition === 'completed'),
     capacityOneReplacementSequence: true,
+    providerEndpointRereadOmitsAcceptedScaleToZeroWriteFields: true,
+    providerNormalizedContainerLoggingDisabled: true,
     stages: Object.freeze([...stages]),
     durableConsumptionBeforeEveryProviderPost: true,
     exactSequentialStageOrder: true,

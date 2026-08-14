@@ -140,6 +140,7 @@ const smokes = [
   'server/smoke/canonical-sam3_1-private-complete-source-execution-plan-owner-smoke.ts',
   'server/smoke/canonical-sam3_1-private-complete-source-task-materialization-owner-smoke.ts',
   'server/smoke/canonical-sam3_1-private-complete-source-chunk-launch-owner-smoke.ts',
+  'server/smoke/canonical-sam3_1-private-complete-source-chunk-terminal-owner-smoke.ts',
   'server/smoke/canonical-sam3_1-gpu-runtime-release-smoke.ts',
   'server/smoke/canonical-quality-first-a100-fast-scale-zero-migration-smoke.ts',
   'server/smoke/canonical-sam3_1-gpu-runtime-release-registry-smoke.ts',

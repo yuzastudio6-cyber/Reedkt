@@ -49,6 +49,13 @@ not authorize public or production use.
   parallel lifecycle. Successful private launch evidence still leaves customer
   credits, public dispatch, QA approval, delivery, and production authority
   false.
+- The private chunk terminal owner now joins that shared launch to the exact
+  route finalization result, generic GPU terminal, runtime response, complete
+  per-chunk mask evidence, capacity-teardown observation, and account-effective
+  attempt-cost receipt. It rejects a shortened mask interval even when the
+  surrounding records are structurally valid. Only a completed executed GPU
+  outcome with zero active and zero idle GPU capacity creates the terminal
+  reread consumed by the next-chunk gate.
 
 ## 2026-08-10 Vertex transport and same-region fallback source milestone
 

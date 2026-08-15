@@ -8,6 +8,8 @@ export const WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH_MODE =
 
 const API_SERVICE_ACCOUNT =
   'reeditpro-api-sa@reeditpro.iam.gserviceaccount.com' as const
+const OPERATOR_ACCOUNT = 'aiediting@reeditpro.com' as const
+const OPERATOR_PROJECT = 'reeditpro' as const
 
 /**
  * Creates a process-local Google client from one short-lived impersonated
@@ -17,6 +19,10 @@ const API_SERVICE_ACCOUNT =
 export function createWeEditProGcpLocalOperatorAuth(input: {
   readonly confirmation: string | undefined
   readonly readAccessToken?: () => string
+  readonly readOperatorContext?: () => {
+    readonly account: string
+    readonly project: string
+  }
 }): {
   readonly authClient: OAuth2Client
   readonly storage: Storage
@@ -24,6 +30,13 @@ export function createWeEditProGcpLocalOperatorAuth(input: {
   if (input.confirmation !== WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH_MODE) {
     throw new Error('Ephemeral API-service authentication is not confirmed.')
   }
+  const operatorContext = (
+    input.readOperatorContext ?? readActiveOperatorContext
+  )()
+  if (
+    operatorContext.account !== OPERATOR_ACCOUNT
+    || operatorContext.project !== OPERATOR_PROJECT
+  ) throw new Error('Reeditpro Google Cloud operator context is not active.')
   const accessToken = (input.readAccessToken ?? readEphemeralAccessToken)()
   if (
     accessToken.length < 20
@@ -40,6 +53,26 @@ export function createWeEditProGcpLocalOperatorAuth(input: {
       retryOptions: { autoRetry: false, maxRetries: 0 },
     }),
   })
+}
+
+function readActiveOperatorContext() {
+  const read = (property: 'account' | 'project') => {
+    try {
+      return execFileSync(
+        'gcloud',
+        ['config', 'get-value', property, '--quiet'],
+        {
+          encoding: 'utf8',
+          maxBuffer: 2 * 1_024,
+          stdio: ['ignore', 'pipe', 'ignore'],
+          timeout: 5_000,
+        },
+      ).trim()
+    } catch {
+      throw new Error('Google Cloud operator context is unavailable.')
+    }
+  }
+  return Object.freeze({ account: read('account'), project: read('project') })
 }
 
 function readEphemeralAccessToken(): string {

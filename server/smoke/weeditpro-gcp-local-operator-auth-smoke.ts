@@ -7,8 +7,13 @@ import {
 } from '../cli/weeditpro-gcp-local-operator-auth'
 
 let tokenReads = 0
+const reeditproContext = () => ({
+  account: 'aiediting@reeditpro.com',
+  project: 'reeditpro',
+})
 const auth = createWeEditProGcpLocalOperatorAuth({
   confirmation: WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH_MODE,
+  readOperatorContext: reeditproContext,
   readAccessToken() {
     tokenReads += 1
     return 'fixture-only-ephemeral-access-token-value'
@@ -21,6 +26,7 @@ assert.equal(typeof auth.storage.bucket, 'function')
 let rejectedReaderInvoked = false
 assert.throws(() => createWeEditProGcpLocalOperatorAuth({
   confirmation: 'wrong-mode',
+  readOperatorContext: reeditproContext,
   readAccessToken() {
     rejectedReaderInvoked = true
     return 'fixture-only-ephemeral-access-token-value'
@@ -29,12 +35,27 @@ assert.throws(() => createWeEditProGcpLocalOperatorAuth({
 assert.equal(rejectedReaderInvoked, false)
 assert.throws(() => createWeEditProGcpLocalOperatorAuth({
   confirmation: WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH_MODE,
+  readOperatorContext: reeditproContext,
   readAccessToken: () => 'short',
 }))
 assert.throws(() => createWeEditProGcpLocalOperatorAuth({
   confirmation: WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH_MODE,
+  readOperatorContext: reeditproContext,
   readAccessToken: () => 'fixture token contains whitespace',
 }))
+let driftedTokenReaderInvoked = false
+assert.throws(() => createWeEditProGcpLocalOperatorAuth({
+  confirmation: WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH_MODE,
+  readOperatorContext: () => ({
+    account: 'solve-your-problems@dukira.com',
+    project: 'dukira-demo',
+  }),
+  readAccessToken() {
+    driftedTokenReaderInvoked = true
+    return 'fixture-only-ephemeral-access-token-value'
+  },
+}))
+assert.equal(driftedTokenReaderInvoked, false)
 
 const productionImageOperatorSource = readFileSync(
   new URL('../cli/canonical-sam3_1-cloud-image-build.ts', import.meta.url),
@@ -67,8 +88,9 @@ assert.match(
 
 console.log(JSON.stringify({
   smoke: 'weeditpro-gcp-local-operator-auth',
-  checks: 13,
+  checks: 15,
   shortLivedImpersonatedTokenOnly: true,
+  reeditproOperatorContextRequiredBeforeTokenRead: true,
   productionImageObservationUsesQualifiedImpersonation: true,
   accountEffectiveServingRateUsesQualifiedImpersonation: true,
   tokenPersistedOrLogged: false,

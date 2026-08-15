@@ -45,6 +45,13 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
+      - name: Install and verify media runtime
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ffmpeg
+          ffmpeg -version
+          ffprobe -version
+
       - name: Lint
         run: npm run lint
 
@@ -56,9 +63,6 @@ jobs:
 
       - name: Browser E2E
         run: npm run test:e2e
-
-      - name: Install private-pipeline media runtime
-        run: sudo apt-get update && sudo apt-get install --yes ffmpeg
 
       - name: Server typecheck
         run: npm run typecheck:server

@@ -147,6 +147,7 @@ const envSchema = z.object({
   REEDITPRO_VISUAL_INTELLIGENCE_RATE_ETAG: z.string().optional(),
   REEDITPRO_VISUAL_INTELLIGENCE_RATE_SHA256: z.string().optional(),
   GOOGLE_SECRET_OPENAI_API_KEY_NAME: z.string().optional(),
+  GOOGLE_SECRET_GEMINI_API_KEY_NAME: z.string().optional(),
   GOOGLE_SECRET_KIMI_API_KEY_NAME: z.string().optional(),
   GOOGLE_SECRET_WAN_API_KEY_NAME: z.string().optional(),
   GOOGLE_SECRET_HAILUO_API_KEY_NAME: z.string().optional(),
@@ -283,6 +284,7 @@ export function loadRuntimeEnv(source: NodeJS.ProcessEnv = process.env): Runtime
       clean(parsed.REEDITPRO_VISUAL_INTELLIGENCE_RATE_SHA256),
     providerSecretReferenceNames: {
       openai: clean(parsed.GOOGLE_SECRET_OPENAI_API_KEY_NAME),
+      gemini: clean(parsed.GOOGLE_SECRET_GEMINI_API_KEY_NAME),
       kimi: clean(parsed.GOOGLE_SECRET_KIMI_API_KEY_NAME),
       wan: clean(parsed.GOOGLE_SECRET_WAN_API_KEY_NAME),
       hailuo: clean(parsed.GOOGLE_SECRET_HAILUO_API_KEY_NAME),

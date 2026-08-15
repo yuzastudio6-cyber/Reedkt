@@ -393,6 +393,7 @@ export type CanonicalPlanComponentsDraft = {
   }
   fallbackPolicy: JsonRecord
   editBriefAudioPlanning?: CanonicalEditBriefAudioPlanningBinding
+  bRollSkill?: JsonRecord
   livingFrame?: LivingFrameProfessionalSkillComponent
   motionStudioStorytellingStyleAuthority?: CanonicalStorytellingStyleAuthorityDraft
   motionStudioStorytellingProductionAuthority?: JsonRecord

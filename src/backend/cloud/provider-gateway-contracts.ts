@@ -13,6 +13,7 @@ import type { CloudValidationResult } from './cloud-runtime-contracts'
 
 export const PROVIDER_ROUTES = [
   'gpt_image_2',
+  'gemini_omni_flash',
   'wan',
   'hailuo',
   'veo',

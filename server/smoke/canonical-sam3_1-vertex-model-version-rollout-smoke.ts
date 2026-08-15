@@ -8,12 +8,12 @@ import {
 } from '../services/canonical-sam3_1-vertex-model-version-rollout-service'
 
 const imageUri =
-  'us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@sha256:1a75275b074e48a76f8c939dcb19994c9064b1edd329e897547230e4352ab017'
+  'us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@sha256:370a1e2acdab96d5c84b0bbadfad7c0011c9e6f252936cdfc878d508ab49d241'
 const model = {
-  name: 'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@4',
+  name: 'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@5',
   displayName: 'WeEditPro SAM 3.1 A100 scale-zero v1',
-  versionId: '4',
-  versionAliases: ['bounded-memory-quality-candidate'],
+  versionId: '5',
+  versionAliases: ['bounded-log-transport-candidate'],
   containerSpec: {
     imageUri,
     healthRoute: '/health',
@@ -32,14 +32,14 @@ const model = {
   },
 }
 const operation = {
-  name: 'projects/390722338345/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1/operations/7274122883574530048',
+  name: 'projects/390722338345/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1/operations/5166666956383715328',
   done: true,
-  response: { deployedModel: { id: '3101000010' } },
+  response: { deployedModel: { id: '3101000012' } },
 }
 const deployedModel = {
-  id: '3101000010',
+  id: '3101000012',
   model:
-    'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@4',
+    'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@5',
   serviceAccount:
     'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com',
   enableAccessLogging: false,
@@ -64,7 +64,7 @@ const endpoint = {
   name: 'projects/390722338345/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1',
   dedicatedEndpointEnabled: true,
   deployedModels: [deployedModel],
-  trafficSplit: { '3101000010': 100 },
+  trafficSplit: { '3101000012': 100 },
 }
 
 const liveVertexEndpointProjection = {
@@ -73,7 +73,7 @@ const liveVertexEndpointProjection = {
     ...deployedModel,
     model:
       'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1',
-    modelVersionId: '4',
+    modelVersionId: '5',
     dedicatedResources: {
       ...deployedModel.dedicatedResources,
       minReplicaCount: undefined,
@@ -82,10 +82,10 @@ const liveVertexEndpointProjection = {
 }
 
 const valid = await observe({ model, operation, endpoint })
-assert.equal(valid.modelVersionId, '4')
-assert.equal(valid.deployedModelId, '3101000010')
+assert.equal(valid.modelVersionId, '5')
+assert.equal(valid.deployedModelId, '3101000012')
 assert.equal(valid.immutableImageDigest,
-  'sha256:1a75275b074e48a76f8c939dcb19994c9064b1edd329e897547230e4352ab017')
+  'sha256:370a1e2acdab96d5c84b0bbadfad7c0011c9e6f252936cdfc878d508ab49d241')
 assert.equal(valid.minimumReplicaCount, 0)
 assert.equal(valid.initialReplicaCount, 1)
 assert.equal(valid.maximumReplicaCount, 1)
@@ -96,7 +96,7 @@ assert.equal((await observe({
   model,
   operation,
   endpoint: liveVertexEndpointProjection,
-})).modelVersionId, '4')
+})).modelVersionId, '5')
 
 assert.throws(() => assertCanonicalSam31VertexModelVersionRollout({
   ...valid,
@@ -136,7 +136,7 @@ for (const invalid of [
   {
     model,
     operation,
-    endpoint: { ...endpoint, trafficSplit: { '3101000010': 99 } },
+    endpoint: { ...endpoint, trafficSplit: { '3101000012': 99 } },
   },
   {
     model,

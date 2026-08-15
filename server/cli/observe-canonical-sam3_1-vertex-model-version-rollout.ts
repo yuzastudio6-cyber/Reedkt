@@ -23,7 +23,7 @@ import {
 } from './weeditpro-gcp-local-operator-auth'
 
 const CONFIRMATION =
-  'observe-weeditpro-sam31-a100-model-version-4-rollout-v1' as const
+  'observe-weeditpro-sam31-a100-model-version-5-rollout-v1' as const
 const CONTROL_PLANE_BUCKET =
   'reeditpro-production-reeditpro-control-plane-state' as const
 const environment = z.object({

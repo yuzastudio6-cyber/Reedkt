@@ -25,10 +25,10 @@ const endpointResponse = (maximumReplicaCount: number) => ({
     + 'weeditpro-sam31-a100-scale-zero-v1',
   dedicatedEndpointEnabled: true,
   deployedModels: [{
-    id: '3101000010',
+    id: '3101000012',
     model: 'projects/390722338345/locations/us-central1/models/'
-      + 'weeditpro-sam31-a100-scale-zero-v1@4',
-    modelVersionId: '4',
+      + 'weeditpro-sam31-a100-scale-zero-v1@5',
+    modelVersionId: '5',
     enableAccessLogging: false,
     disableContainerLogging: true,
     dedicatedResources: {
@@ -46,7 +46,7 @@ const endpointResponse = (maximumReplicaCount: number) => ({
       },
     },
   }],
-  trafficSplit: { '3101000010': 100 },
+  trafficSplit: { '3101000012': 100 },
 })
 
 const current = await rereadCanonicalSam31VertexServingCapacity({
@@ -70,7 +70,7 @@ const mutation = compileCanonicalSam31VertexServingCapacityMutation({
 })
 assert.equal(mutation.requestedMaximumReplicaCount, 16)
 assert.equal(mutation.priorMaximumReplicaCount, 1)
-assert.equal(mutation.body.deployedModel.id, '3101000010')
+assert.equal(mutation.body.deployedModel.id, '3101000012')
 assert.equal(mutation.body.deployedModel.dedicatedResources.minReplicaCount, 0)
 assert.equal(mutation.body.deployedModel.dedicatedResources.maxReplicaCount, 16)
 assert.equal(mutation.customerCreditsMutated, false)

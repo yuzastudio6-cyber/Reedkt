@@ -219,8 +219,8 @@ function buildCandidate() {
     immutableImageDigest: qualifiedSupplyChain.immutableImageDigest,
     endpointResourceName:
       'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1' as const,
-    deployedModelId: '3101000010' as const,
-    modelVersionId: '4' as const,
+    deployedModelId: '3101000012' as const,
+    modelVersionId: '5' as const,
     routeId: 'a100_80gb_heavy_primary' as const,
     executionTarget:
       'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra' as const,

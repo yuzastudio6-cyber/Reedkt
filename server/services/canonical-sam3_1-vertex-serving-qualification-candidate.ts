@@ -38,6 +38,9 @@ import {
 
 export const CANONICAL_SAM3_1_VERTEX_SERVING_QUALIFICATION_CANDIDATE_VERSION =
   'canonical-sam3_1-vertex-serving-qualification-candidate-v2' as const
+export const
+CANONICAL_SAM3_1_VERTEX_SERVING_QUALIFICATION_CANDIDATE_LIFETIME_MILLISECONDS =
+  15 * 60_000
 
 const ENDPOINT_RESOURCE = CANONICAL_SAM3_1_VERTEX_CURRENT_ENDPOINT_RESOURCE
 const DEFAULT_PREFIX =
@@ -101,7 +104,7 @@ const candidateWithoutHashSchema = z.object({
   if (
     Date.parse(candidate.expiresAt) <= Date.parse(candidate.observedAt)
     || Date.parse(candidate.expiresAt) - Date.parse(candidate.observedAt)
-      > 10 * 60_000
+      > CANONICAL_SAM3_1_VERTEX_SERVING_QUALIFICATION_CANDIDATE_LIFETIME_MILLISECONDS
   ) context.addIssue({
     code: 'custom',
     message: 'Vertex qualification candidate validity changed.',

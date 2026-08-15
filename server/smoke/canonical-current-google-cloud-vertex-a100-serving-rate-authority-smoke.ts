@@ -30,6 +30,10 @@ import {
 import {
   sealCanonicalSam31VertexServingCapacityObservation,
 } from '../services/canonical-sam3_1-vertex-serving-capacity-mutation'
+import {
+  CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
+} from '../edit-architecture/canonical-sam3_1-vertex-current-serving-release'
 
 const BILLING_ACCOUNT = 'billingAccounts/012345-ABCDEF-987654'
 const STARTED_AT = '2026-08-11T12:00:00.000Z'
@@ -113,8 +117,8 @@ const capacity = sealCanonicalSam31VertexServingCapacityObservation({
   evidenceClass: 'canonical_private_reread',
   endpointResourceName:
     'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1',
-  deployedModelId: '3101000016',
-  modelVersionId: '7',
+  deployedModelId: CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+  modelVersionId: CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
   routeId: 'a100_80gb_heavy_primary',
   accelerator: 'nvidia_a100_80gb',
   acceleratorCount: 1,

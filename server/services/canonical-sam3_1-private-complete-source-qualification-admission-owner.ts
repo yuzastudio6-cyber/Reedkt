@@ -50,7 +50,9 @@ CANONICAL_SAM3_1_PRIVATE_COMPLETE_SOURCE_QUALIFICATION_ADMISSION_OWNER_VERSION =
 const DEFAULT_PREFIX =
   'private/canonical-professional-gpu/sam3_1/v1/private-complete-source-qualification-admissions'
 const MAXIMUM_RECORD_BYTES = 2 * 1024 * 1024
-const MAXIMUM_ADMISSION_LIFETIME_MILLISECONDS = 15 * 60_000
+export const
+CANONICAL_SAM3_1_PRIVATE_COMPLETE_SOURCE_QUALIFICATION_ADMISSION_LIFETIME_MILLISECONDS =
+  15 * 60_000
 
 const safeId = z.string().trim().min(1).max(512)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:@/+:-]*$/u)
@@ -177,7 +179,8 @@ const admissionWithoutHashSchema = z.object({
     ? value.executionTarget ===
       'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra'
     : value.executionTarget === 'google_cloud_run_l4_job'
-  if (life <= 0 || life > MAXIMUM_ADMISSION_LIFETIME_MILLISECONDS
+  if (life <= 0 || life >
+      CANONICAL_SAM3_1_PRIVATE_COMPLETE_SOURCE_QUALIFICATION_ADMISSION_LIFETIME_MILLISECONDS
     || !routeMatches
     || value.immutableImageRef.contentHash !== value.immutableImageDigest) {
     context.addIssue({

@@ -8,6 +8,10 @@ import {
   canonicalSam31VertexServingQualificationCandidateSchema,
 } from '../services/canonical-sam3_1-vertex-serving-qualification-candidate'
 import {
+  CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
+} from '../edit-architecture/canonical-sam3_1-vertex-current-serving-release'
+import {
   assertCanonicalSam31VertexCompleteSourceChunkQualificationAdmission,
   assertCanonicalSam31VertexCompleteSourceQualificationPreparation,
   createCanonicalSam31VertexCompleteSourceQualificationPreparationRef,
@@ -258,8 +262,8 @@ function buildCandidate() {
     immutableImageDigest: qualifiedSupplyChain.immutableImageDigest,
     endpointResourceName:
       'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1' as const,
-    deployedModelId: '3101000016' as const,
-    modelVersionId: '7' as const,
+    deployedModelId: CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+    modelVersionId: CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
     routeId: 'a100_80gb_heavy_primary' as const,
     executionTarget:
       'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra' as const,

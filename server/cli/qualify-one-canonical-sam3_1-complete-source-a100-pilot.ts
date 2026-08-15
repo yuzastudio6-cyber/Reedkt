@@ -37,6 +37,7 @@ import {
   createCanonicalSam31EightMinuteSourcePreparationTerminalRepository,
 } from '../services/canonical-sam3_1-eight-minute-source-preparation-terminal-owner'
 import {
+  CANONICAL_SAM3_1_PRIVATE_COMPLETE_SOURCE_QUALIFICATION_ADMISSION_LIFETIME_MILLISECONDS,
   canonicalSam31PrivateCompleteSourceQualificationAdmissionRef,
   createCanonicalSam31PrivateCompleteSourceQualificationAdmissionOwner,
   createCanonicalSam31PrivateCompleteSourceQualificationAdmissionRepository,
@@ -56,6 +57,7 @@ import {
   rereadCanonicalSam31VertexSuccessorDeploymentProfile,
 } from '../services/canonical-sam3_1-vertex-model-version-successor-rollout-service'
 import {
+  CANONICAL_SAM3_1_VERTEX_SERVING_QUALIFICATION_CANDIDATE_LIFETIME_MILLISECONDS,
   createCanonicalGcsSam31VertexServingQualificationCandidateRepository,
   createCanonicalSam31VertexServingQualificationCandidateService,
 } from '../services/canonical-sam3_1-vertex-serving-qualification-candidate'
@@ -268,7 +270,8 @@ const candidate =
     readinessProbe: readiness,
     observedAt: candidateObservedAt,
     expiresAt: new Date(
-      Date.parse(candidateObservedAt) + 10 * 60_000,
+      Date.parse(candidateObservedAt) +
+        CANONICAL_SAM3_1_VERTEX_SERVING_QUALIFICATION_CANDIDATE_LIFETIME_MILLISECONDS,
     ).toISOString(),
   })
 const candidateRef = {
@@ -412,7 +415,8 @@ const expiresAt = new Date(Math.min(
   Date.parse(candidate.expiresAt),
   Date.parse(capacity.expiresAt),
   Date.parse(a100Rate.expiresAt),
-  Date.parse(admittedAt) + 8 * 60_000,
+  Date.parse(admittedAt) +
+    CANONICAL_SAM3_1_PRIVATE_COMPLETE_SOURCE_QUALIFICATION_ADMISSION_LIFETIME_MILLISECONDS,
 )).toISOString()
 const parent =
   createCanonicalSam31PrivateCompleteSourceQualificationAdmissionOwner().admit({

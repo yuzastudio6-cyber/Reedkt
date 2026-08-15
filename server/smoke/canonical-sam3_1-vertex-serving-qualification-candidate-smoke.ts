@@ -4,6 +4,19 @@ import { createHash } from 'node:crypto'
 import {
   createCanonicalSam31VertexScaleZeroDeploymentProfile,
 } from '../edit-architecture/canonical-sam3_1-vertex-scale-zero-deployment-profile'
+import {
+  CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOY_OPERATION,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_DIGEST,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_SUPPLY_CHAIN_RELEASE_HASH,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_SUPPLY_CHAIN_RELEASE_ID,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_URI,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ALIAS,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_RESOURCE,
+  CANONICAL_SAM3_1_VERTEX_PREVIOUS_DEPLOYED_MODEL_ID,
+  CANONICAL_SAM3_1_VERTEX_PREVIOUS_MODEL_VERSION_ID,
+} from '../edit-architecture/canonical-sam3_1-vertex-current-serving-release'
 import type {
   CanonicalCreateOnlyJsonObjectPort,
 } from '../services/canonical-gcs-source-analysis-lifecycle-store'
@@ -17,6 +30,7 @@ import {
   canonicalSam31VertexServingReadinessProbeSchema,
 } from '../services/canonical-sam3_1-vertex-serving-readiness-probe-service'
 import {
+  CANONICAL_SAM3_1_VERTEX_SERVING_QUALIFICATION_CANDIDATE_LIFETIME_MILLISECONDS,
   assertCanonicalSam31VertexServingQualificationCandidate,
   createCanonicalSam31VertexServingQualificationCandidateRepository,
   createCanonicalSam31VertexServingQualificationCandidateService,
@@ -26,13 +40,12 @@ import {
 } from '../services/private-edit-authority-store'
 
 const observedAt = '2026-08-12T14:00:00.000Z'
-const imageDigest =
-  'sha256:9e7bb0b8aaf719843dee0c60cae52d2f4e7a7e1c8edf47a341dc75e25f797ca9'
+const imageDigest = CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_DIGEST
 const imageSupplyChainReleaseRef = {
-  id: 'sam31-production-image-supply-chain-release-0707ac9f4a22626982ee131d',
+  id: CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_SUPPLY_CHAIN_RELEASE_ID,
   version: 1 as const,
   contentHash:
-    'sha256:9d6451064868dc337d828d44a51ff740029c8cdc589f6169539c027ed43753c4' as const,
+    CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_SUPPLY_CHAIN_RELEASE_HASH,
 }
 const profile = createCanonicalSam31VertexScaleZeroDeploymentProfile({
   imageSupplyChainReleaseRef,
@@ -41,8 +54,7 @@ const profile = createCanonicalSam31VertexScaleZeroDeploymentProfile({
     version: 1,
     contentHash: imageDigest,
   },
-  immutableImageUri:
-    `us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@${imageDigest}`,
+  immutableImageUri: CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_URI,
   immutableImageDigest: imageDigest,
   sourceCheckpointQualificationRef: {
     ...ref('source-checkpoint-qualification'),
@@ -64,20 +76,20 @@ const rolloutPayload = {
   imageSupplyChainReleaseRef,
   immutableImageUri: profile.immutableImageUri,
   immutableImageDigest: imageDigest,
-  deployOperationName:
-    'projects/390722338345/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1/operations/9079875019126865920' as const,
+  deployOperationName: CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOY_OPERATION,
   deployOperationDone: true as const,
   modelResourceName:
     'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1' as const,
   modelVersionResourceName:
-    'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@7' as const,
-  modelVersionId: '7' as const,
-  modelVersionAlias: 'singleton-identity-continuity-candidate' as const,
+    CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_RESOURCE,
+  modelVersionId: CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
+  modelVersionAlias: CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ALIAS,
   endpointResourceName:
     'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1' as const,
-  deployedModelId: '3101000016' as const,
-  previousModelVersionId: '6' as const,
-  previousDeployedModelId: '3101000014' as const,
+  deployedModelId: CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+  previousModelVersionId: CANONICAL_SAM3_1_VERTEX_PREVIOUS_MODEL_VERSION_ID,
+  previousDeployedModelId:
+    CANONICAL_SAM3_1_VERTEX_PREVIOUS_DEPLOYED_MODEL_ID,
   previousModelVersionRetainedForRollback: true as const,
   previousDeployedModelRemovedFromTraffic: true as const,
   exactModelVersionReread: true as const,
@@ -195,15 +207,21 @@ const request = {
   readinessProbeRef: ref('readiness-probe-ref', probe.probeHash),
   readinessProbe: probe,
   observedAt,
-  expiresAt: '2026-08-12T14:10:00.000Z',
+  expiresAt: '2026-08-12T14:15:00.000Z',
 }
 const candidate = await service.produceOne(request)
 assert.equal(candidate.readyForPrivateQualificationInvocation, true)
 assert.equal(candidate.readyForCustomerInvocation, false)
 assert.equal(candidate.runtimeReleaseGranted, false)
 assert.equal(candidate.customerInvocationStarted, false)
-assert.equal(candidate.deployedModelId, '3101000016')
-assert.equal(candidate.modelVersionId, '7')
+assert.equal(
+  candidate.deployedModelId,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+)
+assert.equal(
+  candidate.modelVersionId,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
+)
 assert.deepEqual(
   assertCanonicalSam31VertexServingQualificationCandidate(
     candidate,
@@ -233,11 +251,17 @@ assert.throws(() => assertCanonicalSam31VertexServingQualificationCandidate(
   candidate,
   candidate.expiresAt,
 ))
+await assert.rejects(() => service.produceOne({
+  ...request,
+  expiresAt: new Date(Date.parse(observedAt) +
+    CANONICAL_SAM3_1_VERTEX_SERVING_QUALIFICATION_CANDIDATE_LIFETIME_MILLISECONDS
+    + 1).toISOString(),
+}))
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-serving-qualification-candidate',
   status: 'passed',
-  checks: 16,
+  checks: 17,
   candidateId: candidate.candidateId,
   modelVersionId: candidate.modelVersionId,
   deployedModelId: candidate.deployedModelId,

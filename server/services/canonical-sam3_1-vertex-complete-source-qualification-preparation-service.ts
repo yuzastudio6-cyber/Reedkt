@@ -91,6 +91,9 @@ CANONICAL_SAM3_1_VERTEX_COMPLETE_SOURCE_CHUNK_QUALIFICATION_ADMISSION_VERSION =
 export const
 CANONICAL_SAM3_1_VERTEX_COMPLETE_SOURCE_QUALIFICATION_PREPARATION_VERSION =
   'canonical-sam3_1-vertex-complete-source-qualification-preparation-v1' as const
+export const
+CANONICAL_SAM3_1_VERTEX_COMPLETE_SOURCE_QUALIFICATION_AUTHORITY_LIFETIME_MILLISECONDS =
+  15 * 60_000
 
 const PROJECT_ID = 'reeditpro' as const
 const CONTROL_PLANE_BUCKET =
@@ -195,7 +198,8 @@ const admissionWithoutHashSchema = z.object({
   expiresAt: timestamp,
 }).strict().superRefine((value, context) => {
   const life = Date.parse(value.expiresAt) - Date.parse(value.admittedAt)
-  if (life <= 0 || life > 600_000
+  if (life <= 0 || life >
+      CANONICAL_SAM3_1_VERTEX_COMPLETE_SOURCE_QUALIFICATION_AUTHORITY_LIFETIME_MILLISECONDS
     || value.canonicalEndFrameInclusive < value.canonicalStartFrameInclusive
     || value.canonicalEndFrameInclusive - value.canonicalStartFrameInclusive
       + 1 !== value.decodedFrameCount) {
@@ -251,7 +255,8 @@ const preparationWithoutHashSchema = z.object({
   expiresAt: timestamp,
 }).strict().superRefine((value, context) => {
   if (Date.parse(value.expiresAt) <= Date.parse(value.preparedAt)
-    || Date.parse(value.expiresAt) - Date.parse(value.preparedAt) > 600_000
+    || Date.parse(value.expiresAt) - Date.parse(value.preparedAt) >
+      CANONICAL_SAM3_1_VERTEX_COMPLETE_SOURCE_QUALIFICATION_AUTHORITY_LIFETIME_MILLISECONDS
     || value.admissionRef.contentHash !==
       `sha256:${value.dispatchAdmissionDigestSha256}`
     || value.canonicalEndFrameInclusive - value.canonicalStartFrameInclusive
@@ -430,7 +435,9 @@ export function createCanonicalSam31VertexCompleteSourceQualificationPreparation
         chunk })
       const expiresAt = earliest(parent.expiresAt, candidate.expiresAt,
         a100Rate.expiresAt, l4Rate.expiresAt,
-        new Date(Date.parse(preparedAt) + 600_000).toISOString())
+        new Date(Date.parse(preparedAt) +
+          CANONICAL_SAM3_1_VERTEX_COMPLETE_SOURCE_QUALIFICATION_AUTHORITY_LIFETIME_MILLISECONDS,
+        ).toISOString())
       const admission = buildAdmission({ parent, candidate, sourceRelease,
         image, a100Rate, l4Rate, chunk, request, refs, preparedAt, expiresAt })
       const admissionRef = ref(admission.admissionId, admission.admissionHash)

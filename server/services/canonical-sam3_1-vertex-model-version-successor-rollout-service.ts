@@ -41,8 +41,8 @@ const DEFAULT_PREFIX =
   'private/canonical-professional-gpu/v1/sam3_1-vertex-successor-rollout'
 const PROJECT_NUMBER = '390722338345' as const
 const OLD_IMAGE =
-  'us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@sha256:1a75275b074e48a76f8c939dcb19994c9064b1edd329e897547230e4352ab017' as const
-const PREVIOUS_MODEL_VERSION_ID = '4' as const
+  'us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@sha256:370a1e2acdab96d5c84b0bbadfad7c0011c9e6f252936cdfc878d508ab49d241' as const
+const PREVIOUS_MODEL_VERSION_ID = '5' as const
 const CLOUD_PLATFORM_SCOPE =
   'https://www.googleapis.com/auth/cloud-platform' as const
 const stage = z.enum([

@@ -18,11 +18,11 @@ export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_MODEL_RESOURCE =
 export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_ENDPOINT_RESOURCE =
   `${CANONICAL_SAM3_1_VERTEX_SUCCESSOR_PARENT}/endpoints/weeditpro-sam31-a100-scale-zero-v1` as const
 export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_ALIAS =
-  'bounded-log-transport-candidate' as const
+  'occlusion-continuity-candidate' as const
 export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_DEPLOYED_MODEL_ID =
-  '3101000012' as const
+  '3101000014' as const
 export const CANONICAL_SAM3_1_VERTEX_PREVIOUS_DEPLOYED_MODEL_ID =
-  '3101000010' as const
+  '3101000012' as const
 export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_SERVICE_ACCOUNT =
   'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com' as const
 
@@ -87,11 +87,11 @@ export function createCanonicalSam31VertexModelVersionSuccessorUploadRequest(
       model: {
         displayName: profile.endpoint.displayName,
         description:
-          'WeEditPro private SAM 3.1 A100 80GB bounded-log transport successor.',
+          'WeEditPro private SAM 3.1 A100 80GB occlusion-continuity successor.',
         labels: {
           'weeditpro-component': 'sam31',
           'weeditpro-route': 'a100-heavy-primary',
-          'weeditpro-release': 'bounded-log-transport',
+          'weeditpro-release': 'occlusion-continuity',
         },
         versionAliases: [CANONICAL_SAM3_1_VERTEX_SUCCESSOR_ALIAS],
         versionDescription:

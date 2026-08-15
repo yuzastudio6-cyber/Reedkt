@@ -56,7 +56,7 @@ assert.equal(upload.body.modelId, undefined)
 assert.equal(upload.body.parentModel,
   'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1')
 const model = upload.body.model as Record<string, unknown>
-assert.deepEqual(model.versionAliases, ['bounded-log-transport-candidate'])
+assert.deepEqual(model.versionAliases, ['occlusion-continuity-candidate'])
 assert.equal(JSON.stringify(model).includes(profile.immutableImageUri), true)
 const container = model.containerSpec as Record<string, unknown>
 assert.equal(container.deploymentTimeout, '1800s')
@@ -71,7 +71,7 @@ assert.deepEqual(container.startupProbe, {
 assert.equal(upload.body.serviceAccount,
   'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com')
 const deployedModel = deploy.body.deployedModel as Record<string, unknown>
-assert.equal(deployedModel.id, '3101000012')
+assert.equal(deployedModel.id, '3101000014')
 assert.equal(deployedModel.model,
   'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@5')
 assert.equal(deployedModel.enableAccessLogging, false)
@@ -99,7 +99,7 @@ assert.equal(
   'previous_deployed_model_undeploy_for_capacity',
 )
 assert.deepEqual(undeploy.body, {
-  deployedModelId: '3101000010',
+  deployedModelId: '3101000012',
 })
 assert.equal(undeploy.previousModelVersionRetainedForRollback, true)
 assert.equal(deploy.requestResponsePayloadLoggingEnabled, false)
@@ -129,8 +129,8 @@ console.log(JSON.stringify({
   previousModelVersionRetainedForRollback: true,
   previousDeploymentRemovedBeforeSuccessorDeployment: true,
   capacityOneReplacementSequence: true,
-  candidateAlias: 'bounded-log-transport-candidate',
-  deployedModelId: '3101000012',
+  candidateAlias: 'occlusion-continuity-candidate',
+  deployedModelId: '3101000014',
   a100HeavyPrimary: true,
   minimumReplicaCount: 0,
   initialReplicaCount: 1,

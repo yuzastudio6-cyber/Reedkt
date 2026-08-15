@@ -65,6 +65,7 @@ import {
 } from '../services/canonical-sam3_1-vertex-serving-readiness-probe-service'
 import {
   canonicalSam31VertexServingRuntimeComponentRef,
+  createCanonicalSam31VertexServingRuntimeComponentContinuityOwner,
   createCanonicalSam31VertexServingRuntimeComponentRepository,
 } from '../services/canonical-sam3_1-vertex-serving-runtime-component-qualification-owner'
 import {
@@ -102,6 +103,8 @@ const SOURCE_PREPARATION_ID =
   'sam31-eight-minute-qualification-source-v2:preparation:sam31-source-prep-canonical-20260814T180041Z' as const
 const SOURCE_TERMINAL_ID =
   'sam31-source-prep-canonical-20260814T180041Z' as const
+const PREDECESSOR_QUALIFICATION_ID =
+  'sam31-complete-source-a100-v6-4k-20260815-v1' as const
 const IMAGE_RELEASE_REF = {
   id: CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_SUPPLY_CHAIN_RELEASE_ID,
   version: 1,
@@ -135,8 +138,9 @@ const environment = z.object({
   WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_PILOT_RUN_ID:
     safeId.max(70),
   WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_QUALIFICATION_ID: safeId,
-  WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_DRIVER_COMPONENT_SHA256: sha256,
-  WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_DETERMINISTIC_COMPONENT_SHA256:
+  WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_PREDECESSOR_DRIVER_COMPONENT_SHA256:
+    sha256,
+  WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_PREDECESSOR_DETERMINISTIC_COMPONENT_SHA256:
     sha256,
 }).strict().parse({
   WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_PILOT_CONFIRMATION:
@@ -149,27 +153,28 @@ const environment = z.object({
     process.env.WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_PILOT_RUN_ID,
   WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_QUALIFICATION_ID:
     process.env.WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_QUALIFICATION_ID,
-  WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_DRIVER_COMPONENT_SHA256:
-    process.env.WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_DRIVER_COMPONENT_SHA256,
-  WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_DETERMINISTIC_COMPONENT_SHA256:
+  WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_PREDECESSOR_DRIVER_COMPONENT_SHA256:
     process.env
-      .WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_DETERMINISTIC_COMPONENT_SHA256,
+      .WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_PREDECESSOR_DRIVER_COMPONENT_SHA256,
+  WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_PREDECESSOR_DETERMINISTIC_COMPONENT_SHA256:
+    process.env
+      .WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_PREDECESSOR_DETERMINISTIC_COMPONENT_SHA256,
 })
 
 const runId = environment.WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_PILOT_RUN_ID
 const qualificationId =
   environment.WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_QUALIFICATION_ID
-const driverComponentRef = {
-  id: `${qualificationId}:vertex-serving-driver-and-cuda`,
+const predecessorDriverComponentRef = {
+  id: `${PREDECESSOR_QUALIFICATION_ID}:vertex-serving-driver-and-cuda`,
   version: 1,
   contentHash: `sha256:${environment
-    .WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_DRIVER_COMPONENT_SHA256}`,
+    .WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_PREDECESSOR_DRIVER_COMPONENT_SHA256}`,
 } as const
-const deterministicComponentRef = {
-  id: `${qualificationId}:vertex-serving-deterministic-run-set`,
+const predecessorDeterministicComponentRef = {
+  id: `${PREDECESSOR_QUALIFICATION_ID}:vertex-serving-deterministic-run-set`,
   version: 1,
   contentHash: `sha256:${environment
-    .WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_DETERMINISTIC_COMPONENT_SHA256}`,
+    .WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_PREDECESSOR_DETERMINISTIC_COMPONENT_SHA256}`,
 } as const
 const { authClient, storage } = createWeEditProGcpLocalOperatorAuth({
   confirmation: environment.WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH,
@@ -349,29 +354,58 @@ const componentRepository =
   createCanonicalSam31VertexServingRuntimeComponentRepository({ objectPort })
 const imageRepository =
   createCanonicalSam31GcpImageSupplyChainReleaseRepository({ storage })
-const [plan, sourcePreparation, terminal, driver, deterministic, image] =
+const [plan, sourcePreparation, terminal, predecessorDriver,
+  predecessorDeterministic, image] =
   await Promise.all([
     sourceRepository.rereadPlan({ qualificationSourceId: SOURCE_PLAN_ID }),
     sourceRepository.rereadPreparation({
       preparationId: SOURCE_PREPARATION_ID,
     }),
     terminalRepository.reread({ invocationId: SOURCE_TERMINAL_ID }),
-    componentRepository.reread({ componentRef: driverComponentRef }),
-    componentRepository.reread({ componentRef: deterministicComponentRef }),
+    componentRepository.reread({
+      componentRef: predecessorDriverComponentRef,
+    }),
+    componentRepository.reread({
+      componentRef: predecessorDeterministicComponentRef,
+    }),
     imageRepository.rereadQualifiedRelease({
       releaseRef: IMAGE_RELEASE_REF,
     }),
   ])
-if (!plan || !sourcePreparation || !terminal || !driver || !deterministic
-  || !image) {
+if (!plan || !sourcePreparation || !terminal || !predecessorDriver
+  || !predecessorDeterministic || !image) {
   throw new Error('Exact source, image, or current component evidence is absent.')
 }
-if (canonicalSam31VertexServingRuntimeComponentRef(driver).contentHash !==
-    driverComponentRef.contentHash
-  || canonicalSam31VertexServingRuntimeComponentRef(deterministic)
-    .contentHash !== deterministicComponentRef.contentHash) {
-  throw new Error('Current A100 component evidence changed.')
+if (canonicalSam31VertexServingRuntimeComponentRef(predecessorDriver)
+    .contentHash !== predecessorDriverComponentRef.contentHash
+  || canonicalSam31VertexServingRuntimeComponentRef(predecessorDeterministic)
+    .contentHash !== predecessorDeterministicComponentRef.contentHash) {
+  throw new Error('Predecessor A100 component evidence changed.')
 }
+const continuity =
+  createCanonicalSam31VertexServingRuntimeComponentContinuityOwner().compile({
+    targetQualificationId: qualificationId,
+    driverComponentId:
+      `${qualificationId}:vertex-serving-driver-and-cuda`,
+    deterministicComponentId:
+      `${qualificationId}:vertex-serving-deterministic-run-set`,
+    predecessorDriverAndCudaComponent: predecessorDriver,
+    predecessorDeterministicRunSetComponent: predecessorDeterministic,
+    successorImageSupplyChainRelease: image,
+    successorDeploymentProfile: profile,
+    successorModelVersionRollout: rollout,
+    recordedAt: new Date().toISOString(),
+  })
+await Promise.all([
+  componentRepository.persistCreateOnly({
+    component: continuity.driverAndCuda,
+  }),
+  componentRepository.persistCreateOnly({
+    component: continuity.deterministicRunSet,
+  }),
+])
+const driver = continuity.driverAndCuda
+const deterministic = continuity.deterministicRunSet
 
 const admittedAt = new Date().toISOString()
 const expiresAt = new Date(Math.min(

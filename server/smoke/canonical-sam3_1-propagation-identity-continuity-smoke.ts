@@ -8,21 +8,17 @@ const runner = readFileSync(runnerPath, 'utf8')
 
 assert.match(
   runner,
-  /def missing_prompt_object_identities\([\s\S]*?New, duplicated, or reordered[\s\S]*?raise RuntimeError\("SAM 3\.1 propagation object identities changed"\)/u,
+  /def validate_propagated_object_identities\([\s\S]*?official per-instance video identities[\s\S]*?emitted_object_ids != sorted\(emitted_object_ids\)[\s\S]*?len\(emitted_object_ids\) > maximum_objects/u,
 )
 assert.match(
   runner,
-  /def canonicalize_propagated_object_identities\([\s\S]*?exactly one prompt identity and exactly[\s\S]*?return \[prompt_object_ids\[0\]\]/u,
+  /for object_id in object_ids:[\s\S]*?box, mask = observed_by_id\[object_id\]/u,
 )
 assert.match(
   runner,
-  /empty_absent_mask = torch\.zeros\([\s\S]*?dtype=torch\.bool,[\s\S]*?device="cuda"/u,
+  /set\(prompt_object_ids\)\.issubset\(distinct_object_ids\)/u,
 )
-assert.match(
-  runner,
-  /for object_id in prompt_object_ids:[\s\S]*?box = \[0\.0, 0\.0, 0\.0, 0\.0\][\s\S]*?mask = empty_absent_mask/u,
-)
-assert.doesNotMatch(runner, /if object_ids != prompt_object_ids:/u)
+assert.doesNotMatch(runner, /empty_absent_mask/u)
 
 const result = execFileSync('python3', ['-c', String.raw`
 import importlib.util
@@ -33,29 +29,24 @@ spec = importlib.util.spec_from_file_location("weeditpro_sam31_runner", path)
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
-assert module.missing_prompt_object_identities([3, 7], [3, 7]) == []
-assert module.missing_prompt_object_identities([3, 7], [3]) == [7]
-assert module.missing_prompt_object_identities([3, 7], []) == [3, 7]
-assert module.canonicalize_propagated_object_identities([3], [9]) == [3]
-assert module.canonicalize_propagated_object_identities([3], [3]) == [3]
-assert module.canonicalize_propagated_object_identities([3], []) == []
-assert module.canonicalize_propagated_object_identities([3, 7], [3]) == [3]
+assert module.validate_propagated_object_identities([3, 9], 16) == [3, 9]
+assert module.validate_propagated_object_identities([3], 16) == [3]
+assert module.validate_propagated_object_identities([], 16) == []
 
-for invalid in ([7, 3], [3, 3], [3, 9]):
+for invalid in ([7, 3], [3, 3]):
     try:
-        module.missing_prompt_object_identities([3, 7], invalid)
+        module.validate_propagated_object_identities(invalid, 16)
     except RuntimeError as error:
         assert str(error) == "SAM 3.1 propagation object identities changed"
     else:
         raise AssertionError(f"invalid identity set accepted: {invalid}")
 
-for invalid in ([7, 3], [3, 3], [3, 9]):
-    try:
-        module.canonicalize_propagated_object_identities([3, 7], invalid)
-    except RuntimeError as error:
-        assert str(error) == "SAM 3.1 propagation object identities changed"
-    else:
-        raise AssertionError(f"ambiguous identity set accepted: {invalid}")
+try:
+    module.validate_propagated_object_identities(list(range(17)), 16)
+except RuntimeError as error:
+    assert str(error) == "SAM 3.1 exceeded the object product cap"
+else:
+    raise AssertionError("object product cap was not enforced")
 
 print("ok")
 `], {
@@ -67,10 +58,11 @@ assert.equal(result.trim(), 'ok')
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-propagation-identity-continuity',
-  promptIdentityContinuityPreserved: true,
-  temporarilyAbsentIdentityMaterializedAsEmptyMask: true,
-  singletonModelTokenReboundToApprovedSemanticIdentity: true,
-  newDuplicateOrReorderedIdentityRejected: true,
+  officialPerInstanceIdentityPreserved: true,
+  laterMatchingInstancesAccepted: true,
+  absentInstancesNotManufacturedAsEmptyMasks: true,
+  duplicateOrReorderedIdentityRejected: true,
+  boundedObjectCapEnforced: true,
   substantiveCpuMediaProcessingAllowed: false,
   customerCreditsMutated: false,
   productionReady: false,

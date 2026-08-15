@@ -4,6 +4,21 @@ import { Storage } from '@google-cloud/storage'
 import { z } from 'zod'
 
 import {
+  CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYMENT_PROFILE_HASH,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYMENT_PROFILE_ID,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_DIGEST,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_SUPPLY_CHAIN_RELEASE_HASH,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_SUPPLY_CHAIN_RELEASE_ID,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ROLLOUT_HASH,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ROLLOUT_ID,
+} from '../edit-architecture/canonical-sam3_1-vertex-current-serving-release'
+import {
+  assertCanonicalSam31VertexScaleZeroDeploymentProfile,
+} from '../edit-architecture/canonical-sam3_1-vertex-scale-zero-deployment-profile'
+import {
+  assertCanonicalSam31CloudImageSupplyChainRelease,
+} from '../model-artifacts/canonical-sam3_1-cloud-image-supply-chain-release'
+import {
   createCanonicalGcsSourceAnalysisJsonObjectPort,
   type CanonicalCreateOnlyJsonObjectPort,
 } from './canonical-gcs-source-analysis-lifecycle-store'
@@ -14,6 +29,9 @@ import {
   assertCanonicalSam31VertexServingThirtyRunQualification,
   createCanonicalSam31VertexServingThirtyRunQualificationRepository,
 } from './canonical-sam3_1-vertex-serving-thirty-run-qualification-service'
+import {
+  assertCanonicalSam31VertexModelVersionRollout,
+} from './canonical-sam3_1-vertex-model-version-rollout-service'
 import {
   sha256AuthorityValue,
   stableAuthorityStringify,
@@ -36,6 +54,12 @@ CANONICAL_SAM3_1_VERTEX_SERVING_RUNTIME_COMPONENT_EVIDENCE_VERSION =
 export const
 CANONICAL_SAM3_1_VERTEX_SERVING_RUNTIME_COMPONENT_OWNER_VERSION =
   'canonical-sam3_1-vertex-serving-runtime-component-owner-v1' as const
+export const
+CANONICAL_SAM3_1_VERTEX_SERVING_RUNTIME_COMPONENT_CONTINUITY_EVIDENCE_VERSION =
+  'canonical-sam3_1-vertex-serving-runtime-component-continuity-evidence-v1' as const
+export const
+CANONICAL_SAM3_1_VERTEX_SERVING_RUNTIME_COMPONENT_CONTINUITY_OWNER_VERSION =
+  'canonical-sam3_1-vertex-serving-runtime-component-continuity-owner-v1' as const
 
 const PROJECT_ID = 'reeditpro' as const
 const CONTROL_PLANE_BUCKET =
@@ -56,6 +80,10 @@ const safePrefix = z.string().trim().min(1).max(512)
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 const prefixedSha256 = z.string().regex(/^sha256:[a-f0-9]{64}$/u)
 const timestamp = z.string().datetime({ offset: true })
+const PREDECESSOR_IMAGE_DIGEST =
+  'sha256:953a883366f51350933bf4b7911b34e652e4edc30e4e81fdf57e661c675c055f' as const
+const PREDECESSOR_THIRTY_RUN_QUALIFICATION_HASH =
+  'sha256:c3a0351d3542be81f0dd6e4ac821b82db2196485d64c8253b482632fc01d0552' as const
 const refSchema = z.object({
   id: safeId,
   version: z.literal(1),
@@ -175,9 +203,89 @@ const componentWithoutHashSchema = z.discriminatedUnion('componentKind', [
   driverWithoutHashSchema,
   deterministicWithoutHashSchema,
 ])
-const componentSchema = z.discriminatedUnion('componentKind', [
+const directComponentSchema = z.discriminatedUnion('componentKind', [
   driverWithoutHashSchema.extend({ componentHash: sha256 }).strict(),
   deterministicWithoutHashSchema.extend({ componentHash: sha256 }).strict(),
+])
+
+const continuityBaseSchema = z.object({
+  schemaVersion: z.literal(
+    CANONICAL_SAM3_1_VERTEX_SERVING_RUNTIME_COMPONENT_CONTINUITY_EVIDENCE_VERSION,
+  ),
+  ownerVersion: z.literal(
+    CANONICAL_SAM3_1_VERTEX_SERVING_RUNTIME_COMPONENT_CONTINUITY_OWNER_VERSION,
+  ),
+  source: z.literal(
+    'canonical_server_sam3_1_vertex_serving_runtime_component_continuity_owner',
+  ),
+  evidenceClass: z.literal(
+    'predecessor_thirty_run_exact_reread_plus_qualified_successor_supply_chain_pending_one_complete_source_proof',
+  ),
+  status: z.literal(
+    'successor_component_continuity_ready_for_one_private_proof',
+  ),
+  componentId: safeId,
+  componentVersion: z.literal(2),
+  qualificationId: safeId,
+  sourceThirtyRunQualificationRef: refSchema,
+  route: routeSchema,
+  immutableImageDigest: z.literal(CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_DIGEST),
+  predecessorImmutableImageDigest: z.literal(PREDECESSOR_IMAGE_DIGEST),
+  successorImageSupplyChainReleaseRef: refSchema,
+  successorDeploymentProfileRef: refSchema,
+  successorModelVersionRolloutRef: refSchema,
+  sourceAndDependencyClosureRef: refSchema,
+  predecessorThirtyRunEvidenceExactReread: z.literal(true),
+  successorSourceAndDependencyClosureExactReread: z.literal(true),
+  successorThirtyRunPerformanceClaimed: z.literal(false),
+  oneSuccessorCompleteSourceProofRequired: z.literal(true),
+  automaticRetryOrFallbackAllowed: z.literal(false),
+  customerCreditsMutated: z.literal(false),
+  qaApproved: z.literal(false),
+  publicDeliveryAuthorized: z.literal(false),
+  productionAuthorityGranted: z.literal(false),
+  recordedAt: timestamp,
+}).strict()
+
+const continuityDriverWithoutHashSchema = continuityBaseSchema.extend({
+  componentKind: z.literal('driver_and_cuda'),
+  payload: z.object({
+    predecessorComponentRef: refSchema,
+    predecessorDriverAndCudaEvidenceRetained: z.literal(true),
+    successorDriverAndCudaEvidencePendingOneProof: z.literal(true),
+  }).strict(),
+}).strict()
+
+const continuityDeterministicWithoutHashSchema = continuityBaseSchema.extend({
+  componentKind: z.literal('deterministic_run_set'),
+  payload: z.object({
+    predecessorComponentRef: refSchema,
+    predecessorDeterministicOutputRunCount: z.literal(30),
+    predecessorMeasuredPerformanceRunCount: z.literal(30),
+    predecessorSemanticMaskSetDigestSha256: sha256,
+    successorDeterministicAndPerformanceEvidencePendingOneProof:
+      z.literal(true),
+  }).strict(),
+}).strict()
+
+const continuityComponentWithoutHashSchema = z.discriminatedUnion(
+  'componentKind',
+  [continuityDriverWithoutHashSchema,
+    continuityDeterministicWithoutHashSchema],
+)
+const continuityComponentSchema = z.discriminatedUnion('componentKind', [
+  continuityDriverWithoutHashSchema.extend({ componentHash: sha256 }).strict(),
+  continuityDeterministicWithoutHashSchema.extend({
+    componentHash: sha256,
+  }).strict(),
+])
+const anyComponentWithoutHashSchema = z.union([
+  componentWithoutHashSchema,
+  continuityComponentWithoutHashSchema,
+])
+const componentSchema = z.union([
+  directComponentSchema,
+  continuityComponentSchema,
 ])
 
 export type CanonicalSam31VertexServingRuntimeComponentEvidence = z.infer<
@@ -189,6 +297,18 @@ const requestSchema = z.object({
   sourceThirtyRunQualificationRef: refSchema,
   driverComponentId: safeId,
   deterministicComponentId: safeId,
+}).strict()
+
+const continuityRequestSchema = z.object({
+  targetQualificationId: safeId,
+  driverComponentId: safeId,
+  deterministicComponentId: safeId,
+  predecessorDriverAndCudaComponent: z.unknown(),
+  predecessorDeterministicRunSetComponent: z.unknown(),
+  successorImageSupplyChainRelease: z.unknown(),
+  successorDeploymentProfile: z.unknown(),
+  successorModelVersionRollout: z.unknown(),
+  recordedAt: timestamp,
 }).strict()
 
 export interface CanonicalSam31VertexServingRuntimeComponentReadPort {
@@ -333,7 +453,8 @@ export function createCanonicalSam31VertexServingRuntimeComponentOwner(input: {
         immutableImageDigest: receipt.immutableImageDigest,
         recordedAt,
       }
-      const driver = buildCanonicalSam31VertexServingRuntimeComponentEvidence({
+      const driver = directComponentSchema.parse(
+        buildCanonicalSam31VertexServingRuntimeComponentEvidence({
         ...base,
         componentId: request.driverComponentId,
         componentKind: 'driver_and_cuda',
@@ -357,9 +478,11 @@ export function createCanonicalSam31VertexServingRuntimeComponentOwner(input: {
           exactFirstRunTaskAndRuntimeResponseReread: true,
           callerDriverOrCudaClaimAccepted: false,
         },
-      })
+        }),
+      )
       const deterministic =
-        buildCanonicalSam31VertexServingRuntimeComponentEvidence({
+        directComponentSchema.parse(
+          buildCanonicalSam31VertexServingRuntimeComponentEvidence({
           ...base,
           componentId: request.deterministicComponentId,
           componentKind: 'deterministic_run_set',
@@ -397,7 +520,8 @@ export function createCanonicalSam31VertexServingRuntimeComponentOwner(input: {
             publicDeliveryAuthorized: false,
             productionAuthorityGranted: false,
           },
-        })
+          }),
+        )
       const persisted = await Promise.all([
         persistAndReread(input.repository, driver),
         persistAndReread(input.repository, deterministic),
@@ -410,12 +534,157 @@ export function createCanonicalSam31VertexServingRuntimeComponentOwner(input: {
   })
 }
 
+export function createCanonicalSam31VertexServingRuntimeComponentContinuityOwner() {
+  return Object.freeze({
+    schemaVersion:
+      CANONICAL_SAM3_1_VERTEX_SERVING_RUNTIME_COMPONENT_CONTINUITY_OWNER_VERSION,
+    predecessorThirtyRunEvidenceInherited: true as const,
+    successorThirtyRunPerformanceClaimed: false as const,
+    oneSuccessorCompleteSourceProofRequired: true as const,
+    compile(untrusted: unknown) {
+      assertPlainSerializedData(
+        untrusted,
+        'sam31_vertex_serving_runtime_component_continuity_request',
+      )
+      const request = continuityRequestSchema.parse(untrusted)
+      const driver = assertCanonicalSam31VertexServingRuntimeComponentEvidence(
+        request.predecessorDriverAndCudaComponent,
+      )
+      const deterministic =
+        assertCanonicalSam31VertexServingRuntimeComponentEvidence(
+          request.predecessorDeterministicRunSetComponent,
+        )
+      const image = assertCanonicalSam31CloudImageSupplyChainRelease(
+        request.successorImageSupplyChainRelease,
+      )
+      const profile = assertCanonicalSam31VertexScaleZeroDeploymentProfile(
+        request.successorDeploymentProfile,
+      )
+      const rollout = assertCanonicalSam31VertexModelVersionRollout(
+        request.successorModelVersionRollout,
+      )
+      if (
+        driver.schemaVersion !==
+          CANONICAL_SAM3_1_VERTEX_SERVING_RUNTIME_COMPONENT_EVIDENCE_VERSION
+        || deterministic.schemaVersion !==
+          CANONICAL_SAM3_1_VERTEX_SERVING_RUNTIME_COMPONENT_EVIDENCE_VERSION
+        || driver.componentKind !== 'driver_and_cuda'
+        || deterministic.componentKind !== 'deterministic_run_set'
+        || driver.qualificationId !== deterministic.qualificationId
+        || driver.immutableImageDigest !== PREDECESSOR_IMAGE_DIGEST
+        || deterministic.immutableImageDigest !== PREDECESSOR_IMAGE_DIGEST
+        || !sameRef(driver.sourceThirtyRunQualificationRef,
+          deterministic.sourceThirtyRunQualificationRef)
+        || driver.sourceThirtyRunQualificationRef.id !==
+          'sam31-a100-v6-thirty-qualified-20260815-v1'
+        || driver.sourceThirtyRunQualificationRef.contentHash !==
+          PREDECESSOR_THIRTY_RUN_QUALIFICATION_HASH
+        || image.releaseId !==
+          CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_SUPPLY_CHAIN_RELEASE_ID
+        || `sha256:${image.releaseHash}` !==
+          CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_SUPPLY_CHAIN_RELEASE_HASH
+        || image.immutableImageDigest !==
+          CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_DIGEST
+        || !image.authority.imageSupplyChainQualified
+        || image.authority.runtimeReleaseGranted
+        || profile.profileHash !==
+          CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYMENT_PROFILE_HASH.slice(7)
+        || profile.immutableImageDigest !== image.immutableImageDigest
+        || rollout.rolloutId !==
+          CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ROLLOUT_ID
+        || `sha256:${rollout.rolloutHash}` !==
+          CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ROLLOUT_HASH
+        || rollout.immutableImageDigest !== image.immutableImageDigest
+        || Date.parse(request.recordedAt) < Date.parse(image.qualifiedAt)
+        || Date.parse(request.recordedAt) < Date.parse(profile.recordedAt)
+        || Date.parse(request.recordedAt) < Date.parse(rollout.observedAt)
+      ) throw conflict('successor_continuity_lineage_changed')
+
+      const base = {
+        schemaVersion:
+          CANONICAL_SAM3_1_VERTEX_SERVING_RUNTIME_COMPONENT_CONTINUITY_EVIDENCE_VERSION,
+        ownerVersion:
+          CANONICAL_SAM3_1_VERTEX_SERVING_RUNTIME_COMPONENT_CONTINUITY_OWNER_VERSION,
+        source:
+          'canonical_server_sam3_1_vertex_serving_runtime_component_continuity_owner' as const,
+        evidenceClass:
+          'predecessor_thirty_run_exact_reread_plus_qualified_successor_supply_chain_pending_one_complete_source_proof' as const,
+        status:
+          'successor_component_continuity_ready_for_one_private_proof' as const,
+        componentVersion: 2 as const,
+        qualificationId: request.targetQualificationId,
+        sourceThirtyRunQualificationRef:
+          driver.sourceThirtyRunQualificationRef,
+        route: driver.route,
+        immutableImageDigest: CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_DIGEST,
+        predecessorImmutableImageDigest: PREDECESSOR_IMAGE_DIGEST,
+        successorImageSupplyChainReleaseRef: ref(
+          image.releaseId,
+          image.releaseHash,
+        ),
+        successorDeploymentProfileRef: ref(
+          CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYMENT_PROFILE_ID,
+          profile.profileHash,
+        ),
+        successorModelVersionRolloutRef: ref(
+          rollout.rolloutId,
+          rollout.rolloutHash,
+        ),
+        sourceAndDependencyClosureRef: image.sourceAndDependencyClosureRef,
+        predecessorThirtyRunEvidenceExactReread: true as const,
+        successorSourceAndDependencyClosureExactReread: true as const,
+        successorThirtyRunPerformanceClaimed: false as const,
+        oneSuccessorCompleteSourceProofRequired: true as const,
+        automaticRetryOrFallbackAllowed: false as const,
+        customerCreditsMutated: false as const,
+        qaApproved: false as const,
+        publicDeliveryAuthorized: false as const,
+        productionAuthorityGranted: false as const,
+        recordedAt: request.recordedAt,
+      }
+      return Object.freeze({
+        driverAndCuda: continuityComponentSchema.parse(
+          buildCanonicalSam31VertexServingRuntimeComponentEvidence({
+            ...base,
+            componentId: request.driverComponentId,
+            componentKind: 'driver_and_cuda',
+            payload: {
+              predecessorComponentRef:
+                canonicalSam31VertexServingRuntimeComponentRef(driver),
+              predecessorDriverAndCudaEvidenceRetained: true,
+              successorDriverAndCudaEvidencePendingOneProof: true,
+            },
+          }),
+        ),
+        deterministicRunSet: continuityComponentSchema.parse(
+          buildCanonicalSam31VertexServingRuntimeComponentEvidence({
+            ...base,
+            componentId: request.deterministicComponentId,
+            componentKind: 'deterministic_run_set',
+            payload: {
+              predecessorComponentRef:
+                canonicalSam31VertexServingRuntimeComponentRef(deterministic),
+              predecessorDeterministicOutputRunCount: 30,
+              predecessorMeasuredPerformanceRunCount: 30,
+              predecessorSemanticMaskSetDigestSha256:
+                deterministic.payload.deterministicRuns[0]!
+                  .semanticMaskSetDigestSha256,
+              successorDeterministicAndPerformanceEvidencePendingOneProof:
+                true,
+            },
+          }),
+        ),
+      })
+    },
+  })
+}
+
 export function buildCanonicalSam31VertexServingRuntimeComponentEvidence(
   value: unknown,
 ): CanonicalSam31VertexServingRuntimeComponentEvidence {
   assertPlainSerializedData(value,
     'sam31_vertex_serving_runtime_component_build')
-  const payload = componentWithoutHashSchema.parse(value)
+  const payload = anyComponentWithoutHashSchema.parse(value)
   return assertCanonicalSam31VertexServingRuntimeComponentEvidence({
     ...payload,
     componentHash: sha256AuthorityValue(payload),
@@ -538,10 +807,12 @@ export function createCanonicalGcpSam31VertexServingRuntimeComponentOwner(
   })
 }
 
-async function persistAndReread(
+async function persistAndReread<
+  const Component extends CanonicalSam31VertexServingRuntimeComponentEvidence,
+>(
   repository: CanonicalSam31VertexServingRuntimeComponentRepository,
-  component: CanonicalSam31VertexServingRuntimeComponentEvidence,
-) {
+  component: Component,
+): Promise<Component> {
   await repository.persistCreateOnly({ component })
   const reread = await repository.reread({
     componentRef: canonicalSam31VertexServingRuntimeComponentRef(component),
@@ -549,7 +820,7 @@ async function persistAndReread(
   if (!reread || reread.componentHash !== component.componentHash) {
     throw conflict('component_reread_missing')
   }
-  return reread
+  return reread as Component
 }
 
 function assertOwnerDependencies(input: {

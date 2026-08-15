@@ -2461,52 +2461,26 @@ def copy_mask_for_persistence(
     return value
 
 
-def missing_prompt_object_identities(
-    prompt_object_ids: list[int],
+def validate_propagated_object_identities(
     emitted_object_ids: list[int],
+    maximum_objects: int,
 ) -> list[int]:
-    """Return prompt identities that are not visible in one propagated frame.
+    """Preserve SAM 3.1's official per-instance video identities.
 
-    SAM 3.1 legitimately omits a prompt-created object from a frame when its
-    probability falls below the admitted output threshold, for example while
-    the subject is fully occluded or outside the canvas.  That is an absence,
-    not an identity change.  The immutable output contract still requires one
-    stable mask slot per prompt identity and frame, so callers materialize an
-    empty mask for these missing identities.  New, duplicated, or reordered
-    identities remain a hard failure.
-    """
-    if (
-        emitted_object_ids != sorted(emitted_object_ids)
-        or len(set(emitted_object_ids)) != len(emitted_object_ids)
-        or any(object_id not in prompt_object_ids for object_id in emitted_object_ids)
-    ):
-        raise RuntimeError("SAM 3.1 propagation object identities changed")
-    emitted = set(emitted_object_ids)
-    return [object_id for object_id in prompt_object_ids if object_id not in emitted]
-
-
-def canonicalize_propagated_object_identities(
-    prompt_object_ids: list[int],
-    emitted_object_ids: list[int],
-) -> list[int]:
-    """Bind model-local output tokens to the approved semantic identities.
-
-    The video predictor can replace its internal numeric token after an
-    occlusion even though a single approved text prompt still represents one
-    unambiguous semantic subject.  For exactly one prompt identity and exactly
-    one emitted object, preserve the approved prompt identity on the wire.
-    Multiple prompt identities remain strict because an unfamiliar token could
-    not be remapped without inventing a correspondence.
+    A noun-phrase prompt may discover additional matching instances after the
+    prompt frame, and an instance may be absent while occluded or outside the
+    canvas.  The model's emitted IDs are therefore the identity authority for
+    each frame.  The wrapper must not collapse a new instance into the first
+    prompt result or manufacture empty masks.  It only enforces canonical
+    ordering, uniqueness, and the approved bounded object cap.
     """
     if (
         emitted_object_ids != sorted(emitted_object_ids)
         or len(set(emitted_object_ids)) != len(emitted_object_ids)
     ):
         raise RuntimeError("SAM 3.1 propagation object identities changed")
-    if len(prompt_object_ids) == 1 and len(emitted_object_ids) == 1:
-        return [prompt_object_ids[0]]
-    if any(object_id not in prompt_object_ids for object_id in emitted_object_ids):
-        raise RuntimeError("SAM 3.1 propagation object identities changed")
+    if len(emitted_object_ids) > maximum_objects:
+        raise RuntimeError("SAM 3.1 exceeded the object product cap")
     return emitted_object_ids
 
 
@@ -2735,14 +2709,6 @@ def execute_inside_bfloat16_autocast(
     frame_object_records: dict[int, list[dict[str, Any]]] = {}
     mask_records_by_key: dict[tuple[int, int], dict[str, Any]] = {}
     distinct_object_ids: set[int] = set()
-    empty_absent_mask = torch.zeros(
-        (
-            request["sourceMedia"]["height"],
-            request["sourceMedia"]["width"],
-        ),
-        dtype=torch.bool,
-        device="cuda",
-    )
     propagation_elapsed_ns = 0
     persistence_ns = 0
     stage = "propagation"
@@ -2786,26 +2752,20 @@ def execute_inside_bfloat16_autocast(
                 masks = outputs["out_binary_masks"]
                 if not (len(emitted_object_ids) == len(boxes) == len(masks)):
                     raise RuntimeError("SAM 3.1 output arrays lost alignment")
-                object_ids = canonicalize_propagated_object_identities(
-                    prompt_object_ids,
+                object_ids = validate_propagated_object_identities(
                     emitted_object_ids,
+                    MAXIMUM_OBJECTS,
                 )
-                missing_object_ids = missing_prompt_object_identities(
-                    prompt_object_ids,
-                    object_ids,
-                )
+                if len(distinct_object_ids | set(object_ids)) > MAXIMUM_OBJECTS:
+                    raise RuntimeError("SAM 3.1 exceeded the object product cap")
                 observed_by_id = {
                     object_id: (box, mask)
                     for object_id, box, mask in zip(object_ids, boxes, masks)
                 }
                 object_records = frame_object_records.setdefault(frame_index, [])
                 persist_started = time.monotonic_ns()
-                for object_id in prompt_object_ids:
-                    if object_id in missing_object_ids:
-                        box = [0.0, 0.0, 0.0, 0.0]
-                        mask = empty_absent_mask
-                    else:
-                        box, mask = observed_by_id[object_id]
+                for object_id in object_ids:
+                    box, mask = observed_by_id[object_id]
                     if len(box) != 4 or any(
                         isinstance(component, bool)
                         or not isinstance(component, (int, float))
@@ -2874,9 +2834,13 @@ def execute_inside_bfloat16_autocast(
     if (
         set(frame_object_records.keys()) != expected_frames
         or not mask_records_by_key
+        or not set(prompt_object_ids).issubset(distinct_object_ids)
         or any(
             [item["objectId"] for item in frame_object_records[frame_index]]
-            != prompt_object_ids
+            != sorted({
+                item["objectId"]
+                for item in frame_object_records[frame_index]
+            })
             for frame_index in expected_frames
         )
     ):

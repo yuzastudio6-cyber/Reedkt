@@ -605,6 +605,8 @@ function qualificationComponentRef(
 ): EvidenceRef {
   return component.schemaVersion ===
     'canonical-sam3_1-vertex-serving-runtime-component-evidence-v1'
+    || component.schemaVersion ===
+      'canonical-sam3_1-vertex-serving-runtime-component-continuity-evidence-v1'
     ? canonicalSam31VertexServingRuntimeComponentRef(component)
     : canonicalSam31GpuRuntimeQualificationComponentRef(component)
 }

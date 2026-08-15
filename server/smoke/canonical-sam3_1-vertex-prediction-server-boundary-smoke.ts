@@ -104,13 +104,13 @@ def encoded(value):
 success = subprocess.CompletedProcess(
     args=[],
     returncode=0,
-    stdout=encoded({
+    stdout=b"bounded upstream model-load notice\n" + encoded({
         "schemaVersion": module.WORKER_EXIT_VERSION,
         "status": "completed",
         "responseSha256": "a" * 64,
         "responsePersisted": True,
     }),
-    stderr=b"",
+    stderr=b"bounded upstream warning\n",
 )
 success_marker, success_diagnostic = module.parse_worker_process_evidence(success)
 if success_marker["status"] != "completed" or success_diagnostic is not None:
@@ -119,13 +119,13 @@ if success_marker["status"] != "completed" or success_diagnostic is not None:
 failure = subprocess.CompletedProcess(
     args=[],
     returncode=1,
-    stdout=encoded({
+    stdout=b"bounded upstream model-load notice\n" + encoded({
         "schemaVersion": module.WORKER_EXIT_VERSION,
         "status": "failed",
         "responseSha256": "b" * 64,
         "responsePersisted": True,
     }),
-    stderr=encoded({
+    stderr=b"bounded upstream warning\n" + encoded({
         "schemaVersion": module.WORKER_DIAGNOSTIC_VERSION,
         "terminalStage": "propagation",
         "diagnosticCode": "cuda_out_of_memory",
@@ -158,34 +158,37 @@ with tempfile.TemporaryDirectory() as directory:
 unsafe = subprocess.CompletedProcess(
     args=[],
     returncode=1,
-    stdout=failure.stdout,
-    stderr=b"private exception text\n" + failure.stderr,
+    stdout=b"x" * (module.MAXIMUM_WORKER_STDOUT_BYTES + 1),
+    stderr=failure.stderr,
 )
 try:
     module.parse_worker_process_evidence(unsafe)
 except RuntimeError:
     pass
 else:
-    raise AssertionError("unbounded worker diagnostic was accepted")
+    raise AssertionError("unbounded worker output was accepted")
 
 print(json.dumps({
     "successMarkerAccepted": True,
     "failureDiagnosticAccepted": True,
     "diagnosticDigestVerified": True,
-    "rawDiagnosticRejected": True,
+    "boundedUpstreamLogsIgnored": True,
+    "unboundedWorkerOutputRejected": True,
 }))
 `,
 ], { encoding: 'utf8' })) as {
   readonly successMarkerAccepted: true
   readonly failureDiagnosticAccepted: true
   readonly diagnosticDigestVerified: true
-  readonly rawDiagnosticRejected: true
+  readonly boundedUpstreamLogsIgnored: true
+  readonly unboundedWorkerOutputRejected: true
 }
 
 assert.equal(dynamicEvidence.successMarkerAccepted, true)
 assert.equal(dynamicEvidence.failureDiagnosticAccepted, true)
 assert.equal(dynamicEvidence.diagnosticDigestVerified, true)
-assert.equal(dynamicEvidence.rawDiagnosticRejected, true)
+assert.equal(dynamicEvidence.boundedUpstreamLogsIgnored, true)
+assert.equal(dynamicEvidence.unboundedWorkerOutputRejected, true)
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-prediction-server-boundary',

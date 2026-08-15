@@ -65,7 +65,7 @@ function readActiveOperatorContext() {
           encoding: 'utf8',
           maxBuffer: 2 * 1_024,
           stdio: ['ignore', 'pipe', 'ignore'],
-          timeout: 5_000,
+          timeout: 30_000,
         },
       ).trim()
     } catch {
@@ -93,7 +93,7 @@ function readEphemeralAccessToken(): string {
         encoding: 'utf8',
         maxBuffer: 8 * 1_024,
         stdio: ['ignore', 'pipe', 'ignore'],
-        timeout: 15_000,
+        timeout: 60_000,
       },
     ).trim()
   } catch {
@@ -111,7 +111,7 @@ function readEphemeralAccessToken(): string {
         encoding: 'utf8',
         maxBuffer: 8 * 1_024,
         stdio: ['ignore', 'pipe', 'ignore'],
-        timeout: 15_000,
+        timeout: 60_000,
       },
     ).trim()
   } catch {

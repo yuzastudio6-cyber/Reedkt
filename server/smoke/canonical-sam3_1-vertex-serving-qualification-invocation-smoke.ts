@@ -53,11 +53,11 @@ const prediction = {
   productionAuthorityGranted: false as const,
 }
 const wrapper = {
-  deployedModelId: '3101000006' as const,
+  deployedModelId: '3101000010' as const,
   model:
     'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1' as const,
   modelDisplayName: 'WeEditPro SAM 3.1 A100 scale-zero v1' as const,
-  modelVersionId: '3' as const,
+  modelVersionId: '4' as const,
   predictions: [prediction],
 }
 const request = {
@@ -186,6 +186,7 @@ assert.equal(unknown.providerOutcome, 'unknown')
 const unknownReplay = await service({
   repository: unknownRepository,
   runtimeResponse: null,
+  now: '2026-08-11T12:30:00.000Z',
   request: async () => {
     unknownCalls += 1
     return { data: wrapper }
@@ -193,7 +194,17 @@ const unknownReplay = await service({
 }).invokeOne(request)
 assert.equal(unknownReplay.resultHash, unknown.resultHash)
 assert.equal(unknownCalls, 1)
-checks += 6
+checks += 7
+
+await assert.rejects(() => service({
+  repository: repository(),
+  runtimeResponse: null,
+  now: '2026-08-11T12:30:00.000Z',
+  request: async () => {
+    throw new Error('Expired fresh preparation may not call Vertex.')
+  },
+}).invokeOne(request))
+checks += 1
 
 const attempt = assertCanonicalSam31VertexServingQualificationAttempt(
   await successRepository.rereadAttempt({ invocationId: task.invocationId }),
@@ -248,7 +259,7 @@ assert.equal(wrongWrapper.disposition,
 assert.equal(wrongWrapper.exactVertexPredictionWrapperReread, false)
 checks += 2
 
-assert.equal(checks, 42)
+assert.equal(checks, 44)
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-serving-qualification-invocation',
   status: 'passed',
@@ -257,6 +268,7 @@ console.log(JSON.stringify({
   exactPrivateRuntimeResponseReread: true,
   singleUseAttemptAndCallStart: true,
   unknownOutcomeBlocksRetry: true,
+  expiredConsumedAttemptRemainsReconcileOnly: true,
   scaleFromZeroTriggerClassifiedNotExecuted: true,
   providerRoundTripMeasured: true,
   customerInvocationAuthorized: false,
@@ -292,11 +304,11 @@ function service(input: {
           dedicatedEndpointDns:
             'weeditpro-sam31-a100-scale-zero-v1.us-central1-390722338345.prediction.vertexai.goog',
           deployedModels: [{
-            id: '3101000006',
+            id: '3101000010',
             model:
-              'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@3',
+              'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@4',
           }],
-          trafficSplit: { '3101000006': 100 },
+          trafficSplit: { '3101000010': 100 },
         } }
         return input.request(providerRequest)
       },

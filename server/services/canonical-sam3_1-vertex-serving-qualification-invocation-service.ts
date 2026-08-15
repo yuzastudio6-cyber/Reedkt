@@ -282,7 +282,6 @@ export function createCanonicalSam31VertexServingQualificationInvocationService(
           await input.preparationRepository.reread({
             invocationId: request.invocationId,
           }),
-          invokedAt,
         )
       const task = assertCanonicalSam31GpuTaskRecord(
         await input.taskStore.rereadTask(request.invocationId),
@@ -311,6 +310,12 @@ export function createCanonicalSam31VertexServingQualificationInvocationService(
         : assertCanonicalSam31VertexServingQualificationAttempt(
           priorAttemptRaw,
         )
+      if (priorAttempt === null) {
+        assertCanonicalSam31VertexServingQualificationPreparation(
+          preparation,
+          invokedAt,
+        )
+      }
       const candidateAttempt = buildAttempt({ request, preparation, task,
         body, predictUrl: predictionRoute.predictUrl,
         consumedAt: priorAttempt?.consumedAt ?? invokedAt })

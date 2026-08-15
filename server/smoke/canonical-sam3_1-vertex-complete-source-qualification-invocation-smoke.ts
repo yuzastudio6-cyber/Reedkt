@@ -37,11 +37,11 @@ const runtimeBytes = Buffer.from(canonicalSam31GpuWireStringify(runtime),
   'utf8')
 const runtimeHash = createHash('sha256').update(runtimeBytes).digest('hex')
 const wrapper = {
-  deployedModelId: '3101000006' as const,
+  deployedModelId: '3101000010' as const,
   model:
     'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1' as const,
   modelDisplayName: 'WeEditPro SAM 3.1 A100 scale-zero v1' as const,
-  modelVersionId: '3' as const,
+  modelVersionId: '4' as const,
   predictions: [{
     schemaVersion: 'canonical-sam3_1-vertex-prediction-result-v1' as const,
     invocationId: task.invocationId,
@@ -264,11 +264,11 @@ function service(input: {
           dedicatedEndpointDns:
             'weeditpro-sam31-a100-scale-zero-v1.us-central1-390722338345.prediction.vertexai.goog',
           deployedModels: [{
-            id: '3101000006',
+            id: '3101000010',
             model:
-              'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@3',
+              'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@4',
           }],
-          trafficSplit: { '3101000006': 100 },
+          trafficSplit: { '3101000010': 100 },
         } }
         return input.request(providerRequest)
       },

@@ -544,6 +544,7 @@
     "smoke:sam3_1-l4-runtime-qualification-run-receipt": "tsx server/smoke/canonical-sam3_1-l4-runtime-qualification-run-receipt-smoke.ts",
     "smoke:sam3_1-l4-runtime-thirty-run-qualification": "tsx server/smoke/canonical-sam3_1-l4-runtime-thirty-run-qualification-smoke.ts",
     "qualify:one-sam3_1-vertex-serving": "tsx server/cli/qualify-one-canonical-sam3_1-vertex-serving.ts",
+    "reconcile:one-sam3_1-vertex-serving": "tsx server/cli/reconcile-one-canonical-sam3_1-vertex-serving.ts",
     "compile:sam3_1-vertex-serving-thirty-run-qualification": "tsx server/cli/compile-canonical-sam3_1-vertex-serving-thirty-run-qualification.ts",
     "publish:vertex-a100-account-effective-rate": "tsx server/cli/publish-current-google-cloud-vertex-a100-rate-authority.ts",
     "publish:vertex-a100-serving-account-effective-rate": "tsx server/cli/publish-current-google-cloud-vertex-a100-serving-rate-authority.ts",

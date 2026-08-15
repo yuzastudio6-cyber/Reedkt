@@ -69,8 +69,8 @@ MAXIMUM_RESULT_SET_BYTES = 4 * 1024 * 1024 * 1024
 MAXIMUM_RESULT_FILE_COUNT = 4_000
 MAXIMUM_RUN_SECONDS = 420
 MAXIMUM_UPLOAD_WORKERS = 8
-MAXIMUM_WORKER_STDOUT_BYTES = 2 * 1024
-MAXIMUM_WORKER_STDERR_BYTES = 4 * 1024
+MAXIMUM_WORKER_STDOUT_BYTES = 64 * 1024
+MAXIMUM_WORKER_STDERR_BYTES = 64 * 1024
 EXACT_CHECKPOINT_BYTE_LENGTH = 3_502_755_717
 EXACT_CHECKPOINT_SHA256 = (
     "0567debeec80ba4ac6369540c6c248025283cb3ff2b92827509e57e2b3541cb6"
@@ -440,7 +440,7 @@ def stage_invocation(
     return invocation_dir, checkpoint_size, checkpoint_hash
 
 
-def parse_one_worker_json_line(
+def parse_last_worker_json_line(
     encoded: bytes,
     maximum_bytes: int,
     label: str,
@@ -448,10 +448,10 @@ def parse_one_worker_json_line(
     if len(encoded) < 2 or len(encoded) > maximum_bytes:
         raise RuntimeError(f"{label} byte length changed")
     lines = [line for line in encoded.splitlines() if line]
-    if len(lines) != 1:
+    if not lines:
         raise RuntimeError(f"{label} line count changed")
     try:
-        value = json.loads(lines[0].decode("utf-8"))
+        value = json.loads(lines[-1].decode("utf-8"))
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
         raise RuntimeError(f"{label} is malformed") from error
     if not isinstance(value, dict):
@@ -463,7 +463,7 @@ def parse_worker_process_evidence(
     completed: subprocess.CompletedProcess[bytes],
 ) -> tuple[dict[str, Any], dict[str, Any] | None]:
     marker = exact_keys(
-        parse_one_worker_json_line(
+        parse_last_worker_json_line(
             completed.stdout,
             MAXIMUM_WORKER_STDOUT_BYTES,
             "worker exit marker",
@@ -486,13 +486,11 @@ def parse_worker_process_evidence(
     ):
         raise RuntimeError("worker exit marker changed")
     if completed.returncode == 0:
-        if completed.stderr:
-            raise RuntimeError("successful worker emitted stderr")
         return marker, None
     if completed.returncode != 1:
         raise RuntimeError("worker failure exit code changed")
     diagnostic = exact_keys(
-        parse_one_worker_json_line(
+        parse_last_worker_json_line(
             completed.stderr,
             MAXIMUM_WORKER_STDERR_BYTES,
             "worker diagnostic",

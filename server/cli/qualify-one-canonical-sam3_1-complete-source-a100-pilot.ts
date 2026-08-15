@@ -5,6 +5,8 @@ import {
   CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYMENT_PROFILE_ID,
   CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_SUPPLY_CHAIN_RELEASE_HASH,
   CANONICAL_SAM3_1_VERTEX_CURRENT_IMAGE_SUPPLY_CHAIN_RELEASE_ID,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ROLLOUT_HASH,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ROLLOUT_ID,
 } from '../edit-architecture/canonical-sam3_1-vertex-current-serving-release'
 import {
   createCanonicalGcsCurrentGoogleCloudGpuRateAuthorityRepository,
@@ -47,8 +49,8 @@ import {
   rereadCanonicalSam31VertexDedicatedPredictionRoute,
 } from '../services/canonical-sam3_1-vertex-dedicated-prediction-route'
 import {
+  assertCanonicalSam31VertexModelVersionRollout,
   createCanonicalGcsSam31VertexModelVersionRolloutRepository,
-  createCanonicalSam31VertexModelVersionRolloutService,
 } from '../services/canonical-sam3_1-vertex-model-version-rollout-service'
 import {
   rereadCanonicalSam31VertexSuccessorDeploymentProfile,
@@ -170,23 +172,27 @@ const candidateRepository =
   createCanonicalGcsSam31VertexServingQualificationCandidateRepository({
     storage,
   })
-const [profile, rollout] = await Promise.all([
+const [profile, rolloutRaw] = await Promise.all([
   rereadCanonicalSam31VertexSuccessorDeploymentProfile({
     objectPort,
     profileRef: DEPLOYMENT_PROFILE_REF,
   }),
-  createCanonicalSam31VertexModelVersionRolloutService({
-    auth: authClient,
-    repository: rolloutRepository,
-  }).observeCurrent(),
+  rolloutRepository.reread({
+    rolloutId: CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ROLLOUT_ID,
+  }),
 ])
-if (!profile || !rollout) {
+if (!profile || !rolloutRaw) {
+  throw new Error('Current A100 deployment lineage is absent.')
+}
+const rollout = assertCanonicalSam31VertexModelVersionRollout(rolloutRaw)
+if (`sha256:${rollout.rolloutHash}` !==
+    CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ROLLOUT_HASH) {
   throw new Error('Current A100 deployment lineage is absent.')
 }
 const modelVersionRolloutRef = {
-  id: rollout.rolloutId,
+  id: CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ROLLOUT_ID,
   version: 1,
-  contentHash: `sha256:${rollout.rolloutHash}` as const,
+  contentHash: CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ROLLOUT_HASH,
 }
 const readinessTriggerPayload = {
   schemaVersion:

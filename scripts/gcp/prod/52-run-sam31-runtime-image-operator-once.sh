@@ -26,6 +26,9 @@ safe_id() {
   == "${CONFIRMATION}" ]] || fail 'exact operator confirmation is missing'
 [[ "$(gcloud config get-value project 2>/dev/null)" == "${PROJECT_ID}" ]] \
   || fail 'active Google Cloud project is not the fixed project'
+[[ "$(gcloud config get-value account 2>/dev/null)" \
+  == 'aiediting@reeditpro.com' ]] \
+  || fail 'active Google Cloud account is not the Reeditpro operator'
 action="${WEEDITPRO_SAM31_RUNTIME_IMAGE_ACTION:-}"
 [[ "${action}" == 'start_one' || "${action}" == 'observe_one' ]] \
   || fail 'operator action is invalid'

@@ -71,7 +71,7 @@ assert.deepEqual(container.startupProbe, {
 assert.equal(upload.body.serviceAccount,
   'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com')
 const deployedModel = deploy.body.deployedModel as Record<string, unknown>
-assert.equal(deployedModel.id, '3101000008')
+assert.equal(deployedModel.id, '3101000010')
 assert.equal(deployedModel.model,
   'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@4')
 assert.equal(deployedModel.enableAccessLogging, false)
@@ -130,7 +130,7 @@ console.log(JSON.stringify({
   previousDeploymentRemovedBeforeSuccessorDeployment: true,
   capacityOneReplacementSequence: true,
   candidateAlias: 'bounded-memory-quality-candidate',
-  deployedModelId: '3101000008',
+  deployedModelId: '3101000010',
   a100HeavyPrimary: true,
   minimumReplicaCount: 0,
   initialReplicaCount: 1,

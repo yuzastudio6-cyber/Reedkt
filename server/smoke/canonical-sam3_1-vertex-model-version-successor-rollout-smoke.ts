@@ -138,7 +138,7 @@ const first = await owner.rolloutOne(profile)
 assert.equal(first.disposition, 'rolled_out')
 assert.equal(first.modelVersionResourceName,
   'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@4')
-assert.equal(first.deployedModelId, '3101000008')
+assert.equal(first.deployedModelId, '3101000010')
 assert.equal(first.previousDeployedModelRemovedBeforeSuccessorDeployment, true)
 assert.equal(first.capacityOneReplacementSequence, true)
 assert.equal(
@@ -346,7 +346,7 @@ function endpoint() {
     dedicatedResources: resources(),
   }
   const successor = {
-    id: '3101000008',
+    id: '3101000010',
     model:
       'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1',
     modelVersionId: '4',
@@ -365,7 +365,7 @@ function endpoint() {
       'projects/390722338345/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1',
     deployedModels: successorDeployed ? [successor] : [previous],
     trafficSplit: successorDeployed
-      ? { '3101000008': 100 }
+      ? { '3101000010': 100 }
       : { '3101000006': 100 },
   }
 }

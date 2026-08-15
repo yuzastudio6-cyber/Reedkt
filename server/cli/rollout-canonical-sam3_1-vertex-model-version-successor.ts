@@ -126,6 +126,7 @@ const profile = await admitCanonicalSam31VertexScaleZeroDeploymentProfile({
 const result = await createCanonicalSam31VertexModelVersionSuccessorRolloutOwner({
   auth: authClient,
   objectPort,
+  timeoutMilliseconds: 60_000,
 }).rolloutOne(profile)
 
 process.stdout.write(`${JSON.stringify({

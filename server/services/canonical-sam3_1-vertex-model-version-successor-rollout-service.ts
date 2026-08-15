@@ -41,7 +41,8 @@ const DEFAULT_PREFIX =
   'private/canonical-professional-gpu/v1/sam3_1-vertex-successor-rollout'
 const PROJECT_NUMBER = '390722338345' as const
 const OLD_IMAGE =
-  'us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@sha256:57883cbf16ef0c130885a0237307bc329d214445ae6a4c2109b7410317c68c45' as const
+  'us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@sha256:1a75275b074e48a76f8c939dcb19994c9064b1edd329e897547230e4352ab017' as const
+const PREVIOUS_MODEL_VERSION_ID = '4' as const
 const CLOUD_PLATFORM_SCOPE =
   'https://www.googleapis.com/auth/cloud-platform' as const
 const stage = z.enum([
@@ -750,14 +751,14 @@ export function createCanonicalSam31VertexModelVersionSuccessorRolloutOwner(
       if (candidate) {
         throw new Error('SAM 3.1 successor alias already exists before POST.')
       }
-      const previous = await readModelVersion('3')
+      const previous = await readModelVersion(PREVIOUS_MODEL_VERSION_ID)
       const endpoint = await readEndpoint()
       const deployed = endpoint.deployedModels.find((item) =>
         item.id === CANONICAL_SAM3_1_VERTEX_PREVIOUS_DEPLOYED_MODEL_ID)
       if (
         previous.containerSpec.imageUri !== OLD_IMAGE
         || !deployed
-        || deployed.modelVersionId !== '3'
+        || deployed.modelVersionId !== PREVIOUS_MODEL_VERSION_ID
         || endpoint.trafficSplit[
           CANONICAL_SAM3_1_VERTEX_PREVIOUS_DEPLOYED_MODEL_ID
         ] !== 100
@@ -776,7 +777,7 @@ export function createCanonicalSam31VertexModelVersionSuccessorRolloutOwner(
         item.id === CANONICAL_SAM3_1_VERTEX_PREVIOUS_DEPLOYED_MODEL_ID)
       if (
         !previous
-        || previous.modelVersionId !== '3'
+        || previous.modelVersionId !== PREVIOUS_MODEL_VERSION_ID
         || endpoint.deployedModels.some((item) =>
           item.id === CANONICAL_SAM3_1_VERTEX_SUCCESSOR_DEPLOYED_MODEL_ID)
         || endpoint.trafficSplit[

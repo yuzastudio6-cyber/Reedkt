@@ -27,17 +27,17 @@ import {
 
 const observedAt = '2026-08-12T14:00:00.000Z'
 const imageDigest =
-  'sha256:370a1e2acdab96d5c84b0bbadfad7c0011c9e6f252936cdfc878d508ab49d241'
+  'sha256:953a883366f51350933bf4b7911b34e652e4edc30e4e81fdf57e661c675c055f'
 const imageSupplyChainReleaseRef = {
-  id: 'sam31-production-image-supply-chain-release-38adb7e6462d64ccdd6f813c',
+  id: 'sam31-production-image-supply-chain-release-758e9f1291c248aa1ed1c70f',
   version: 1 as const,
   contentHash:
-    'sha256:9dec543f75bd484360f64f4962de0a3c86d658d45d16ec95e12c1d31516a7125' as const,
+    'sha256:324339cfb8fca18c248723c633dafed145b35abf642e8c2a155ba0e40da63ddd' as const,
 }
 const profile = createCanonicalSam31VertexScaleZeroDeploymentProfile({
   imageSupplyChainReleaseRef,
   immutableImageRef: {
-    id: 'sam31-image-ae6a4c2109b7410317c68c45',
+    id: 'sam31-image-0e4e81fdf57e661c675c055f',
     version: 1,
     contentHash: imageDigest,
   },
@@ -65,19 +65,19 @@ const rolloutPayload = {
   immutableImageUri: profile.immutableImageUri,
   immutableImageDigest: imageDigest,
   deployOperationName:
-    'projects/390722338345/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1/operations/5166666956383715328' as const,
+    'projects/390722338345/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1/operations/4484415593302196224' as const,
   deployOperationDone: true as const,
   modelResourceName:
     'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1' as const,
   modelVersionResourceName:
-    'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@5' as const,
-  modelVersionId: '5' as const,
-  modelVersionAlias: 'bounded-log-transport-candidate' as const,
+    'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@6' as const,
+  modelVersionId: '6' as const,
+  modelVersionAlias: 'occlusion-continuity-candidate' as const,
   endpointResourceName:
     'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1' as const,
-  deployedModelId: '3101000012' as const,
-  previousModelVersionId: '4' as const,
-  previousDeployedModelId: '3101000010' as const,
+  deployedModelId: '3101000014' as const,
+  previousModelVersionId: '5' as const,
+  previousDeployedModelId: '3101000012' as const,
   previousModelVersionRetainedForRollback: true as const,
   previousDeployedModelRemovedFromTraffic: true as const,
   exactModelVersionReread: true as const,
@@ -202,8 +202,8 @@ assert.equal(candidate.readyForPrivateQualificationInvocation, true)
 assert.equal(candidate.readyForCustomerInvocation, false)
 assert.equal(candidate.runtimeReleaseGranted, false)
 assert.equal(candidate.customerInvocationStarted, false)
-assert.equal(candidate.deployedModelId, '3101000012')
-assert.equal(candidate.modelVersionId, '5')
+assert.equal(candidate.deployedModelId, '3101000014')
+assert.equal(candidate.modelVersionId, '6')
 assert.deepEqual(
   assertCanonicalSam31VertexServingQualificationCandidate(
     candidate,

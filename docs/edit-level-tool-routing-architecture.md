@@ -7,7 +7,7 @@ RP-EDITLEVEL-05 implements this as a mock/local routing package. It does not ins
 | Tool/seam | Normal | Premium | Ultra Premium |
 | --- | --- | --- | --- |
 | Qwen 3.7 | Standard reasoning, basic edit plan, simple clarification. | Deep reasoning, style application, marker intent reasoning, source summary reasoning. | Multi-pass reasoning, creative direction, QA explanation, story/pacing decisions, stronger plan synthesis. |
-| Qwen2.5-VL-7B-Instruct | Targeted visual context only when needed by marker or ambiguity. | Key moments, marker windows, B-roll opportunities, visible text/layout when relevant. | Scene-level/deeper visual understanding, visual continuity, B-roll strategy, visual style/polish analysis. |
+| Visual Intelligence | Targeted visual context only when needed by marker or ambiguity. | Key moments, marker windows, B-roll opportunities, visible text/layout when relevant. | Scene-level/deeper visual understanding, visual continuity, B-roll strategy, visual style/polish analysis. |
 | Speech transcript seam | Optional or targeted when speech clarity is needed. | Recommended / expected when speech exists. | Required when speech exists, with timecoded speaker/speech timing. |
 | Audio/SoundSync seam | Basic audio policy, simple music/SFX if requested. | Music/SFX/ambience/ducking recommendations. | Sound design planning, deeper audio continuity, stronger ducking/music/SFX direction. |
 | Media extraction seam | Duration, dimensions, aspect ratio, export recommendation. | Metadata plus key moments/keyframe plan. | Scene/keyframe/waveform planning depth, later worker-backed. |

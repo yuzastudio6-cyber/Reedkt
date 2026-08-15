@@ -1,0 +1,30 @@
+# Upload only the source closure compiled by the metadata-only operator image.
+# Large product docs, browser tests, media fixtures, and prior build outputs are
+# intentionally outside this control-plane build context.
+*
+!package.json
+!package-lock.json
+!tsconfig.json
+!tsconfig.app.json
+!tsconfig.node.json
+!tsconfig.server.json
+!vite.server.config.ts
+!vite.sam31-runtime-image-operator.config.ts
+!docker/
+!docker/prod/
+!docker/prod/sam31-runtime-image-operator/
+!docker/prod/sam31-runtime-image-operator/Dockerfile
+!server/
+!server/**
+!scripts/
+!scripts/validation/
+!scripts/validation/project-edit-brief-owner-evidence-example-generator.ts
+!src/
+!src/server/
+!src/server/**
+!src/backend/
+!src/backend/**
+!src/types/
+!src/types/**
+!src/lib/
+!src/lib/**

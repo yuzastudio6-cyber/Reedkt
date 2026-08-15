@@ -5,6 +5,9 @@ import {
   invalidateProjectPersistenceScope,
   type ProjectPersistenceScope,
 } from './project-persistence-scope'
+import {
+  REEDITPRO_CANONICAL_PRIVATE_REVIEW_MAX_BYTES,
+} from '../types/large-media'
 
 type CanonicalPrivateEditPreparationApiResponse = {
   canonicalPrivateEditPreparation?: unknown
@@ -413,7 +416,11 @@ function parseReview(
     !isSafeId(review.reviewAssemblyId) ||
     !isSha(review.manifestSha256) ||
     !isSha(review.finalArtifactSha256) ||
-    !isInteger(review.finalArtifactByteLength, 1, 32 * 1024 * 1024) ||
+    !isInteger(
+      review.finalArtifactByteLength,
+      1,
+      REEDITPRO_CANONICAL_PRIVATE_REVIEW_MAX_BYTES,
+    ) ||
     review.readyForPrivateReview !== true
   ) return undefined
   return {

@@ -36,7 +36,8 @@ assert.deepEqual(
 
 const visual = resolveReEditProIntelligenceRoleForTask('source_visual_analysis')
 assert.equal(visual.roleId, 'visual_analyst')
-assert.deepEqual(visual.modelRoleIds, ['qwen2_5_vl_visual_understanding'])
+assert.equal(visual.authorityId, 'visual_intelligence')
+assert.deepEqual(visual.modelRoleIds, ['visual_intelligence_gemini_pro_high'])
 assert.deepEqual(visual.allowedRequestedUses, ['visual_understanding'])
 assert.equal(
   visual.forbiddenActions.some((action) => /final narrative|creative direction/i.test(action)),
@@ -89,7 +90,7 @@ const validPlan = createReEditProIntelligenceResponsibilityPlan({
     'kimi_k3_main_edit_agent',
     'gpt_5_6_terra_fallback_edit_agent',
     'deepseek_v4_tool_code_agent',
-    'qwen2_5_vl_visual_understanding',
+    'visual_intelligence_gemini_pro_high',
   ],
   requestedTasks: [
     'source_visual_analysis',

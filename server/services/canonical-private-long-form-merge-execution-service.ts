@@ -17,6 +17,7 @@ import {
   readPersistedOfflineRemotionRenderRuntimeAuthority,
   validateOfflineRemotionFinalCompositionPlanningPayload,
   validateOfflineRemotionLongFormMergePlanningPayload,
+  type OfflineRemotionFinalCompositionPlanningPayload,
   type OfflineRemotionLongFormMergePlanningPayload,
   type OfflineRemotionLongFormMergeStreamingResult,
   type OfflineRemotionServerInjectedInput,
@@ -77,6 +78,91 @@ interface VerifiedChunkDependency {
   dependency: CanonicalPrivateDependencyArtifactStreamReadResult
   approvedWorkItemId: string
   expectedAssetId: string
+}
+
+export function isExactCanonicalPrivateSourceSliceChunkPayload(input: {
+  payload: OfflineRemotionFinalCompositionPlanningPayload
+  planned: {
+    durationFrames: number
+    sourceSequenceItemIds: string[]
+    sourceCleanupDecisionIds: string[]
+    sourceStartFrame?: number
+    sourceEndFrameExclusive?: number
+  }
+  cleanupDecision: {
+    decisionId: string
+    sourceSequenceItemId: string
+    startFrame: number
+    endFrameExclusive: number
+    action: string
+  } | undefined
+  approvedVoiceOutputKeys: string[]
+  approvedColorOutputKeys: string[]
+}): boolean {
+  const {
+    payload,
+    planned,
+    cleanupDecision,
+    approvedVoiceOutputKeys,
+    approvedColorOutputKeys,
+  } = input
+  if (
+    !cleanupDecision || cleanupDecision.action === 'cut' ||
+    planned.sourceSequenceItemIds.length !== 1 ||
+    planned.sourceCleanupDecisionIds.length !== 1 ||
+    planned.sourceSequenceItemIds[0] !== cleanupDecision.sourceSequenceItemId ||
+    planned.sourceCleanupDecisionIds[0] !== cleanupDecision.decisionId ||
+    !Number.isSafeInteger(planned.sourceStartFrame) ||
+    !Number.isSafeInteger(planned.sourceEndFrameExclusive) ||
+    planned.sourceStartFrame! < cleanupDecision.startFrame ||
+    planned.sourceEndFrameExclusive! > cleanupDecision.endFrameExclusive ||
+    planned.sourceEndFrameExclusive! - planned.sourceStartFrame! !==
+      planned.durationFrames ||
+    !('sourceStartFrame' in payload) ||
+    payload.compositionProfileId !== 'approved_source_caption_track_final_v1' ||
+    payload.durationFrames !== planned.durationFrames ||
+    payload.supplementalAudioPolicy !== undefined ||
+    payload.supplementalAudioTracks !== undefined ||
+    payload.livingFrameOverlayPolicy !== undefined ||
+    payload.livingFrameOverlayLayers !== undefined ||
+    payload.controlledVisualOverlayPolicy !== undefined ||
+    payload.controlledVisualOverlayLayers !== undefined
+  ) return false
+
+  const usesApprovedColorIntermediate =
+    payload.sourceMediaPolicy === 'approved_professional_color_intermediate_v1'
+  const expectedPayloadStartFrame = usesApprovedColorIntermediate
+    ? 0
+    : planned.sourceStartFrame!
+  const expectedPayloadEndFrameExclusive = usesApprovedColorIntermediate
+    ? planned.durationFrames
+    : planned.sourceEndFrameExclusive!
+  if (
+    payload.sourceStartFrame !== expectedPayloadStartFrame ||
+    payload.sourceEndFrameExclusive !== expectedPayloadEndFrameExclusive ||
+    approvedColorOutputKeys.length !== (usesApprovedColorIntermediate ? 1 : 0)
+  ) return false
+
+  if (payload.audioPolicy === 'preserve_source') {
+    return !usesApprovedColorIntermediate &&
+      payload.voiceTracks === undefined &&
+      approvedVoiceOutputKeys.length === 0
+  }
+  if (
+    payload.audioPolicy !== 'replace_with_approved_voice_tracks' ||
+    payload.voiceTracks?.length !== 1 ||
+    approvedVoiceOutputKeys.length !== 1
+  ) return false
+  const voiceTrack = payload.voiceTracks[0]!
+  const cleanupDurationFrames =
+    cleanupDecision.endFrameExclusive - cleanupDecision.startFrame
+  return voiceTrack.sourceSequenceItemId === cleanupDecision.sourceSequenceItemId &&
+    voiceTrack.outputKey === approvedVoiceOutputKeys[0] &&
+    voiceTrack.durationFrames === cleanupDurationFrames &&
+    voiceTrack.sourceStartFrame ===
+      planned.sourceStartFrame! - cleanupDecision.startFrame &&
+    voiceTrack.sourceEndFrameExclusive ===
+      planned.sourceEndFrameExclusive! - cleanupDecision.startFrame
 }
 
 /**
@@ -669,15 +755,46 @@ async function verifyChunkDependency(input: {
   )
   const sourceSliceProfile = input.profileId ===
     CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID
-  const exactSourceSlicePayload = !sourceSliceProfile || (
-    'sourceStartFrame' in chunkPayload &&
-    chunkPayload.compositionProfileId === 'approved_source_caption_track_final_v1' &&
-    chunkPayload.sourceStartFrame === input.planned.sourceStartFrame &&
-    chunkPayload.sourceEndFrameExclusive === input.planned.sourceEndFrameExclusive &&
-    chunkPayload.audioPolicy === 'preserve_source' &&
-    !('sourceMediaPolicy' in chunkPayload) &&
-    !('voiceTracks' in chunkPayload)
+  const approvedDependencyWorkItems = workItem.dependencyKeys
+    .map((dependencyKey) => input.authority.workItems.find((candidate) =>
+      candidate.workItemKey === dependencyKey))
+    .filter((candidate): candidate is NonNullable<typeof candidate> => Boolean(candidate))
+  const approvedVoiceOutputKeys = approvedDependencyWorkItems.flatMap((candidate) =>
+    candidate.executionInput.operation === 'process_approved_source_voice_delivery' &&
+    candidate.sourceSequenceItemIds.length === 1 &&
+    candidate.sourceSequenceItemIds[0] === input.planned.sourceSequenceItemIds[0] &&
+    candidate.sourceCleanupDecisionIds.length === 1 &&
+    candidate.sourceCleanupDecisionIds[0] ===
+      input.planned.sourceCleanupDecisionIds[0] &&
+    candidate.expectedOutputs.length === 1 &&
+    candidate.expectedOutputs[0]?.contentType === 'audio/wav'
+      ? [candidate.expectedOutputs[0].outputKey]
+      : [])
+  const approvedColorOutputKeys = approvedDependencyWorkItems.flatMap((candidate) =>
+    candidate.executionInput.operation ===
+      'process_approved_source_professional_color_delivery' &&
+    candidate.sourceSequenceItemIds.length === 1 &&
+    candidate.sourceSequenceItemIds[0] === input.planned.sourceSequenceItemIds[0] &&
+    candidate.sourceCleanupDecisionIds.length === 1 &&
+    candidate.sourceCleanupDecisionIds[0] ===
+      input.planned.sourceCleanupDecisionIds[0] &&
+    candidate.expectedOutputs.length === 1 &&
+    candidate.expectedOutputs[0]?.contentType === 'video/x-matroska'
+      ? [candidate.expectedOutputs[0].outputKey]
+      : [])
+  const cleanupDecision = input.authority.components.sourceCleanupPlan.decisions.find(
+    (decision) =>
+      decision.decisionId === input.planned.sourceCleanupDecisionIds[0] &&
+      decision.sourceSequenceItemId === input.planned.sourceSequenceItemIds[0],
   )
+  const exactSourceSlicePayload = !sourceSliceProfile ||
+    isExactCanonicalPrivateSourceSliceChunkPayload({
+      payload: chunkPayload,
+      planned: input.planned,
+      cleanupDecision,
+      approvedVoiceOutputKeys,
+      approvedColorOutputKeys,
+    })
   if (
     !chunkAuthority.success ||
     workItem.workItemType !== 'custom' || workItem.workerClass !== 'render_worker' ||

@@ -93,6 +93,8 @@ export function createCanonicalPlanPublicationRequestService(context: ServiceCon
           handoffId,
           handoffHash: handoff.handoffHash,
           body: canonicalPublishBody,
+          professionalLongFormSeedDraft:
+            body.professionalLongFormSeedDraft,
         })
         const candidateWithoutIdentity = {
           schemaVersion: 'canonical-plan-publication-request-candidate-v1' as const,

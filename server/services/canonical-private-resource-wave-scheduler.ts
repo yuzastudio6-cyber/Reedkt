@@ -9,7 +9,18 @@ import {
 import { sha256AuthorityValue } from './private-edit-authority-store'
 
 export const CANONICAL_PRIVATE_RESOURCE_WAVE_SCHEDULER_VERSION =
-  'canonical-private-resource-wave-scheduler-v2' as const
+  'canonical-private-resource-wave-scheduler-v3' as const
+
+const CANONICAL_PRIVATE_LOCAL_RESOURCE_CLASS_CONCURRENCY_LIMITS: Readonly<
+  Record<CanonicalPrivateWorkItemResourcePlacement['resourceClassId'], number>
+> = {
+  control_plane_cpu_v1: CANONICAL_PRIVATE_GLOBAL_MAX_CONCURRENCY,
+  cpu_analysis_standard_v1: CANONICAL_PRIVATE_GLOBAL_MAX_CONCURRENCY,
+  gpu_l4_standard_v1: 1,
+  render_cpu_high_memory_v1: 1,
+  qa_cpu_standard_v1: CANONICAL_PRIVATE_GLOBAL_MAX_CONCURRENCY,
+  tool_readiness_cpu_v1: 1,
+}
 
 export interface CanonicalPrivateResourceSchedulableJob {
   id: string
@@ -31,6 +42,7 @@ export interface CanonicalPrivateResourceWave<
   entries: Array<CanonicalPrivateResourceWaveEntry<TJob>>
   workerCounts: Partial<Record<CanonicalPrivateExecutableWorkerType, number>>
   resourceLaneCounts: Record<string, number>
+  resourceLaneConcurrencyLimits: Record<string, number>
   waveHash: string
 }
 
@@ -49,6 +61,7 @@ export interface CanonicalPrivateResourceWaveResult<
   observedPeakConcurrency: number
   observedPeakConcurrencyByWorkerType:
     Partial<Record<CanonicalPrivateExecutableWorkerType, number>>
+  observedPeakConcurrencyByResourceLane: Record<string, number>
   parallelExecutionObserved: boolean
 }
 
@@ -62,6 +75,7 @@ export interface CanonicalPrivateResourceSchedulingEvidence {
   configuredGlobalMaxConcurrency: typeof CANONICAL_PRIVATE_GLOBAL_MAX_CONCURRENCY
   configuredWorkerConcurrencyLimits:
     Partial<Record<CanonicalPrivateExecutableWorkerType, number>>
+  configuredLocalResourceLaneConcurrencyLimits: Record<string, number>
   waveCount: number
   parallelWaveCount: number
   maximumWaveWidth: number
@@ -70,12 +84,14 @@ export interface CanonicalPrivateResourceSchedulingEvidence {
   observedPeakConcurrency: number
   observedPeakConcurrencyByWorkerType:
     Partial<Record<CanonicalPrivateExecutableWorkerType, number>>
+  observedPeakConcurrencyByResourceLane: Record<string, number>
   resourceWaveHashes: string[]
   concurrencyMeasurementScope: 'in_process_orchestrator_execution_tasks'
   allStartsResourcePlacementAuthorized: true
   deterministicDependencyWaves: true
   callerSelectedConcurrency: false
   localSingleHostOnly: true
+  localResourceLaneConcurrencyEnforced: true
   cloudDispatchAuthorized: false
   distributedExecutionProven: false
   physicalWorkerProcessConcurrencyProven: false
@@ -100,6 +116,7 @@ export function selectCanonicalPrivateResourceWave<
   const entries: Array<CanonicalPrivateResourceWaveEntry<TJob>> = []
   const workerCounts: Partial<Record<CanonicalPrivateExecutableWorkerType, number>> = {}
   const resourceLaneCounts: Record<string, number> = {}
+  const resourceLaneConcurrencyLimits: Record<string, number> = {}
 
   for (const job of input.jobs) {
     if (!input.remainingJobIds.has(job.id)) continue
@@ -112,9 +129,12 @@ export function selectCanonicalPrivateResourceWave<
     if (entries.length >= CANONICAL_PRIVATE_GLOBAL_MAX_CONCURRENCY) break
     const workerCount = workerCounts[placement.workerType] ?? 0
     if (workerCount >= placement.workerConcurrencyLimit) continue
+    const laneKey = canonicalPrivateResourceLaneKey(placement)
+    const laneLimit = canonicalPrivateLocalResourceLaneConcurrencyLimit(placement)
+    resourceLaneConcurrencyLimits[laneKey] = laneLimit
+    if ((resourceLaneCounts[laneKey] ?? 0) >= laneLimit) continue
     entries.push({ job, placement })
     workerCounts[placement.workerType] = workerCount + 1
-    const laneKey = canonicalPrivateResourceLaneKey(placement)
     resourceLaneCounts[laneKey] = (resourceLaneCounts[laneKey] ?? 0) + 1
   }
   if (entries.length === 0) return undefined
@@ -136,12 +156,14 @@ export function selectCanonicalPrivateResourceWave<
     })),
     workerCounts,
     resourceLaneCounts,
+    resourceLaneConcurrencyLimits,
   }
   return {
     waveNumber: input.waveNumber,
     entries,
     workerCounts,
     resourceLaneCounts,
+    resourceLaneConcurrencyLimits,
     waveHash: sha256AuthorityValue(waveProjection),
   }
 }
@@ -157,8 +179,11 @@ export async function executeCanonicalPrivateResourceWave<
   let peak = 0
   const activeByWorker: Partial<Record<CanonicalPrivateExecutableWorkerType, number>> = {}
   const peakByWorker: Partial<Record<CanonicalPrivateExecutableWorkerType, number>> = {}
+  const activeByResourceLane: Record<string, number> = {}
+  const peakByResourceLane: Record<string, number> = {}
   const settled = await Promise.all(input.wave.entries.map(async (entry) => {
     const tracksActualExecution = entry.placement.privateExecutionReady
+    const resourceLaneKey = canonicalPrivateResourceLaneKey(entry.placement)
     if (tracksActualExecution) {
       active += 1
       peak = Math.max(peak, active)
@@ -167,6 +192,12 @@ export async function executeCanonicalPrivateResourceWave<
       peakByWorker[entry.placement.workerType] = Math.max(
         peakByWorker[entry.placement.workerType] ?? 0,
         workerActive,
+      )
+      const resourceLaneActive = (activeByResourceLane[resourceLaneKey] ?? 0) + 1
+      activeByResourceLane[resourceLaneKey] = resourceLaneActive
+      peakByResourceLane[resourceLaneKey] = Math.max(
+        peakByResourceLane[resourceLaneKey] ?? 0,
+        resourceLaneActive,
       )
     }
     try {
@@ -182,6 +213,8 @@ export async function executeCanonicalPrivateResourceWave<
         active -= 1
         activeByWorker[entry.placement.workerType] =
           (activeByWorker[entry.placement.workerType] ?? 1) - 1
+        activeByResourceLane[resourceLaneKey] =
+          (activeByResourceLane[resourceLaneKey] ?? 1) - 1
       }
     }
   }))
@@ -193,6 +226,7 @@ export async function executeCanonicalPrivateResourceWave<
     actualExecutionCount,
     observedPeakConcurrency: peak,
     observedPeakConcurrencyByWorkerType: peakByWorker,
+    observedPeakConcurrencyByResourceLane: peakByResourceLane,
     parallelExecutionObserved: peak > 1,
   }
 }
@@ -213,12 +247,31 @@ export function createCanonicalPrivateResourceSchedulingEvidence(input: {
     workerLimits[placement.workerType] = placement.workerConcurrencyLimit
   }
   const observedByWorker: Partial<Record<CanonicalPrivateExecutableWorkerType, number>> = {}
+  const configuredByResourceLane: Record<string, number> = {}
+  for (const placement of input.placementManifest.placements) {
+    const laneKey = canonicalPrivateResourceLaneKey(placement)
+    const laneLimit = canonicalPrivateLocalResourceLaneConcurrencyLimit(placement)
+    const existing = configuredByResourceLane[laneKey]
+    if (existing !== undefined && existing !== laneLimit) {
+      throw new Error('Canonical placement manifest has conflicting local resource-lane limits.')
+    }
+    configuredByResourceLane[laneKey] = laneLimit
+  }
+  const observedByResourceLane: Record<string, number> = {}
   for (const result of input.waveResults) {
     for (const [rawWorkerType, peak] of Object.entries(
       result.observedPeakConcurrencyByWorkerType,
     )) {
       const workerType = rawWorkerType as CanonicalPrivateExecutableWorkerType
       observedByWorker[workerType] = Math.max(observedByWorker[workerType] ?? 0, peak ?? 0)
+    }
+    for (const [laneKey, peak] of Object.entries(
+      result.observedPeakConcurrencyByResourceLane,
+    )) {
+      observedByResourceLane[laneKey] = Math.max(
+        observedByResourceLane[laneKey] ?? 0,
+        peak,
+      )
     }
   }
   return {
@@ -233,6 +286,7 @@ export function createCanonicalPrivateResourceSchedulingEvidence(input: {
       input.placementManifest.identity.provenToolPlacementCatalogHash,
     configuredGlobalMaxConcurrency: CANONICAL_PRIVATE_GLOBAL_MAX_CONCURRENCY,
     configuredWorkerConcurrencyLimits: workerLimits,
+    configuredLocalResourceLaneConcurrencyLimits: configuredByResourceLane,
     waveCount: input.waveResults.length,
     parallelWaveCount: input.waveResults.filter((result) =>
       result.parallelExecutionObserved).length,
@@ -245,12 +299,14 @@ export function createCanonicalPrivateResourceSchedulingEvidence(input: {
     observedPeakConcurrency: Math.max(0, ...input.waveResults.map((result) =>
       result.observedPeakConcurrency)),
     observedPeakConcurrencyByWorkerType: observedByWorker,
+    observedPeakConcurrencyByResourceLane: observedByResourceLane,
     resourceWaveHashes: input.waveResults.map((result) => result.wave.waveHash),
     concurrencyMeasurementScope: 'in_process_orchestrator_execution_tasks',
     allStartsResourcePlacementAuthorized: true,
     deterministicDependencyWaves: true,
     callerSelectedConcurrency: false,
     localSingleHostOnly: true,
+    localResourceLaneConcurrencyEnforced: true,
     cloudDispatchAuthorized: false,
     distributedExecutionProven: false,
     physicalWorkerProcessConcurrencyProven: false,
@@ -258,4 +314,16 @@ export function createCanonicalPrivateResourceSchedulingEvidence(input: {
     performanceSlaProven: false,
     immutableSnapshotPlacementBindingProven: true,
   }
+}
+
+export function canonicalPrivateLocalResourceLaneConcurrencyLimit(
+  placement: CanonicalPrivateWorkItemResourcePlacement,
+): number {
+  return Math.min(
+    CANONICAL_PRIVATE_GLOBAL_MAX_CONCURRENCY,
+    placement.workerConcurrencyLimit,
+    CANONICAL_PRIVATE_LOCAL_RESOURCE_CLASS_CONCURRENCY_LIMITS[
+      placement.resourceClassId
+    ],
+  )
 }

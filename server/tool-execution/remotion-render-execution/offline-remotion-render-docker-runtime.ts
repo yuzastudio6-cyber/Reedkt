@@ -429,7 +429,38 @@ async function receiveStreamingOutput(
     throw runtimeFailure('Streaming Remotion response header is invalid JSON.')
   }
   if (response.ok !== true) {
-    throw runtimeFailure('Streaming Remotion execution failed before output commitment.')
+    const diagnosticStage = response.diagnosticStage
+    const diagnosticFamily = response.diagnosticFamily
+    const diagnosticMessageSha256 = response.diagnosticMessageSha256
+    if (
+      typeof diagnosticStage !== 'string' ||
+      ![
+        'read_request',
+        'validate_request',
+        'materialize_private_inputs',
+        'render_media',
+        'commit_output',
+      ].includes(diagnosticStage) ||
+      typeof diagnosticFamily !== 'string' ||
+      ![
+        'memory_pressure',
+        'render_timeout',
+        'media_decode_or_encode',
+        'browser_runtime',
+        'frame_render',
+        'request_or_authority_validation',
+        'unclassified',
+      ].includes(diagnosticFamily) ||
+      typeof diagnosticMessageSha256 !== 'string' ||
+      !/^[a-f0-9]{64}$/u.test(diagnosticMessageSha256)
+    ) {
+      throw runtimeFailure(
+        'Streaming Remotion execution failed before output commitment with invalid diagnostics.',
+      )
+    }
+    throw runtimeFailure(
+      `Streaming Remotion execution failed before output commitment: ${diagnosticStage}/${diagnosticFamily}/${diagnosticMessageSha256}.`,
+    )
   }
   const artifact = record(response.artifact)
   const expectedByteLength = Number(artifact.byteLength)

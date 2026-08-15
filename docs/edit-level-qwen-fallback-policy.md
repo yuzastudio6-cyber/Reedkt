@@ -17,7 +17,7 @@ RP-EDITLEVEL-07 defines how Qwen planning should degrade when future Qwen, visua
 Fallback copy must say the profile is mock/local and estimate-only. It must not imply:
 
 - Qwen ran;
-- Qwen2.5-VL ran;
+- Visual Intelligence ran;
 - DeepSeek ran;
 - a provider call happened;
 - the real planner created an edit plan;
@@ -25,4 +25,4 @@ Fallback copy must say the profile is mock/local and estimate-only. It must not 
 
 ## Required Flags
 
-Every RP07 package keeps `mockOnly: true` and all execution flags false, including `providerCallMade`, `qwenCallMade`, `qwen25vlCallMade`, `deepseekCallMade`, `plannerExecuted`, `editPlanCreated`, `workerJobCreated`, `renderJobCreated`, `creditReservedOrSpent`, `fileBytesRead`, and `externalUrlFetched`.
+Every RP07 package keeps `mockOnly: true` and all execution flags false, including `providerCallMade`, `qwenCallMade`, `visualIntelligenceCallMade`, `deepseekCallMade`, `plannerExecuted`, `editPlanCreated`, `workerJobCreated`, `renderJobCreated`, `creditReservedOrSpent`, `fileBytesRead`, and `externalUrlFetched`.

@@ -7,8 +7,8 @@ RP-EDITLEVEL-06 defines these mock/local source context layers:
 - `media_extraction_metadata`
 - `keyframe_sampling_plan`
 - `speech_transcript`
-- `qwen25vl_visual_segments`
-- `qwen25vl_marker_windows`
+- `visual_intelligence_segments`
+- `visual_intelligence_marker_windows`
 - `audio_soundsync_segments`
 - `graphic_text_segments`
 - `preference_dna_context`

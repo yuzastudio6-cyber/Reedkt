@@ -16,7 +16,6 @@ export interface ReeditProApiClientOptions {
   apiBaseUrl?: string
   getAccessToken?: () => Promise<string | undefined>
   liveQwenMarkerChat?: boolean
-  liveQwen25VLVisualContext?: boolean
   mockOnly?: boolean
   preserveMockSession?: boolean
 }

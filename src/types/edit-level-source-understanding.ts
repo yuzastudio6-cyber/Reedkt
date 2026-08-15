@@ -9,8 +9,8 @@ export type EditLevelSourceUnderstandingLayerId =
   | 'media_extraction_metadata'
   | 'keyframe_sampling_plan'
   | 'speech_transcript'
-  | 'qwen25vl_visual_segments'
-  | 'qwen25vl_marker_windows'
+  | 'visual_intelligence_segments'
+  | 'visual_intelligence_marker_windows'
   | 'audio_soundsync_segments'
   | 'graphic_text_segments'
   | 'preference_dna_context'
@@ -73,7 +73,7 @@ export interface EditLevelSourceUnderstandingSideEffectFlags {
   mockOnly: true
   providerCallMade: false
   qwen3CallMade: false
-  qwen25vlCallMade: false
+  visualIntelligenceCallMade: false
   deepSeekCallMade: false
   mediaProcessingStarted: false
   transcriptStarted: false
@@ -230,4 +230,4 @@ export const REEDITPRO_EDIT_LEVEL_SOURCE_UNDERSTANDING_RULE =
   'Edit Level Source Understanding routing defines how deeply ReEditPro should understand the source video for each level without executing media, model, worker, render, or credit operations.'
 
 export const REEDITPRO_EDIT_LEVEL_SOURCE_UNDERSTANDING_NO_EXECUTION_RULE =
-  'RP-EDITLEVEL-06 resolves mock/local source-understanding policy only; it must not run Qwen, Qwen2.5-VL, transcript, media extraction, audio, graphic, workers, render, or credits.'
+  'RP-EDITLEVEL-06 resolves mock/local source-understanding policy only; it must not run Qwen, Visual Intelligence, transcript, media extraction, audio, graphic, workers, render, or credits.'

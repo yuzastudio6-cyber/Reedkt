@@ -98,7 +98,22 @@ export async function commitLocalResumableUploadChunk(input: {
       ...input,
       verification: 'tail',
     })
-    if (before.complete) return statusFromReconciliation(before, true)
+    if (before.complete) {
+      const replayedBytes = await readExactRange(
+        input.completedPath,
+        input.startByte,
+        input.body.byteLength,
+      )
+      if (sha256(replayedBytes) !== input.chunkChecksumSha256) {
+        throw new ApiError(
+          'UPLOAD_NOT_FINALIZED',
+          'Resumable chunk replay does not match the completed object bytes.',
+          409,
+          { acceptedBytes: before.acceptedBytes },
+        )
+      }
+      return statusFromReconciliation(before, true)
+    }
 
     if (input.startByte < before.acceptedBytes) {
       if (input.endByteInclusive + 1 > before.acceptedBytes) {

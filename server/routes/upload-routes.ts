@@ -45,6 +45,11 @@ const LOCAL_RAW_UPLOAD_MIME_TYPES = [
 ]
 
 const requireBoundedLocalRawUpload = createBoundedLocalRawUploadMiddleware()
+const requireBoundedLocalResumableChunkUpload =
+  createBoundedLocalRawUploadMiddleware({
+    maxAttemptsPerWindow: 600,
+    routeLabel: 'local resumable upload chunk',
+  })
 const requireBoundedUploadMetadataWrite = createBoundedAuthenticatedUploadMiddleware({
   windowMs: 60_000,
   maxAttemptsPerWindow: 60,
@@ -108,6 +113,74 @@ export function createUploadRoutes(): Router {
         declaredContentLength,
       )
       sendOk(response, { localObjectUpload: result.localObjectUpload }, result.warnings, 201)
+    }),
+  )
+
+  router.put(
+    '/v1/upload-intents/:uploadIntentId/local-object-resumable',
+    requireAuth,
+    requireBoundedLocalResumableChunkUpload,
+    requireLocalResumableUploadIntentAccess,
+    parseBoundedLocalRawUpload,
+    asyncRoute(async (request, response) => {
+      if (!Buffer.isBuffer(request.body)) {
+        throw new ApiError(
+          'VALIDATION_FAILED',
+          'Local resumable upload requires a raw request body.',
+          400,
+        )
+      }
+      const declaredContentLength = getRequiredLocalRawContentLength(request)
+      if (request.body.byteLength !== declaredContentLength) {
+        throw new ApiError(
+          'VALIDATION_FAILED',
+          'Local resumable upload body size does not match Content-Length.',
+          400,
+          {
+            declaredContentLength,
+            actualSizeBytes: request.body.byteLength,
+          },
+        )
+      }
+      const query = validateBody(localUploadWorkspaceQuerySchema, request.query)
+      const result = await createUploadService(getServiceContext(request))
+        .uploadLocalResumableObjectChunk({
+          uploadIntentId: getRouteParam(request, 'uploadIntentId'),
+          workspaceId: query.workspaceId,
+          mimeType: request.header('content-type')?.split(';')[0],
+          declaredContentLength,
+          range: getRequiredLocalResumableContentRange(request),
+          chunkChecksumSha256: getRequiredLocalResumableChunkChecksum(request),
+          body: request.body,
+        })
+      response.setHeader('cache-control', 'no-store')
+      sendOk(
+        response,
+        { resumableUpload: result.resumableUpload },
+        result.warnings,
+        result.resumableUpload.complete ? 201 : 200,
+      )
+    }),
+  )
+
+  router.get(
+    '/v1/upload-intents/:uploadIntentId/local-object-resumable/status',
+    requireAuth,
+    requireBoundedUploadStatusRead,
+    requireLocalResumableUploadStatusAccess,
+    asyncRoute(async (request, response) => {
+      const query = validateBody(localUploadWorkspaceQuerySchema, request.query)
+      const result = await createUploadService(getServiceContext(request))
+        .getLocalResumableObjectStatus(
+          getRouteParam(request, 'uploadIntentId'),
+          query.workspaceId,
+        )
+      response.setHeader('cache-control', 'no-store')
+      sendOk(
+        response,
+        { resumableUpload: result.resumableUpload },
+        result.warnings,
+      )
     }),
   )
 
@@ -267,6 +340,46 @@ async function requireLocalUploadIntentAccess(
   }
 }
 
+async function requireLocalResumableUploadIntentAccess(
+  request: Request,
+  _response: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const query = validateBody(localUploadWorkspaceQuerySchema, request.query)
+    await createUploadService(getServiceContext(request))
+      .authorizeLocalResumableObjectUpload({
+        uploadIntentId: getRouteParam(request, 'uploadIntentId'),
+        workspaceId: query.workspaceId,
+        mimeType: request.header('content-type')?.split(';')[0],
+        declaredContentLength: getRequiredLocalRawContentLength(request),
+        range: getRequiredLocalResumableContentRange(request),
+        chunkChecksumSha256: getRequiredLocalResumableChunkChecksum(request),
+      })
+    next()
+  } catch (error) {
+    next(error)
+  }
+}
+
+async function requireLocalResumableUploadStatusAccess(
+  request: Request,
+  _response: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const query = validateBody(localUploadWorkspaceQuerySchema, request.query)
+    await createUploadService(getServiceContext(request))
+      .authorizeLocalResumableObjectStatus(
+        getRouteParam(request, 'uploadIntentId'),
+        query.workspaceId,
+      )
+    next()
+  } catch (error) {
+    next(error)
+  }
+}
+
 async function requireUploadIntentFinalizeAccess(
   request: Request,
   _response: Response,
@@ -319,11 +432,15 @@ async function requireStorageObjectDownloadAccess(
   }
 }
 
-function createBoundedLocalRawUploadMiddleware() {
+function createBoundedLocalRawUploadMiddleware(input: {
+  maxAttemptsPerWindow?: number
+  routeLabel?: string
+} = {}) {
   const windows = new Map<string, { windowStartedAt: number; attempts: number; active: number }>()
   const windowMs = 60_000
-  const maxAttemptsPerWindow = 12
+  const maxAttemptsPerWindow = input.maxAttemptsPerWindow ?? 12
   const maxConcurrentPerUser = 2
+  const routeLabel = input.routeLabel ?? 'local raw upload'
 
   return (request: Request, response: Response, next: NextFunction): void => {
     try {
@@ -359,10 +476,18 @@ function createBoundedLocalRawUploadMiddleware() {
         ? { windowStartedAt: now, attempts: 0, active: existing?.active ?? 0 }
         : existing
       if (window.attempts >= maxAttemptsPerWindow) {
-        throw new ApiError('VALIDATION_FAILED', 'Too many local raw upload attempts. Retry after the bounded upload window.', 429)
+        throw new ApiError(
+          'VALIDATION_FAILED',
+          `Too many ${routeLabel} attempts. Retry after the bounded upload window.`,
+          429,
+        )
       }
       if (window.active >= maxConcurrentPerUser) {
-        throw new ApiError('VALIDATION_FAILED', 'Too many concurrent local raw uploads for this user.', 429)
+        throw new ApiError(
+          'VALIDATION_FAILED',
+          `Too many concurrent ${routeLabel} requests for this user.`,
+          429,
+        )
       }
 
       window.attempts += 1
@@ -453,6 +578,55 @@ function getRequiredLocalRawContentLength(request: Request): number {
   const contentLength = Number(headerValue)
   assertLocalRawUploadByteLength(contentLength)
   return contentLength
+}
+
+function getRequiredLocalResumableContentRange(request: Request): {
+  startByte: number
+  endByteInclusive: number
+  totalBytes: number
+} {
+  const headerValue = request.header('content-range')?.trim()
+  const match = headerValue
+    ? /^bytes (\d+)-(\d+)\/(\d+)$/u.exec(headerValue)
+    : undefined
+  if (!match) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'A strict Content-Range is required for local resumable upload.',
+      400,
+    )
+  }
+  const startByte = Number(match[1])
+  const endByteInclusive = Number(match[2])
+  const totalBytes = Number(match[3])
+  if (
+    !Number.isSafeInteger(startByte) ||
+    startByte < 0 ||
+    !Number.isSafeInteger(endByteInclusive) ||
+    endByteInclusive < startByte ||
+    !Number.isSafeInteger(totalBytes) ||
+    totalBytes <= 0 ||
+    endByteInclusive >= totalBytes
+  ) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Local resumable upload Content-Range is invalid.',
+      400,
+    )
+  }
+  return { startByte, endByteInclusive, totalBytes }
+}
+
+function getRequiredLocalResumableChunkChecksum(request: Request): string {
+  const checksum = request.header('x-reeditpro-chunk-sha256')?.trim()
+  if (!checksum || !/^[a-f0-9]{64}$/u.test(checksum)) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'A lowercase x-reeditpro-chunk-sha256 digest is required.',
+      400,
+    )
+  }
+  return checksum
 }
 
 function contentDispositionFileNameFromObjectPath(objectPath: string): string {

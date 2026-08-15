@@ -16,10 +16,17 @@ export const REEDITPRO_REFERENCE_MEDIA_MAX_BYTES = 250 * GIB
 export const REEDITPRO_SOURCE_AUDIO_MAX_BYTES = 50 * GIB
 export const REEDITPRO_REFERENCE_IMAGE_MAX_BYTES = 50 * MIB
 
+/**
+ * Mirrors the current canonical private-review assembly output ceiling.
+ * Review playback, preparation receipts, and immutable review history must
+ * accept the same bounded artifact that the server is authorized to assemble.
+ */
+export const REEDITPRO_CANONICAL_PRIVATE_REVIEW_MAX_BYTES = 256 * MIB
+
 /** The development-only Express raw-body route remains deliberately small. */
 export const REEDITPRO_LOCAL_RAW_UPLOAD_MAX_BYTES = 16 * MIB
 
-/** Larger cloud uploads must use a recoverable resumable session. */
+/** Larger uploads must use a recoverable provider or authenticated local session. */
 export const REEDITPRO_RESUMABLE_UPLOAD_THRESHOLD_BYTES = 16 * MIB
 export const REEDITPRO_RESUMABLE_UPLOAD_MIN_CHUNK_BYTES = 8 * MIB
 export const REEDITPRO_RESUMABLE_UPLOAD_CHUNK_BYTES = 32 * MIB
@@ -47,7 +54,10 @@ export const REEDITPRO_ANALYSIS_PROXY_POLICY = {
   hdrAndWideGamutRequireColorManagedTransform: true,
 } as const
 
-export type TemporaryUploadProtocol = 'single_put' | 'gcs_resumable'
+export type TemporaryUploadProtocol =
+  | 'single_put'
+  | 'gcs_resumable'
+  | 'resumable_content_range_v1'
 
 export function shouldUseResumableUpload(expectedSizeBytes: number | undefined): boolean {
   return typeof expectedSizeBytes === 'number' &&

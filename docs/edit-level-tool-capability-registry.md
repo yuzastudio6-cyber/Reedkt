@@ -4,7 +4,7 @@ The RP-EDITLEVEL-05 registry defines the product capability IDs used by the mock
 
 ## Capability IDs
 
-`qwen_3_reasoning`, `qwen25vl_visual_understanding`, `speech_transcript`, `media_extraction`, `audio_soundsync`, `graphic_design_understanding`, `preference_dna`, `edit_brief`, `edit_brief_marker_chat`, `edit_brief_marker_qa`, `edit_brief_plan_hints`, `source_video_playback`, `source_video_understanding_package`, `media_asset_repository`, `storage_runtime`, `deepseek_tool_code`, `render_worker`, and `credit_gate`.
+`qwen_3_reasoning`, `visual_intelligence`, `speech_transcript`, `media_extraction`, `audio_soundsync`, `graphic_design_understanding`, `preference_dna`, `edit_brief`, `edit_brief_marker_chat`, `edit_brief_marker_qa`, `edit_brief_plan_hints`, `source_video_playback`, `source_video_understanding_package`, `media_asset_repository`, `storage_runtime`, `deepseek_tool_code`, `render_worker`, and `credit_gate`.
 
 ## Statuses
 

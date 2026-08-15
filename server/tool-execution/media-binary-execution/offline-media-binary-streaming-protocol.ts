@@ -5,6 +5,8 @@ import {
   OFFLINE_EDIT_BRIEF_MUSIC_BED_PROFILE,
   OFFLINE_EDIT_BRIEF_SFX_PROFILE,
   OFFLINE_MEDIA_BINARY_OPERATIONS,
+  isColorMatchDeliveryProfile,
+  isColorMatchDeliveryPlanningPayload,
   validateOfflineFfmpegPlanningPayload,
   validateOfflineFfprobePlanningPayload,
   type OfflineFfmpegColorMatchDeliveryPlanningPayload,
@@ -97,14 +99,13 @@ export function validateOfflineFfmpegStreamingExecutionRequest(
     'referenceMimeType', 'referenceSourceByteLength',
     'referenceSourceSha256', 'referenceSourceBytesBase64',
   ] as const
-  const colorMatch = payload.recipeProfileId ===
-    'approved_source_color_match_delivery_matroska_v1'
+  const colorMatch = isColorMatchDeliveryProfile(payload.recipeProfileId)
   const planning = validateOfflineFfmpegPlanningPayload(withoutKeys(
     payload,
     colorMatch ? [...sourceKeys, ...referenceKeys] : sourceKeys,
   ))
   const source = validateSourceCommitment(payload, planning.recipeProfileId)
-  if (planning.recipeProfileId === 'approved_source_color_match_delivery_matroska_v1') {
+  if (isColorMatchDeliveryPlanningPayload(planning)) {
     const reference = validateReferenceCommitment(payload)
     assertExactKeys(payload, [...Object.keys(planning), ...sourceKeys, ...referenceKeys])
     return {

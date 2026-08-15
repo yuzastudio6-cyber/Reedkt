@@ -258,7 +258,7 @@ export async function runPrivateSearxngPreflight() {
     if (firstGcloudValue(runApi) !== 'run.googleapis.com') blockers.push('Cloud Run API is not enabled.')
     if (firstGcloudValue(artifactApi) !== 'artifactregistry.googleapis.com') blockers.push('Artifact Registry API is not enabled.')
     if (!firstGcloudValue(artifactRepo)) blockers.push('Artifact Registry repository reeditpro-staging-workers is not reachable.')
-    if (firstGcloudValue(serviceAccount) !== privateSearxngServiceConfig.serviceAccountEmail) blockers.push('CPU worker service account is not reachable.')
+    if (firstGcloudValue(serviceAccount) !== privateSearxngServiceConfig.serviceAccountEmail) blockers.push('Dedicated private-search service account is not reachable.')
     if (firstGcloudValue(generatedBucket) !== privateSearxngServiceConfig.generatedAssetsBucket) blockers.push('Generated-assets bucket is not reachable.')
     if (firstGcloudValue(qaBucket) !== privateSearxngServiceConfig.qaBucket) blockers.push('QA bucket is not reachable.')
     if (!firstGcloudValue(phase49EReport)) blockers.push('Approved Phase 49E report object is not reachable.')

@@ -38,8 +38,44 @@ export interface UploadTarget {
   supportsResume?: boolean
   /** Provider-aligned client chunk recommendation for resumable sessions. */
   recommendedChunkSizeBytes?: number
+  /** Authenticated relative status route for the local resumable protocol. */
+  uploadStatusUrl?: string
+  /** True only when a failed request may restart from a server-verified offset. */
+  retryFromVerifiedOffset?: boolean
   /** Session URLs are bearer credentials and must never be durably persisted. */
   sessionUriIsCredential?: boolean
+}
+
+export interface ResumableObjectChunkInput {
+  bucketName: string
+  objectPath: string
+  objectIdentityDigestSha256: string
+  totalBytes: number
+  startByte: number
+  endByteInclusive: number
+  body: Buffer
+  chunkChecksumSha256: string
+}
+
+export interface ResumableObjectStatusInput {
+  bucketName: string
+  objectPath: string
+  objectIdentityDigestSha256: string
+  totalBytes: number
+}
+
+export interface ResumableObjectStatus {
+  acceptedBytes: number
+  totalBytes: number
+  complete: boolean
+  replayed: boolean
+  integrityVerifiedThroughBytes: number
+  verifiedChunkCount: number
+  recovery?: {
+    reason: string
+    restartByte: number
+    discardedBytes: number
+  }
 }
 
 export interface DownloadTarget {
@@ -107,6 +143,12 @@ export interface StorageAdapter {
     expiresAt: string
   }): Promise<UploadTarget>
   putObject(input: PutObjectInput): Promise<ObjectMetadata>
+  putResumableObjectChunk?(
+    input: ResumableObjectChunkInput,
+  ): Promise<ResumableObjectStatus>
+  getResumableObjectStatus?(
+    input: ResumableObjectStatusInput,
+  ): Promise<ResumableObjectStatus>
   verifyUploadedObject(input: VerifyObjectInput): Promise<ObjectMetadata>
   createDownloadTarget(input: {
     storageObjectRecordId: string

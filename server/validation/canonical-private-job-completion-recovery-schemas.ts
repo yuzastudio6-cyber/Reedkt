@@ -41,6 +41,7 @@ export const canonicalPrivateJobCompletionRecoveryRecordSchema = z.object({
     reconciliationId: identitySchema,
     consumedDispatchGrantId: identitySchema.nullable(),
     consumedDispatchGrantHash: sha256Schema.nullable(),
+    internalAttemptCostProfileId: identitySchema.nullable(),
     internalAttemptCostEvidenceHash: sha256Schema.nullable(),
     responseHash: sha256Schema,
     executionCompletedAt: timestampSchema,
@@ -106,11 +107,12 @@ export const canonicalPrivateJobCompletionRecoveryRecordSchema = z.object({
   ) {
     context.addIssue({ code: 'custom', message: 'Recovered dispatch evidence is inconsistent.' })
   }
+  const meteredExecution = record.evidence.internalAttemptCostProfileId !== null
   if (
-    (record.identity.canonicalToolId === 'deepfilternet') !==
+    meteredExecution !==
       (record.evidence.internalAttemptCostEvidenceHash !== null) ||
-    response.evidence.attemptCostEvidenceRecorded !==
-      (record.evidence.internalAttemptCostEvidenceHash !== null)
+    response.evidence.attemptCostEvidenceRecorded !== meteredExecution ||
+    (record.identity.canonicalToolId === null && meteredExecution)
   ) {
     context.addIssue({ code: 'custom', message: 'Recovered internal-cost evidence is inconsistent.' })
   }

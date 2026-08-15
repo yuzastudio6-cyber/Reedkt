@@ -19,7 +19,7 @@ export type UnsafeEditLevelToolRoutingPackage =
 const falseFlagKeys: Array<Exclude<keyof EditLevelToolRouterSideEffectFlags, 'mockOnly'>> = [
   'providerCallMade',
   'qwen3CallMade',
-  'qwen25vlCallMade',
+  'visualIntelligenceCallMade',
   'deepSeekCallMade',
   'mediaProcessingStarted',
   'transcriptStarted',

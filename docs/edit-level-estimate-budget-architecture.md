@@ -8,7 +8,7 @@ This document defines future estimate and budget metadata. It does not implement
 - `creditEstimateMultiplier`
 - `analysisPassBudget`
 - `qwenReasoningPassBudget`
-- `qwen25vlVisualPassBudget`
+- `visualIntelligencePassBudget`
 - `workerPassBudgetFuture`
 - `renderPassBudgetFuture`
 - `revisionBudgetFuture`

@@ -6,6 +6,34 @@ export type CanonicalPresentedPlanIdentity = {
   planHash: string
 }
 
+/**
+ * Restores the exact presented-plan identity from the read-only canonical
+ * journey after a browser reload. The approval authority already binds the
+ * plan ID and hash, while the plan summary binds the current version and
+ * presented estimate state. No new publication or approval is created.
+ */
+export function recoverCanonicalPresentedPlanIdentity(
+  journey?: CanonicalEditJourney,
+): CanonicalPresentedPlanIdentity | undefined {
+  const authority = journey?.approvalAuthority
+  const plan = journey?.plan
+  if (
+    journey?.stage !== 'plan_approval_required' ||
+    !authority ||
+    !plan ||
+    plan.status !== 'presented' ||
+    plan.estimateStatus !== 'presented'
+  ) {
+    return undefined
+  }
+
+  return {
+    planId: authority.planId,
+    planVersion: plan.version,
+    planHash: authority.expectedPlanHash,
+  }
+}
+
 export function canonicalPlanApprovalReadyForPresentedPlan(input: {
   backendConnected: boolean
   journey?: CanonicalEditJourney

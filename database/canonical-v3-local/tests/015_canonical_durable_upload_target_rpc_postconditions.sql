@@ -78,7 +78,7 @@ begin
       and revision = 3
       and state = 'target_issued'
       and record_json#>>'{issuance,state}' = 'issued'
-      and record_json#>>'{issuance,targetProtocol}' = 'single_put'
+      and record_json#>>'{issuance,targetProtocol}' = 'resumable_content_range_v1'
   ) or not exists (
     select 1 from public.canonical_upload_intents
     where upload_intent_id = 'upload_local_target_unknown'

@@ -21,7 +21,7 @@ const knownNextMilestones = [
   {
     milestone: 'AI_GRAPHICS_STATIC_MOTION_EXPANSION',
     ownerLanes: ['ai_graphics_static_motion_chart_model_tools'],
-    tools: ['opencv', 'paddleocr', 'birefnet', 'sam2', 'real_esrgan', 'film', 'three_js', 'd3', 'echarts'],
+    tools: ['opencv', 'paddleocr', 'birefnet', 'sam3_1', 'real_esrgan', 'film', 'three_js', 'd3', 'echarts'],
   },
   {
     milestone: 'TRACK_A_NATIVE_CONTAINER_EXPANSION',

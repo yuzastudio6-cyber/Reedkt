@@ -3,11 +3,15 @@ import assert from 'node:assert/strict'
 import {
   AUDIO_PROVIDER_ROUTES,
   GENERATED_ASSET_PROVIDER_ROUTES,
+  HISTORICAL_VISUAL_PROVIDER_ROUTES,
   MODEL_ROLE_PROVIDER_ROUTES,
   PROVIDER_ROUTES,
+  VISUAL_INTELLIGENCE_OWNED_PROVIDER_ROUTES,
   isAudioProviderRoute,
   isGeneratedAssetProviderRoute,
+  isHistoricalVisualProviderRoute,
   isModelRoleProviderRoute,
+  isVisualIntelligenceOwnedProviderRoute,
   validateProviderGatewayRequest,
   type ProviderGatewayRequest,
 } from '../../src/backend/cloud/provider-gateway-contracts'
@@ -740,17 +744,31 @@ assert.equal(
 assert.equal(PROVIDER_ROUTES.includes('qwen_3_7_provider_boundary'), true)
 assert.equal(PROVIDER_ROUTES.includes('kimi_k3_provider_boundary'), true)
 assert.equal(PROVIDER_ROUTES.includes('gpt_5_6_terra_provider_boundary'), true)
+assert.equal(PROVIDER_ROUTES.includes('vertex_gemini_pro_visual_intelligence_boundary'), true)
+assert.equal(PROVIDER_ROUTES.includes('qwen_model_studio_visual_understanding_api_boundary'), true)
 assert.equal(PROVIDER_ROUTES.includes('qwen2_5_vl_7b_instruct_provider_boundary'), true)
 assert.equal(PROVIDER_ROUTES.includes('deepseek_v4_pro_tool_code_boundary'), true)
 assert.deepEqual([...MODEL_ROLE_PROVIDER_ROUTES], [
   'kimi_k3_provider_boundary',
   'gpt_5_6_terra_provider_boundary',
   'qwen_3_7_provider_boundary',
-  'qwen2_5_vl_7b_instruct_provider_boundary',
+  'vertex_gemini_pro_visual_intelligence_boundary',
   'deepseek_v4_pro_tool_code_boundary',
+])
+assert.deepEqual([...HISTORICAL_VISUAL_PROVIDER_ROUTES], [
+  'qwen_model_studio_visual_understanding_api_boundary',
+  'qwen2_5_vl_7b_instruct_provider_boundary',
+])
+assert.deepEqual([...VISUAL_INTELLIGENCE_OWNED_PROVIDER_ROUTES], [
+  'vertex_gemini_pro_visual_intelligence_boundary',
 ])
 assert.equal(isModelRoleProviderRoute('qwen_3_7_provider_boundary'), true)
 assert.equal(isModelRoleProviderRoute('gpt_5_6_terra_provider_boundary'), true)
+assert.equal(isModelRoleProviderRoute('vertex_gemini_pro_visual_intelligence_boundary'), true)
+assert.equal(isModelRoleProviderRoute('qwen2_5_vl_7b_instruct_provider_boundary'), false)
+assert.equal(isHistoricalVisualProviderRoute('qwen_model_studio_visual_understanding_api_boundary'), true)
+assert.equal(isHistoricalVisualProviderRoute('qwen2_5_vl_7b_instruct_provider_boundary'), true)
+assert.equal(isVisualIntelligenceOwnedProviderRoute('vertex_gemini_pro_visual_intelligence_boundary'), true)
 assert.equal(isModelRoleProviderRoute('gpt_image_2'), false)
 assert.equal(GENERATED_ASSET_PROVIDER_ROUTES.includes('gpt_image_2'), true)
 assert.equal(isGeneratedAssetProviderRoute('gpt_image_2'), true)
@@ -867,7 +885,9 @@ assert.equal(terraMockGatewayResponse.providerEventPayload.modelRoleId, 'gpt_5_6
 assert.equal(terraMockGatewayResponse.providerEventPayload.canonicalProviderModel, 'gpt-5.6-terra')
 assert.equal(terraMockGatewayResponse.providerEventPayload.modelRoleProviderBoundary, 'gpt_5_6_terra_provider_boundary')
 assert.equal(terraMockGatewayResponse.providerEventPayload.requestedModelUse, 'edit_planning')
-assert.equal(getProviderSecretReference('qwen2_5_vl_7b_instruct_provider_boundary')?.secretName, 'reeditpro-prod-qwen-api-key')
+assert.equal(getProviderSecretReference('qwen_model_studio_visual_understanding_api_boundary'), undefined)
+assert.equal(getProviderSecretReference('qwen2_5_vl_7b_instruct_provider_boundary'), undefined)
+assert.equal(getProviderSecretReference('vertex_gemini_pro_visual_intelligence_boundary'), undefined)
 assert.equal(getProviderSecretReference('kimi_k3_provider_boundary')?.secretName, 'reeditpro-prod-kimi-api-key')
 assert.equal(getProviderSecretReference('gpt_5_6_terra_provider_boundary')?.secretName, 'reeditpro-prod-openai-api-key')
 assert.equal(getProviderSecretReference('deepseek_v4_pro_tool_code_boundary')?.secretName, 'reeditpro-prod-deepseek-api-key')
@@ -1074,11 +1094,15 @@ const userRetryWorkerPayload: ProductionWorkerJobPayload = {
   idempotencyKey: buildWorkerIdempotencyKey(userRetryWorkerPayloadCandidate),
 }
 const userRetryWorkerResult = await runProductionWorkerRuntime({ payload: userRetryWorkerPayload })
-assert.equal(userRetryWorkerResult.status, 'completed')
+assert.equal(userRetryWorkerResult.status, 'blocked')
+assert.equal(userRetryWorkerResult.error?.code, 'LEGACY_MOCK_WORKER_PRODUCTION_RETIRED')
 assert.equal(userRetryWorkerResult.toolCostMetadata?.billableToUserByToolId.ffprobe, true)
 assert.equal(userRetryWorkerResult.toolCostMetadata?.failureCategoryByToolId.ffprobe, 'user_requested_retry')
-assert.equal(userRetryWorkerResult.toolCostMetadata?.emittedEvents[0]?.billableToUser, true)
-assert.equal(userRetryWorkerResult.toolCostMetadata?.emittedEvents[0]?.failureCategory, 'user_requested_retry')
+assert.equal(userRetryWorkerResult.toolCostMetadata?.emittedEvents.length, 0)
+assert.equal(
+  userRetryWorkerResult.events.some((event) => event.eventName === 'job_started'),
+  false,
+)
 
 const timeoutWorkerPayloadBase: Omit<ProductionWorkerJobPayload, 'idempotencyKey'> = {
   ...workerPayloadBase,
@@ -1100,12 +1124,15 @@ const timeoutWorkerPayload: ProductionWorkerJobPayload = {
   idempotencyKey: buildWorkerIdempotencyKey(timeoutWorkerPayloadCandidate),
 }
 const timeoutWorkerResult = await runProductionWorkerRuntime({ payload: timeoutWorkerPayload })
-assert.equal(timeoutWorkerResult.status, 'completed')
+assert.equal(timeoutWorkerResult.status, 'blocked')
+assert.equal(timeoutWorkerResult.error?.code, 'LEGACY_MOCK_WORKER_PRODUCTION_RETIRED')
 assert.equal(timeoutWorkerResult.toolCostMetadata?.billableToUserByToolId.ffprobe, false)
 assert.equal(timeoutWorkerResult.toolCostMetadata?.failureCategoryByToolId.ffprobe, 'timeout')
-assert.equal(timeoutWorkerResult.toolCostMetadata?.emittedEvents[0]?.billableToUser, false)
-assert.equal(timeoutWorkerResult.toolCostMetadata?.emittedEvents[0]?.failureCategory, 'timeout')
-assert.equal(timeoutWorkerResult.toolCostMetadata?.emittedEvents[0]?.nonBillableReason, 'timeout')
+assert.equal(timeoutWorkerResult.toolCostMetadata?.emittedEvents.length, 0)
+assert.equal(
+  timeoutWorkerResult.events.some((event) => event.eventName === 'job_started'),
+  false,
+)
 
 assert.equal(productionToolIdSchema.safeParse('ffmpeg').success, true)
 assert.equal(productionToolIdSchema.safeParse('not_a_tool').success, false)

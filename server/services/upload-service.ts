@@ -18,6 +18,7 @@ import type { ObjectMetadata, StorageAdapter, UploadPurpose, UploadTarget } from
 import {
   GCS_RESUMABLE_SESSION_TTL_SECONDS,
   shouldUseResumableUpload,
+  type TemporaryUploadProtocol,
 } from '../../src/types/large-media'
 import { deriveMediaTaskTimeoutMs } from '../workers/media/media-task-policy'
 import type { ServiceContext } from '../types'
@@ -230,6 +231,12 @@ interface LocalObjectUploadView {
   temporaryMetadataOnly: boolean
 }
 
+interface LocalResumableChunkRange {
+  startByte: number
+  endByteInclusive: number
+  totalBytes: number
+}
+
 type UserStorageAccessPurpose =
   | 'metadata'
   | 'download'
@@ -321,6 +328,27 @@ export function createUploadService(context: ServiceContext) {
       assertLocalUploadRequestMatchesIntent(uploadIntent, mimeType, declaredContentLength)
     },
 
+    async authorizeLocalResumableObjectUpload(input: {
+      uploadIntentId: string
+      workspaceId: string
+      mimeType: string | undefined
+      declaredContentLength: number
+      range: LocalResumableChunkRange
+      chunkChecksumSha256: string
+    }) {
+      await loadAuthorizedLocalResumableUploadIntent(context, storage, input)
+    },
+
+    async authorizeLocalResumableObjectStatus(
+      uploadIntentId: string,
+      workspaceId: string,
+    ) {
+      await loadAuthorizedLocalResumableUploadIntent(context, storage, {
+        uploadIntentId,
+        workspaceId,
+      })
+    },
+
     async authorizeSignedUrlEvent(input: SignedUrlEventInput) {
       await assertSignedUrlEventAccess(context, input)
     },
@@ -360,8 +388,12 @@ export function createUploadService(context: ServiceContext) {
 
       let uploadIntentId: string = randomUUID()
       const now = nowIso()
-      const usesResumableCloudSession = storage.mode === 'gcs' && shouldUseResumableUpload(input.expectedSizeBytes)
-      const uploadTargetTtlSeconds = usesResumableCloudSession
+      const expectedProtocol = expectedTemporaryUploadProtocol(
+        storage,
+        input.expectedSizeBytes,
+      )
+      const usesResumableTarget = expectedProtocol !== 'single_put'
+      const uploadTargetTtlSeconds = usesResumableTarget
         ? GCS_RESUMABLE_SESSION_TTL_SECONDS
         : context.env.signedUrlTtlSeconds
       let expiresAt = new Date(Date.now() + uploadTargetTtlSeconds * 1000).toISOString()
@@ -391,7 +423,7 @@ export function createUploadService(context: ServiceContext) {
         mimeType,
         expiresAt,
         now,
-        expectedProtocol: usesResumableCloudSession ? 'gcs_resumable' : 'single_put',
+        expectedProtocol,
       })
       let uploadTarget = canonicalTargetResolution?.target
       if (!uploadTarget) {
@@ -635,6 +667,112 @@ export function createUploadService(context: ServiceContext) {
       return {
         localObjectUpload,
         warnings: ['Local object upload stored private test bytes under the backend storage root; no filesystem path was exposed.'],
+      }
+    },
+
+    async uploadLocalResumableObjectChunk(input: {
+      uploadIntentId: string
+      workspaceId: string
+      mimeType: string | undefined
+      declaredContentLength: number
+      range: LocalResumableChunkRange
+      chunkChecksumSha256: string
+      body: Buffer
+    }) {
+      const uploadIntent = await loadAuthorizedLocalResumableUploadIntent(
+        context,
+        storage,
+        input,
+      )
+      if (input.body.byteLength !== input.declaredContentLength) {
+        throw new ApiError(
+          'VALIDATION_FAILED',
+          'Local resumable upload body size does not match Content-Length.',
+          400,
+          {
+            declaredContentLength: input.declaredContentLength,
+            actualSizeBytes: input.body.byteLength,
+          },
+        )
+      }
+      if (!storage.putResumableObjectChunk) {
+        throw new ApiError(
+          'SOURCE_MEDIA_NOT_READY',
+          'The local resumable storage adapter is unavailable.',
+          503,
+        )
+      }
+
+      const resumableUpload = await storage.putResumableObjectChunk({
+        bucketName: uploadIntent.targetBucket,
+        objectPath: uploadIntent.targetPath,
+        objectIdentityDigestSha256: localResumableUploadIdentityDigest(uploadIntent),
+        totalBytes: input.range.totalBytes,
+        startByte: input.range.startByte,
+        endByteInclusive: input.range.endByteInclusive,
+        body: input.body,
+        chunkChecksumSha256: input.chunkChecksumSha256,
+      })
+      if (resumableUpload.complete) {
+        await markUploadIntentUploaded(
+          context,
+          uploadIntent.id,
+          uploadIntent.workspaceId,
+        )
+      }
+      return {
+        resumableUpload: {
+          uploadIntentId: uploadIntent.id,
+          ...resumableUpload,
+        },
+        warnings: [
+          resumableUpload.complete
+            ? 'The complete private object is stored; canonical media finalization has not started.'
+            : 'The verified private upload checkpoint is restart-safe; canonical media finalization has not started.',
+        ],
+      }
+    },
+
+    async getLocalResumableObjectStatus(
+      uploadIntentId: string,
+      workspaceId: string,
+    ) {
+      const uploadIntent = await loadAuthorizedLocalResumableUploadIntent(
+        context,
+        storage,
+        { uploadIntentId, workspaceId },
+      )
+      if (!storage.getResumableObjectStatus) {
+        throw new ApiError(
+          'SOURCE_MEDIA_NOT_READY',
+          'The local resumable storage adapter is unavailable.',
+          503,
+        )
+      }
+      const totalBytes = requirePositiveExpectedUploadSize(uploadIntent)
+      const resumableUpload = await storage.getResumableObjectStatus({
+        bucketName: uploadIntent.targetBucket,
+        objectPath: uploadIntent.targetPath,
+        objectIdentityDigestSha256: localResumableUploadIdentityDigest(uploadIntent),
+        totalBytes,
+      })
+      if (resumableUpload.complete && uploadIntent.status === 'signed') {
+        await markUploadIntentUploaded(
+          context,
+          uploadIntent.id,
+          uploadIntent.workspaceId,
+        )
+      }
+      return {
+        resumableUpload: {
+          uploadIntentId: uploadIntent.id,
+          ...resumableUpload,
+        },
+        warnings: [
+          resumableUpload.complete
+            ? 'The complete private object is stored; canonical media finalization has not started.'
+            : 'The private upload checkpoint contains only server-verified bytes.',
+        ],
       }
     },
 
@@ -972,6 +1110,8 @@ function uploadTargetMetadata(
     uploadProtocol: uploadTarget.uploadProtocol ?? 'single_put',
     supportsResume: uploadTarget.supportsResume ?? false,
     recommendedChunkSizeBytes: uploadTarget.recommendedChunkSizeBytes,
+    uploadStatusUrl: uploadTarget.uploadStatusUrl,
+    retryFromVerifiedOffset: uploadTarget.retryFromVerifiedOffset ?? false,
     sessionUriIsCredential: uploadTarget.sessionUriIsCredential ?? true,
     bucketName,
     objectPath,
@@ -989,7 +1129,7 @@ async function resolveCanonicalTargetForUploadIntent(input: {
   mimeType: string
   expiresAt: string
   now: string
-  expectedProtocol: 'single_put' | 'gcs_resumable'
+  expectedProtocol: TemporaryUploadProtocol
 }): Promise<ResolvedCanonicalUploadTarget | undefined> {
   const authority = resolveCanonicalDurableUploadTargetRequestAuthority(
     input.context,
@@ -1178,11 +1318,161 @@ function assertLocalRawUploadRuntimeEnabled(context: ServiceContext, storage: St
   }
 }
 
+function expectedTemporaryUploadProtocol(
+  storage: StorageAdapter,
+  expectedSizeBytes: number | undefined,
+): TemporaryUploadProtocol {
+  if (!shouldUseResumableUpload(expectedSizeBytes)) return 'single_put'
+  return storage.mode === 'gcs'
+    ? 'gcs_resumable'
+    : 'resumable_content_range_v1'
+}
+
+async function loadAuthorizedLocalResumableUploadIntent(
+  context: ServiceContext,
+  storage: StorageAdapter,
+  input: {
+    uploadIntentId: string
+    workspaceId: string
+    mimeType?: string
+    declaredContentLength?: number
+    range?: LocalResumableChunkRange
+    chunkChecksumSha256?: string
+  },
+): Promise<UploadIntentView> {
+  assertLocalRawUploadRuntimeEnabled(context, storage)
+  if (!storage.putResumableObjectChunk || !storage.getResumableObjectStatus) {
+    throw new ApiError(
+      'SOURCE_MEDIA_NOT_READY',
+      'The local resumable storage adapter is unavailable.',
+      503,
+    )
+  }
+  const uploadIntent = await loadUploadIntent(
+    context,
+    input.uploadIntentId,
+    input.workspaceId,
+  )
+  await assertUploadIntentAccessibleByCurrentUser(
+    context,
+    uploadIntent,
+    input.workspaceId,
+  )
+  assertUserInitiatedUploadPurpose(uploadIntent.uploadPurpose)
+  assertLocalUploadTargetNotExpired(uploadIntent)
+  if (uploadIntent.status !== 'signed' && uploadIntent.status !== 'uploaded') {
+    throw new ApiError(
+      'UPLOAD_NOT_FINALIZED',
+      'Upload intent is not open for local resumable object writes.',
+      409,
+    )
+  }
+  const totalBytes = requirePositiveExpectedUploadSize(uploadIntent)
+  if (totalBytes <= LOCAL_RAW_UPLOAD_MAX_BYTES) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'This upload intent must use the bounded single-request local upload route.',
+      409,
+      { maximumSingleRequestBytes: LOCAL_RAW_UPLOAD_MAX_BYTES },
+    )
+  }
+  const expectedMimeType = normalizeMimeType(uploadIntent.mimeType)
+  assertAllowedUpload({
+    purpose: uploadIntent.uploadPurpose,
+    mimeType: expectedMimeType,
+    expectedSizeBytes: totalBytes,
+  })
+
+  if (input.range) {
+    const uploadedMimeType = normalizeMimeType(input.mimeType ?? '')
+    if (!uploadedMimeType || uploadedMimeType !== expectedMimeType) {
+      throw new ApiError(
+        'VALIDATION_FAILED',
+        'Local resumable upload MIME type must match the upload intent.',
+        400,
+        {
+          uploadIntentId: uploadIntent.id,
+          expectedMimeType,
+          uploadedMimeType,
+        },
+      )
+    }
+    if (input.range.totalBytes !== totalBytes) {
+      throw new ApiError(
+        'VALIDATION_FAILED',
+        'Local resumable upload total size must match the upload intent.',
+        400,
+        {
+          uploadIntentId: uploadIntent.id,
+          expectedSizeBytes: totalBytes,
+          actualSizeBytes: input.range.totalBytes,
+        },
+      )
+    }
+    const expectedChunkBytes =
+      input.range.endByteInclusive - input.range.startByte + 1
+    if (
+      !Number.isSafeInteger(input.declaredContentLength) ||
+      input.declaredContentLength !== expectedChunkBytes
+    ) {
+      throw new ApiError(
+        'VALIDATION_FAILED',
+        'Local resumable chunk range must match Content-Length.',
+        400,
+      )
+    }
+    assertLocalRawUploadByteLength(input.declaredContentLength)
+    if (!/^[a-f0-9]{64}$/u.test(input.chunkChecksumSha256 ?? '')) {
+      throw new ApiError(
+        'VALIDATION_FAILED',
+        'A lowercase SHA-256 digest is required for each resumable upload chunk.',
+        400,
+      )
+    }
+  }
+  return uploadIntent
+}
+
+function requirePositiveExpectedUploadSize(uploadIntent: UploadIntentView): number {
+  if (
+    !Number.isSafeInteger(uploadIntent.expectedSizeBytes) ||
+    Number(uploadIntent.expectedSizeBytes) <= 0
+  ) {
+    throw new ApiError(
+      'VALIDATION_FAILED',
+      'Local resumable upload requires an exact positive upload-intent byte size.',
+      400,
+    )
+  }
+  return Number(uploadIntent.expectedSizeBytes)
+}
+
+function localResumableUploadIdentityDigest(
+  uploadIntent: UploadIntentView,
+): string {
+  return privateUploadMediaAuthorityValueHash({
+    schemaVersion: 'local-resumable-upload-object-identity-v1',
+    uploadIntentId: uploadIntent.id,
+    requestedByUserId: uploadIntent.requestedByUserId,
+    workspaceId: uploadIntent.workspaceId,
+    projectId: uploadIntent.projectId,
+    editReferenceId: uploadIntent.editReferenceId ?? null,
+    uploadPurpose: uploadIntent.uploadPurpose,
+    targetBucket: uploadIntent.targetBucket,
+    targetPath: uploadIntent.targetPath,
+    mimeType: normalizeMimeType(uploadIntent.mimeType),
+    expectedSizeBytes: requirePositiveExpectedUploadSize(uploadIntent),
+    checksumSha256: normalizeChecksumSha256(uploadIntent.checksumSha256) ?? null,
+    expiresAt: uploadIntent.expiresAt,
+  })
+}
+
 function assertLocalUploadRequestMatchesIntent(
   uploadIntent: UploadIntentView,
   mimeType: string | undefined,
   sizeBytes: number,
 ): void {
+  assertLocalUploadTargetNotExpired(uploadIntent)
   if (uploadIntent.status !== 'signed' && uploadIntent.status !== 'uploaded') {
     throw new ApiError('UPLOAD_NOT_FINALIZED', 'Upload intent is not open for local object writes.', 409)
   }
@@ -1208,6 +1498,22 @@ function assertLocalUploadRequestMatchesIntent(
     mimeType: expectedMimeType,
     expectedSizeBytes: sizeBytes,
   })
+}
+
+function assertLocalUploadTargetNotExpired(uploadIntent: UploadIntentView): void {
+  const expiresAtMs = Date.parse(uploadIntent.expiresAt)
+  if (!Number.isFinite(expiresAtMs) || expiresAtMs <= Date.now()) {
+    throw new ApiError(
+      'UPLOAD_NOT_FINALIZED',
+      'The temporary local upload target has expired. Create a new upload intent before sending more bytes.',
+      409,
+      {
+        uploadIntentId: uploadIntent.id,
+        targetExpired: true,
+        bytesAccepted: false,
+      },
+    )
+  }
 }
 
 function assertUploadIntentOwnedByCurrentUser(context: ServiceContext, uploadIntent: UploadIntentView): void {

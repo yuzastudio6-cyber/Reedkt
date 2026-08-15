@@ -2,7 +2,7 @@
 
 RP-EDITLEVEL-05 adds a mock/local Tool Capability Router for `normal`, `premium`, and `ultra_premium`.
 
-The router resolves capability plans only. It does not call Qwen 3.7, Qwen2.5-VL, DeepSeek, providers, media tools, ffmpeg, ffprobe, Whisper, SoundSync workers, render/export, Supabase, storage, progress, or credits.
+The router resolves capability plans only. It does not call Qwen 3.7, Visual Intelligence, DeepSeek, providers, media tools, ffmpeg, ffprobe, Whisper, SoundSync workers, render/export, Supabase, storage, progress, or credits.
 
 ## Result
 

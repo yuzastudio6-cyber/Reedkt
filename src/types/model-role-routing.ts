@@ -2,6 +2,8 @@ export const REEDITPRO_MODEL_ROLE_IDS = [
   'kimi_k3_main_edit_agent',
   'gpt_5_6_terra_fallback_edit_agent',
   'qwen_3_7_main_edit_agent',
+  'visual_intelligence_gemini_pro_high',
+  'qwen_3_7_api_visual_understanding',
   'qwen2_5_vl_visual_understanding',
   'deepseek_v4_tool_code_agent',
 ] as const
@@ -19,6 +21,7 @@ export type ReEditProReasoningRouteRole = 'primary' | 'fallback' | 'specialist'
 export type ReEditProModelExecutionStatus =
   | 'policy_defined_runtime_disabled'
   | 'provider_required_future_gated'
+  | 'retired_historical_read_only'
 
 export const REEDITPRO_REQUESTED_MODEL_USES = [
   'user_reasoning',

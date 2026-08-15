@@ -21,6 +21,8 @@ import {
   OFFLINE_MEDIA_BINARY_OPERATIONS,
   OFFLINE_MEDIA_BINARY_STREAM_PROTOCOL,
   OFFLINE_MEDIA_BINARY_SERVER_INPUT_MODE,
+  isColorDeliveryPlanningPayload,
+  isColorMatchDeliveryPlanningPayload,
   openPrivateOfflineMediaBinaryRuntime,
   readPersistedOfflineMediaBinaryRuntimeAuthority,
   validateOfflineFfmpegPlanningPayload,
@@ -303,9 +305,15 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
             chunkAuthority.durationFrames === planningPayload.durationFrames &&
             (!sourceSliceChunkProfile || (
               'sourceStartFrame' in planningPayload &&
-              chunkAuthority.sourceStartFrame === planningPayload.sourceStartFrame &&
-              chunkAuthority.sourceEndFrameExclusive ===
-                planningPayload.sourceEndFrameExclusive
+              (
+                usesApprovedColorIntermediate ||
+                (
+                  chunkAuthority.sourceStartFrame ===
+                    planningPayload.sourceStartFrame &&
+                  chunkAuthority.sourceEndFrameExclusive ===
+                    planningPayload.sourceEndFrameExclusive
+                )
+              )
             ))
           )
       if (
@@ -344,12 +352,22 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
           ) throw denied('Source-sequence composition timing diverges from approved source cleanup authority.')
         })
       } else if (usesApprovedColorIntermediate) {
+        const decision = exactCleanupDecisions[0]!
+        const expectedStartFrame = 0
+        const expectedEndFrameExclusive = sourceSliceChunkProfile
+          ? chunkAuthority.durationFrames
+          : decision.endFrameExclusive - decision.startFrame
         if (
-          planningPayload.sourceStartFrame !== 0 ||
-          planningPayload.sourceEndFrameExclusive !== planningPayload.durationFrames ||
-          exactCleanupDecisions[0]!.endFrameExclusive - exactCleanupDecisions[0]!.startFrame !==
-            planningPayload.durationFrames
-        ) throw denied('Professional color composition lost its approved normalized source duration.')
+          planningPayload.sourceStartFrame !== expectedStartFrame ||
+          planningPayload.sourceEndFrameExclusive !== expectedEndFrameExclusive ||
+          planningPayload.sourceEndFrameExclusive -
+            planningPayload.sourceStartFrame !== planningPayload.durationFrames ||
+          expectedStartFrame < 0 ||
+          expectedEndFrameExclusive >
+            decision.endFrameExclusive - decision.startFrame
+        ) throw denied(
+          'Professional color composition lost its exact approved source-slice timing.',
+        )
       } else if (sourceSliceChunkProfile) {
         const decision = exactCleanupDecisions[0]!
         if (
@@ -395,8 +413,7 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         runnerClass: RUNNER_CLASS,
       })
       const executionAttemptId = begun.executionFence.executionAttemptId
-      const attemptCostMeter = mode === 'chunk' && chunkAuthority?.profileId ===
-        CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID
+      const attemptCostMeter = mode === 'chunk' && sourceSliceChunkProfile
         ? await beginPrivateInternalAttemptCostEvidence({
             localStorageRoot: context.env.localStorageRoot,
             workspaceId: body.workspaceId,
@@ -591,6 +608,19 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
             globalCleanupDecisions: globalCleanupDecisions as Array<NonNullable<
               (typeof globalCleanupDecisions)[number]
             >>,
+            ...(sourceSliceChunkProfile
+              ? {
+                  sourceSliceAuthority: {
+                    sourceSequenceItemId:
+                      workItem.sourceSequenceItemIds[0]!,
+                    sourceSliceKey: chunkAuthority!.sourceSliceKey!,
+                    sourceStartFrame: chunkAuthority!.sourceStartFrame!,
+                    sourceEndFrameExclusive:
+                      chunkAuthority!.sourceEndFrameExclusive!,
+                    durationFrames: chunkAuthority!.durationFrames,
+                  },
+                }
+              : {}),
             fps: planningPayload.fps,
             authority,
           })
@@ -695,6 +725,14 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
         sourceSequenceItemId: planningPayload.voiceTracks![index]!.sourceSequenceItemId,
         outputKey: planningPayload.voiceTracks![index]!.outputKey,
         durationFrames: planningPayload.voiceTracks![index]!.durationFrames,
+        ...(planningPayload.voiceTracks![index]!.sourceStartFrame === undefined
+          ? {}
+          : {
+              sourceStartFrame:
+                planningPayload.voiceTracks![index]!.sourceStartFrame,
+              sourceEndFrameExclusive:
+                planningPayload.voiceTracks![index]!.sourceEndFrameExclusive!,
+            }),
         mimeType: 'audio/wav' as const,
         byteLength: voiceTrack.byteLength,
         sha256: voiceTrack.sha256,
@@ -1048,6 +1086,16 @@ export function createCanonicalPrivateFinalCompositionExecutionService(context: 
               sourceSequenceItemId: planningPayload.voiceTracks![index]!.sourceSequenceItemId,
               outputKey: planningPayload.voiceTracks![index]!.outputKey,
               durationFrames: planningPayload.voiceTracks![index]!.durationFrames,
+              ...(planningPayload.voiceTracks![index]!.sourceStartFrame ===
+                undefined
+                ? {}
+                : {
+                    sourceStartFrame:
+                      planningPayload.voiceTracks![index]!.sourceStartFrame,
+                    sourceEndFrameExclusive:
+                      planningPayload.voiceTracks![index]!
+                        .sourceEndFrameExclusive!,
+                  }),
               voiceArtifactId: voiceTrack.artifactId,
               voiceSha256: voiceTrack.sha256,
               voiceByteLength: voiceTrack.byteLength,
@@ -1881,6 +1929,8 @@ function orderVoiceDependencies(input: {
     sourceSequenceItemId: string
     outputKey: string
     durationFrames: number
+    sourceStartFrame?: number
+    sourceEndFrameExclusive?: number
   }>
   fps: number
   authority: ApprovedExecutionAuthority
@@ -1921,7 +1971,19 @@ function orderVoiceDependencies(input: {
   if (
     ordered.some((entry, index) =>
       !entry || entry.sourceSequenceItemId !== input.approvedVoiceTracks[index]!.sourceSequenceItemId ||
-      entry.durationFrames !== input.approvedVoiceTracks[index]!.durationFrames) ||
+      entry.durationFrames !== input.approvedVoiceTracks[index]!.durationFrames ||
+      (
+        input.approvedVoiceTracks[index]!.sourceStartFrame !== undefined &&
+        (
+          input.approvedVoiceTracks[index]!.sourceEndFrameExclusive ===
+            undefined ||
+          input.approvedVoiceTracks[index]!.sourceStartFrame! < 0 ||
+          input.approvedVoiceTracks[index]!.sourceEndFrameExclusive! <=
+            input.approvedVoiceTracks[index]!.sourceStartFrame! ||
+          input.approvedVoiceTracks[index]!.sourceEndFrameExclusive! >
+            entry.durationFrames
+        )
+      )) ||
     ordered.length !== byOutputKey.size ||
     new Set(input.approvedVoiceTracks.map((track) => track.outputKey)).size !==
       input.approvedVoiceTracks.length
@@ -2086,6 +2148,13 @@ function orderColorDependencies(input: {
     startFrame: number
     endFrameExclusive: number
   }>
+  sourceSliceAuthority?: {
+    sourceSequenceItemId: string
+    sourceSliceKey: string
+    sourceStartFrame: number
+    sourceEndFrameExclusive: number
+    durationFrames: number
+  }
   fps: number
   authority: ApprovedExecutionAuthority
 }): ApprovedColorDependency[] {
@@ -2093,7 +2162,18 @@ function orderColorDependencies(input: {
     input.colorDependencies.length !== input.sourceSequenceItemIds.length ||
     input.cleanupDecisions.length !== input.sourceSequenceItemIds.length ||
     input.globalSourceSequenceItemIds.length < input.sourceSequenceItemIds.length ||
-    input.globalCleanupDecisions.length !== input.globalSourceSequenceItemIds.length
+    input.globalCleanupDecisions.length !== input.globalSourceSequenceItemIds.length ||
+    (input.sourceSliceAuthority !== undefined && (
+      input.sourceSequenceItemIds.length !== 1 ||
+      input.sourceSliceAuthority.sourceSequenceItemId !==
+        input.sourceSequenceItemIds[0] ||
+      input.sourceSliceAuthority.sourceStartFrame < 0 ||
+      input.sourceSliceAuthority.sourceEndFrameExclusive <=
+        input.sourceSliceAuthority.sourceStartFrame ||
+      input.sourceSliceAuthority.sourceEndFrameExclusive -
+        input.sourceSliceAuthority.sourceStartFrame !==
+        input.sourceSliceAuthority.durationFrames
+    ))
   ) {
     throw denied('Professional color composition requires one exact intermediate per source.')
   }
@@ -2146,9 +2226,11 @@ function orderColorDependencies(input: {
         'approved_storytelling_speech_take_normalization_v1'
     ) throw denied('Final composition color dependencies cannot use Storytelling Speech normalization.')
     if (
-      payload.recipeProfileId !== 'approved_source_color_delivery_matroska_v1' &&
-      payload.recipeProfileId !== 'approved_source_color_match_delivery_matroska_v1'
-    ) throw denied('Color dependency payload lost its exact color recipe identity.')
+      !isColorDeliveryPlanningPayload(payload) &&
+      !isColorMatchDeliveryPlanningPayload(payload)
+    ) {
+      throw denied('Color dependency payload lost its exact color recipe identity.')
+    }
     const referenceWorkItem = globalIndex > 0
       ? input.authority.workItems.find((candidate) =>
           candidate.workItemKey === workItem.dependencyKeys[0])
@@ -2157,17 +2239,32 @@ function orderColorDependencies(input: {
       ? input.authority.assetManifest.entries.find((candidate) =>
           candidate.approvedWorkItemId === referenceWorkItem.id)
       : undefined
+    const expectedTrimStartFrame =
+      input.sourceSliceAuthority?.sourceStartFrame ?? cleanupDecision.startFrame
+    const expectedTrimEndFrameExclusive =
+      input.sourceSliceAuthority?.sourceEndFrameExclusive ??
+      cleanupDecision.endFrameExclusive
+    const expectedSourceSliceWorkItemKey = input.sourceSliceAuthority
+      ? `color-delivery-${globalIndex + 1}-${input.sourceSliceAuthority
+          .sourceSliceKey.replace(/^source-/u, '')}`
+      : undefined
     if (
       payload.frameRate !== input.fps ||
-      payload.trimStartFrame !== cleanupDecision.startFrame ||
-      payload.trimEndFrameExclusive !== cleanupDecision.endFrameExclusive ||
+      payload.trimStartFrame !== expectedTrimStartFrame ||
+      payload.trimEndFrameExclusive !== expectedTrimEndFrameExclusive ||
       payload.trimEndFrameExclusive - payload.trimStartFrame <= 0 ||
+      (expectedSourceSliceWorkItemKey !== undefined && (
+        workItem.workItemKey !== expectedSourceSliceWorkItemKey ||
+        asset.outputKey !== `${expectedSourceSliceWorkItemKey}-mkv`
+      )) ||
+      expectedTrimStartFrame < cleanupDecision.startFrame ||
+      expectedTrimEndFrameExclusive > cleanupDecision.endFrameExclusive ||
       (globalIndex === 0 && (
-        payload.recipeProfileId !== 'approved_source_color_delivery_matroska_v1' ||
+        !isColorDeliveryPlanningPayload(payload) ||
         workItem.dependencyKeys.length !== 0
       )) ||
       (globalIndex > 0 && (
-        payload.recipeProfileId !== 'approved_source_color_match_delivery_matroska_v1' ||
+        !isColorMatchDeliveryPlanningPayload(payload) ||
         workItem.dependencyKeys.length !== 1 || !referenceWorkItem || !referenceAsset ||
         referenceWorkItem.sourceSequenceItemIds[0] !== globalReferenceSourceSequenceItemId ||
         referenceAsset.outputKey !== payload.referenceOutputKey ||
@@ -2190,7 +2287,7 @@ function orderColorDependencies(input: {
       intensity: payload.intensity,
       approvedColorOperationIds: [...payload.approvedColorOperationIds],
       approvedColorOperationKinds: [...payload.approvedColorOperationKinds],
-      ...(payload.recipeProfileId === 'approved_source_color_match_delivery_matroska_v1'
+      ...(isColorMatchDeliveryPlanningPayload(payload)
         ? {
             referenceSourceSequenceItemId: payload.referenceSourceSequenceItemId,
             referenceOutputKey: payload.referenceOutputKey,

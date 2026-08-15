@@ -1,0 +1,80 @@
+# WeEditPro Track All SAM 3.1 L4 task QA
+
+This directory defines the fixed, least-privilege CUDA image candidate for the
+post-SAM mask-measurement stage. It is a separate image from the heavy SAM 3.1
+model runtime: SAM 3.1 remains A100 80 GB primary with a separately qualified
+L4 fallback, while this deterministic task-QA operation is normal L4 GPU work.
+
+The worker runs only `tool.kornia.refine_mask.v1`. It rereads the exact SAM
+mask manifest and every lossless PNG for every approved subject and frame,
+performs the substantive morphology and temporal measurements on CUDA through
+Torch/Kornia, and cross-checks every mask through OpenCV CUDA. CPU is limited
+to bounded PNG decoding, private-file hashing, and response serialization; a
+CPU-only substantive QA path does not exist.
+
+The fixed mount uses two distinct server-owned invocation roots:
+
+```text
+/mnt/reeditpro/private/canonical-professional-gpu/sam3_1/v1/invocations/<sam31 invocation>/
+  output/mask-manifest.json
+  output/frame-......png
+
+/mnt/reeditpro/private/canonical-professional-gpu/sam3_1/v1/invocations/<l4 invocation>/
+  task-qa/task.json
+  task-qa/response.json       # create-only
+```
+
+The request carries no path, URL, command, code, environment, model, media
+bytes, price, usage, or customer-credit claim. The L4 invocation identity is
+the only environment selector and is validated before its fixed task/response
+path is formed. The separately bound SAM 3.1 invocation is read-only and may
+resolve only the exact mask manifest and masks. The worker cannot write into
+the SAM 3.1 invocation root, and the two identities must not be equal.
+The response is worker evidence only. The canonical backend must still reread
+the immutable image release, execution envelope, launch, terminal Cloud Run
+observation, exact platform usage, billing-account-effective L4 price, attempt
+cost, SAM result admission, and independent private scene review before it can
+compile the task-QA measurement accepted by Track All.
+
+The active evidence wrapper is
+`canonical-track-all-sam3_1-l4-mask-qa-worker-result-v3`. It persists the
+exact fixed worker request and response, not a caller-built canonical
+measurement. The backend rereads the SAM task context/result plus the L4
+launch, execution envelope, terminal usage/cost receipt, and scale-to-zero
+observation, then derives the canonical scope and measurement itself. The
+historical v1 measurement-carrying wrapper and single-invocation v2 evidence
+wrapper remain readable only for immutable evidence compatibility; neither can
+finalize fresh task-QA evidence.
+
+The private Cloud Build capsule contains only a hash-locked wheelhouse, the
+reviewed OpenCV-CUDA receipt/build, and the exact NVIDIA CUDA 12.8
+forward-compatibility package/receipt. It also carries only the six
+hash-and-size-bound CUDA 12.8 NPP SONAMEs proven necessary by the compiled
+OpenCV `cudaarithm` ELF, their NGC container license, and a closed NPP receipt;
+the complete CUDA toolkit is not copied. It contains no SAM checkpoint, model
+weight, credential, or customer media. Build source alone grants no image
+release, L4 dispatch, QA approval, credit settlement, delivery, or production
+authority.
+
+`Dockerfile.private-capsule-builder` is a cloud-build-only compiler boundary.
+It uses the digest-pinned PyTorch 2.10/CUDA 12.8 devel image, downloads only
+the exact hash-and-size-bound OpenCV 4.12.0 source, matching official
+`opencv_contrib` `cudev` source, six reviewed Python wheels, and NVIDIA
+forward-compatibility package, and builds OpenCV for the L4's CUDA 8.9
+architecture without fast math or non-free algorithms. It emits one
+canonical regular-file-only image-build source archive with a recursively
+verified private capsule manifest. Compilers, source downloads, and build
+paths are absent from the final runtime image. The final image installs only
+from that offline capsule and cannot download packages at runtime.
+
+PNG decoding is a bounded CPU serialization task and uses the exact pinned
+Pillow wheel. Every substantive morphology, temporal measurement, and binary
+pixel-count cross-check remains CUDA-only through Kornia/Torch and OpenCV CUDA.
+This split avoids pulling image-codec development packages into the released
+worker without weakening the every-mask GPU cross-check.
+
+Operational release remains fail-closed until an immutable digest has an SPDX
+SBOM, zero critical/high/unknown vulnerability findings, KMS signature, SLSA
+provenance, real L4 device/kernel qualification, complete-frame adversarial
+quality evidence, scale-back-to-zero evidence, and the exact current
+billing-account-effective cost receipt.

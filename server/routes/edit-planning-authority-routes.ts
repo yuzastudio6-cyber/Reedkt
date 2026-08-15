@@ -97,7 +97,9 @@ export function createEditPlanningAuthorityRoutes(): Router {
             ? 'The message was persisted but remains fail-closed until a verified AI response is available.'
             : 'The message was persisted but remains fail-closed until its required setup is confirmed.',
         result.exchange.assistantRuntime?.status === 'completed'
-          ? 'Kimi K3 produced the persisted assistant reply through the private server runtime.'
+          ? result.exchange.assistantRuntime.source === 'gpt_5_6_terra'
+            ? 'GPT-5.6 Terra produced the persisted assistant reply after one eligible Kimi K3 primary failure.'
+            : 'Kimi K3 produced the persisted assistant reply through the private server runtime.'
           : result.exchange.assistantRuntime
             ? 'The private AI response was not verified; planning remains blocked for this message.'
             : 'The private AI runtime is disabled; the persisted reply is a deterministic server acknowledgement.',

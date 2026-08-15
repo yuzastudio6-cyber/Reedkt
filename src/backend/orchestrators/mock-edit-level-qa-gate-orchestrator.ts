@@ -101,7 +101,7 @@ export function runMockQAGateReadinessFlow() {
     allSideEffectsFalse: packages.every((qaPackage) =>
       !qaPackage.providerCallMade &&
       !qaPackage.qwenCallMade &&
-      !qaPackage.qwen25vlCallMade &&
+      !qaPackage.visualIntelligenceCallMade &&
       !qaPackage.deepseekCallMade &&
       !qaPackage.plannerExecuted &&
       !qaPackage.editPlanCreated &&

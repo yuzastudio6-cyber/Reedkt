@@ -21,7 +21,7 @@ export function createMockEditLevelRecommendationInput(
     desiredPolish: 'enhanced',
     toolReadiness: {
       qwen3: 'available_mock',
-      qwen25vl: 'runtime_disabled',
+      visualIntelligence: 'runtime_disabled',
       credits: 'future_gated',
     },
     mockOnly: true,

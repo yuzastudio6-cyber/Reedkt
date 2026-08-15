@@ -15,7 +15,9 @@ import { getReEditProModelRoleContract } from './model-role-routing-contract'
 import { hideInternalToolNamesInCopy } from './tool-display-labels'
 
 const kimiPrimaryAgentContract = getReEditProModelRoleContract('kimi_k3_main_edit_agent')
-const qwenVisualContract = getReEditProModelRoleContract('qwen2_5_vl_visual_understanding')
+const visualIntelligenceContract = getReEditProModelRoleContract(
+  'visual_intelligence_gemini_pro_high',
+)
 const deepseekFallbackContract = getReEditProModelRoleContract('deepseek_v4_tool_code_agent')
 
 export const EDIT_LEVEL_TOOL_CAPABILITY_DEFINITIONS: EditLevelToolCapabilityDefinition[] = [
@@ -23,7 +25,7 @@ export const EDIT_LEVEL_TOOL_CAPABILITY_DEFINITIONS: EditLevelToolCapabilityDefi
   // implementation now resolves the canonical Kimi-primary route; renaming
   // stored capability IDs requires a separate compatibility migration.
   capability('qwen_3_reasoning', 'Main edit planning', 'reasoning', kimiPrimaryAgentContract.purpose, 'runtime_disabled', [], [kimiPrimaryAgentContract.providerBoundary]),
-  capability('qwen25vl_visual_understanding', 'Visual understanding', 'visual_understanding', qwenVisualContract.purpose, 'provider_required', [], [qwenVisualContract.providerBoundary]),
+  capability('visual_intelligence', 'Visual Intelligence', 'visual_understanding', visualIntelligenceContract.purpose, 'provider_required', [], [visualIntelligenceContract.providerBoundary]),
   capability('speech_transcript', 'Speech transcript', 'transcript', 'Transcript and speech timing plan for speech-aware edits and captions.', 'worker_required', ['whisper_cpp'], ['faster_whisper', 'whisper_cpp']),
   capability('media_extraction', 'Media extraction', 'media_metadata', 'Metadata, duration, dimensions, keyframes, waveform, and future extraction planning.', 'worker_required', ['ffmpeg', 'sharp'], ['ffmpeg', 'ffprobe', 'pyav', 'pyscenedetect']),
   capability('audio_soundsync', 'Audio / SoundSync', 'audio', 'Voice cleanup, music, SFX, ducking, beat, energy, and SoundSync planning.', 'worker_required', ['audioflux', 'signalsmith_stretch'], ['audioflux', 'signalsmith_stretch', 'deepfilternet', 'rnnoise']),
@@ -47,7 +49,7 @@ export function createEditLevelToolRouterSideEffectFlags(): EditLevelToolRouterS
     mockOnly: true,
     providerCallMade: false,
     qwen3CallMade: false,
-    qwen25vlCallMade: false,
+    visualIntelligenceCallMade: false,
     deepSeekCallMade: false,
     mediaProcessingStarted: false,
     transcriptStarted: false,
@@ -118,7 +120,7 @@ export function createNormalEditLevelToolRoutes(): EditLevelToolRoute[] {
 
   return [
     route(level, 'qwen_3_reasoning', 'required', 'runtime_disabled', 'Normal uses a standard reasoning profile for clean professional planning.', 'Use deterministic reasoning fallback and show that the planning service did not run.', 'Standard reasoning plan; no planning service call is made.'),
-    route(level, 'qwen25vl_visual_understanding', 'optional', 'provider_required', 'Normal uses targeted visual clarification only when ambiguity or a marker needs it.', 'Use visible-context fallback or ask a concise clarification.', 'Targeted visual understanding only when useful.'),
+    route(level, 'visual_intelligence', 'optional', 'provider_required', 'Normal uses targeted Visual Intelligence only when ambiguity or a marker needs it.', 'Use deterministic visible-context evidence or ask a concise clarification.', 'Targeted visual understanding only when useful.'),
     route(level, 'speech_transcript', 'optional', 'worker_required', 'Transcript is optional or targeted for Normal when speech meaning changes the edit.', 'Use source summary and ask the user when speech meaning is unclear.', 'Transcript-aware planning is optional.'),
     route(level, 'media_extraction', 'optional', 'worker_required', 'Normal only needs basic duration, dimensions, aspect ratio, and metadata planning.', 'Use existing source metadata and avoid claiming extraction ran.', 'Basic metadata only; worker extraction is future-gated.'),
     route(level, 'audio_soundsync', 'optional', 'worker_required', 'Normal keeps audio policy basic and voice-first.', 'Use simple audio policy fallback without beat or waveform claims.', 'Basic audio guidance.'),
@@ -143,7 +145,7 @@ export function createPremiumEditLevelToolRoutes(): EditLevelToolRoute[] {
 
   return [
     route(level, 'qwen_3_reasoning', 'required', 'runtime_disabled', 'Premium uses deeper reasoning for story, style, marker, and source-summary decisions.', 'Use deterministic deep-planning fallback and show that the planning service did not run.', 'Deep reasoning profile; no planning service call is made.'),
-    route(level, 'qwen25vl_visual_understanding', 'recommended', 'provider_required', 'Premium routes visual understanding for key moments and marker windows.', 'Use lower visual depth and source-summary fallback when visual understanding is unavailable.', 'Key moments and marker windows.'),
+    route(level, 'visual_intelligence', 'recommended', 'provider_required', 'Premium routes Visual Intelligence across key moments and marker windows.', 'Use deterministic source evidence and mark semantic visual evidence unavailable; never downgrade the model silently.', 'Key moments and marker windows.'),
     route(level, 'speech_transcript', 'recommended', 'worker_required', 'Premium recommends transcript-aware planning when speech exists.', 'Use source summary and ask for clarification when speech meaning matters.', 'Transcript recommended when speech exists.'),
     route(level, 'media_extraction', 'recommended', 'worker_required', 'Premium plans metadata plus key moments and keyframes.', 'Use available metadata and mark keyframe extraction as future-gated.', 'Metadata plus keyframe plan.'),
     route(level, 'audio_soundsync', 'recommended', 'worker_required', 'Premium plans music, SFX, ducking, and SoundSync recommendations.', 'Use basic audio policy fallback and do not claim analysis ran.', 'Music/SFX/ducking guidance.'),
@@ -168,7 +170,7 @@ export function createUltraPremiumEditLevelToolRoutes(): EditLevelToolRoute[] {
 
   return [
     route(level, 'qwen_3_reasoning', 'required', 'runtime_disabled', 'Ultra Premium uses a multi-pass reasoning profile for studio-level direction and QA explanation.', 'Use deterministic multi-pass-style fallback and show that the planning service did not run.', 'Multi-pass reasoning profile; no planning service call is made.'),
-    route(level, 'qwen25vl_visual_understanding', 'required', 'provider_required', 'Ultra Premium routes scene-level/deep visual analysis when future model access exists.', 'Use Premium-safe visual fallback and show degraded capability notice.', 'Scene-level visual understanding.'),
+    route(level, 'visual_intelligence', 'required', 'provider_required', 'Ultra Premium routes deep whole-media Visual Intelligence through the exact professional-high profile.', 'Block semantic visual approval and show a degraded-capability notice if the qualified route is unavailable.', 'Deep whole-media visual understanding.'),
     route(level, 'speech_transcript', 'required', 'worker_required', 'Ultra Premium requires transcript-aware planning when speech exists.', 'Use source summary and require clarification when speech meaning is unclear.', 'Transcript required when speech exists.'),
     route(level, 'media_extraction', 'recommended', 'worker_required', 'Ultra Premium plans deeper keyframe and waveform extraction for future workers.', 'Use available metadata and show that extraction is future-gated.', 'Deeper keyframe/waveform plan.'),
     route(level, 'audio_soundsync', 'recommended', 'worker_required', 'Ultra Premium plans sound design, audio continuity, ducking, and SFX direction.', 'Use Premium audio fallback without claiming SoundSync analysis ran.', 'Sound design planning.'),

@@ -59,7 +59,6 @@ const requiredFiles = [
   'src/components/edit-level/EditLevelToolCapabilityBadge.tsx',
   'src/components/edit-level/EditLevelToolFallbackNotice.tsx',
   'server/smoke/edit-level-tool-router-smoke.ts',
-  'tests/e2e/edit-level-tool-router.spec.ts',
   'docs/edit-level-tool-capability-router.md',
   'docs/edit-level-tool-capability-registry.md',
   'docs/edit-level-tool-routing-by-level.md',
@@ -72,7 +71,7 @@ const requiredFiles = [
 const falseFlagKeys: Array<Exclude<keyof EditLevelToolRouterSideEffectFlags, 'mockOnly'>> = [
   'providerCallMade',
   'qwen3CallMade',
-  'qwen25vlCallMade',
+  'visualIntelligenceCallMade',
   'deepSeekCallMade',
   'mediaProcessingStarted',
   'transcriptStarted',
@@ -129,10 +128,13 @@ assert.equal(definitions.length, 18, 'Router must register the 18 requested capa
 
 const modelRoleValidation = validateReEditProModelRoleContracts()
 assert.equal(modelRoleValidation.ok, true)
-assert.equal(modelRoleValidation.checkedContractCount, 4)
+assert.equal(modelRoleValidation.checkedContractCount, 7)
 assert.deepEqual([...REEDITPRO_MODEL_ROLE_IDS], [
   'kimi_k3_main_edit_agent',
+  'gpt_5_6_terra_fallback_edit_agent',
   'qwen_3_7_main_edit_agent',
+  'visual_intelligence_gemini_pro_high',
+  'qwen_3_7_api_visual_understanding',
   'qwen2_5_vl_visual_understanding',
   'deepseek_v4_tool_code_agent',
 ])
@@ -141,11 +143,15 @@ assert.equal(REEDITPRO_REQUESTED_MODEL_USES.includes('tool_code'), true)
 assert.equal(modelRoleAllowsUserReasoning('kimi_k3_main_edit_agent'), true)
 assert.equal(modelRoleAllowsToolCode('kimi_k3_main_edit_agent'), true)
 assert.equal(modelRoleAllowsUserReasoning('qwen_3_7_main_edit_agent'), true)
-assert.equal(modelRoleAllowsToolCode('qwen_3_7_main_edit_agent'), true)
+assert.equal(modelRoleAllowsToolCode('qwen_3_7_main_edit_agent'), false)
 assert.equal(modelRoleAllowsUserReasoning('deepseek_v4_tool_code_agent'), true)
 assert.equal(modelRoleAllowsToolCode('deepseek_v4_tool_code_agent'), true)
 assert.equal(getReEditProModelRoleContract('kimi_k3_main_edit_agent').canonicalProviderModel, 'kimi-k3')
 assert.equal(getReEditProModelRoleContract('qwen_3_7_main_edit_agent').canonicalProviderModel, 'qwen3.7-max-2026-06-08')
+assert.equal(getReEditProModelRoleContract('visual_intelligence_gemini_pro_high').canonicalProviderModel, 'gemini-3.1-pro-preview')
+assert.equal(getReEditProModelRoleContract('visual_intelligence_gemini_pro_high').providerBoundary, 'vertex_gemini_pro_visual_intelligence_boundary')
+assert.equal(getReEditProModelRoleContract('qwen_3_7_api_visual_understanding').canonicalProviderModel, 'qwen3.7-plus-2026-05-26')
+assert.equal(getReEditProModelRoleContract('qwen_3_7_api_visual_understanding').executionStatus, 'retired_historical_read_only')
 assert.equal(getReEditProModelRoleContract('qwen2_5_vl_visual_understanding').canonicalProviderModel, 'qwen2.5-vl-7b-instruct')
 assert.equal(getReEditProModelRoleContract('deepseek_v4_tool_code_agent').canonicalProviderModel, 'deepseek-v4-pro')
 assert.equal(getReEditProModelRoleContract('deepseek_v4_tool_code_agent').fallbackOnly, true)
@@ -155,12 +161,31 @@ assert.equal(validateReEditProModelRoleUse({
   providerRoute: 'qwen_3_7_provider_boundary',
   providerModel: 'qwen3.7-max-2026-06-08',
   requestedUse: 'edit_planning',
+}).ok, false)
+assert.equal(validateReEditProModelRoleUse({
+  modelRoleId: 'visual_intelligence_gemini_pro_high',
+  providerRoute: 'vertex_gemini_pro_visual_intelligence_boundary',
+  providerModel: 'gemini-3.1-pro-preview',
+  requestedUse: 'visual_understanding',
+}).ok, true)
+assert.equal(validateReEditProModelRoleUse({
+  modelRoleId: 'qwen_3_7_api_visual_understanding',
+  providerRoute: 'qwen_model_studio_visual_understanding_api_boundary',
+  providerModel: 'qwen3.7-plus-2026-05-26',
+  requestedUse: 'visual_understanding',
+}).ok, false)
+assert.equal(validateReEditProModelRoleUse({
+  modelRoleId: 'qwen_3_7_api_visual_understanding',
+  providerRoute: 'qwen_model_studio_visual_understanding_api_boundary',
+  providerModel: 'qwen3.7-plus-2026-05-26',
+  requestedUse: 'visual_understanding',
+  historicalReadOnly: true,
 }).ok, true)
 const qwenModelRoleUseValidation = validateReEditProModelRoleUse({
   modelRoleId: 'qwen_3_7_main_edit_agent',
   providerRoute: 'qwen_3_7_provider_boundary',
   providerModel: 'qwen3.7-max-2026-06-08',
-  requestedUse: 'edit_planning',
+  requestedUse: 'user_reasoning',
 })
 assert.equal(qwenModelRoleUseValidation.resolvedCanonicalProviderModel, 'qwen3.7-max-2026-06-08')
 assert.equal(qwenModelRoleUseValidation.resolvedProviderBoundary, 'qwen_3_7_provider_boundary')
@@ -179,7 +204,7 @@ assert.equal(validateReEditProModelRoleUse({
 
 for (const capabilityId of [
   'qwen_3_reasoning',
-  'qwen25vl_visual_understanding',
+  'visual_intelligence',
   'speech_transcript',
   'media_extraction',
   'audio_soundsync',
@@ -214,9 +239,9 @@ for (const routingPackage of [normal, premium, ultra]) {
 assert.equal(route(normal, 'qwen_3_reasoning').reason.includes('standard'), true)
 assert.equal(route(premium, 'qwen_3_reasoning').reason.includes('deeper'), true)
 assert.equal(route(ultra, 'qwen_3_reasoning').reason.includes('multi-pass'), true)
-assert.equal(route(normal, 'qwen25vl_visual_understanding').requiredness, 'optional')
-assert.equal(route(premium, 'qwen25vl_visual_understanding').requiredness, 'recommended')
-assert.equal(route(ultra, 'qwen25vl_visual_understanding').requiredness, 'required')
+assert.equal(route(normal, 'visual_intelligence').requiredness, 'optional')
+assert.equal(route(premium, 'visual_intelligence').requiredness, 'recommended')
+assert.equal(route(ultra, 'visual_intelligence').requiredness, 'required')
 assert.equal(route(normal, 'speech_transcript').requiredness, 'optional')
 assert.equal(route(premium, 'speech_transcript').requiredness, 'recommended')
 assert.equal(route(ultra, 'speech_transcript').requiredness, 'required')
@@ -234,7 +259,7 @@ assert.equal(route(ultra, 'deepseek_tool_code').userFacingSummary.includes('rend
 assert.equal(route(ultra, 'deepseek_tool_code').userFacingSummary.includes('user reasoning'), true)
 assert.equal(route(ultra, 'deepseek_tool_code').productionToolIds.includes('deepseek_v4_pro_tool_code_boundary'), true)
 assert.equal(route(normal, 'qwen_3_reasoning').productionToolIds.includes('kimi_k3_provider_boundary'), true)
-assert.equal(route(normal, 'qwen25vl_visual_understanding').productionToolIds.includes('qwen2_5_vl_7b_instruct_provider_boundary'), true)
+assert.equal(route(normal, 'visual_intelligence').productionToolIds.includes('vertex_gemini_pro_visual_intelligence_boundary'), true)
 assert.equal(route(premium, 'render_worker').status, 'future_gated')
 assert.equal(route(premium, 'credit_gate').status, 'future_gated')
 assert.equal(route(premium, 'credit_gate').userFacingSummary.includes('estimate only'), true)
@@ -324,7 +349,7 @@ for (const term of [
   'router resolves capability plans only',
   'does not execute',
   'Qwen 3.7',
-  'Qwen2.5-VL',
+  'Visual Intelligence',
   'DeepSeek',
   'no media processing',
   'no render',

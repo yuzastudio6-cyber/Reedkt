@@ -1,5 +1,9 @@
 import { z } from 'zod'
 
+import {
+  REEDITPRO_CANONICAL_PRIVATE_REVIEW_MAX_BYTES,
+} from '../../src/types/large-media'
+
 const identity = z.string().min(1).max(200).regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/)
   .refine((value) => value === value.trim() && !value.includes('..'))
 const sha = z.string().regex(/^[a-f0-9]{64}$/)
@@ -34,7 +38,8 @@ export const canonicalPrivateReviewHistoryMetadataSchema = z.object({
   reservationStatus: z.enum(['reserved', 'partially_spent', 'released']),
   mimeType: z.literal('video/mp4'),
   fileName: z.string().min(1).max(255),
-  byteSize: z.number().int().positive().max(32 * 1024 * 1024),
+  byteSize: z.number().int().positive()
+    .max(REEDITPRO_CANONICAL_PRIVATE_REVIEW_MAX_BYTES),
   sha256: sha,
   assemblyManifestSha256: sha,
   decisionManifestSha256: sha,

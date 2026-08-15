@@ -203,7 +203,15 @@ These routes produce audio plans, artifacts, and QA gates only. They do not down
 
 ## Milestone 15C Mask Composition Route
 
-`gpu_ai_worker` can route explicit `metadata.maskComposition.mode` payloads to the mask-composition pipeline for dry-run, local-dev, container-ready, and gated production modes. `cpu_analysis_worker` can route explicit dry-run QA/refinement-only mask metadata. `render_worker` can route explicit text-behind-subject preview/metadata planning only. `qa_worker` can route explicit `metadata.maskCompositionQA.mode` payloads for mask/text QA. Default worker placeholder behavior remains unchanged, and existing smokes do not require BiRefNet, SAM2, transparent-background, rembg, OpenCV, Kornia, FFmpeg, model weights, final render/export, or Revideo.
+Historical M15C mask planners and fixtures remain readable for deterministic
+compatibility evidence, but their direct worker routes are retired. Any
+`metadata.maskComposition` or `metadata.maskCompositionQA` payload now fails
+closed before a legacy CPU, GPU, render, or QA handler can run. New mask and
+tracking work must arrive as an exact Orchestra call to `track_all`, then pass
+the canonical SAM 3.1 task-owner, A100/L4 admission, funded reservation,
+runtime, artifact, and QA boundaries. The tool-calling planning bridge records
+that future owner requirement and no longer advertises CPU mask refinement or
+the old generic GPU mask handler.
 
 ## Milestone 15D Enhancement Slowmotion Route
 

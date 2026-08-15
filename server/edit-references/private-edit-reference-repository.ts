@@ -68,6 +68,10 @@ import {
 } from './edit-reference-preference-dna-candidate-materialization'
 import { validateEditReferencePreferenceDnaReasoningApprovalSnapshot } from './edit-reference-preference-dna-approval'
 import { validatePreferenceLongFormStudySummary } from './edit-reference-long-form-study-binding'
+import {
+  EDIT_REFERENCE_VISUAL_INTELLIGENCE_BRIDGE_ID,
+  EDIT_REFERENCE_VISUAL_INTELLIGENCE_SKILL_ID,
+} from './edit-reference-semantic-study-contract'
 
 const RECORD_VERSION = 'edit-reference-private-envelope-v2' as const
 const LEGACY_RECORD_VERSION = 'edit-reference-private-envelope-v1' as const
@@ -2469,11 +2473,11 @@ function assertEvidenceRecord(record: EditReferenceAggregate['evidence'][number]
     || !Number.isFinite(record.confidence)
     || record.confidence < 0
     || record.confidence > 1
-    || !['user_asserted', 'metadata_verified', 'deterministic_derived', 'blocked'].includes(record.confidenceBasis)
+    || !['user_asserted', 'metadata_verified', 'deterministic_derived', 'model_observed', 'blocked'].includes(record.confidenceBasis)
     || !['transferable', 'non_transferable', 'do_not_copy', 'requires_user_review', 'unknown'].includes(record.transferability)
     || !isRecord(record.provenance)
     || !['user_input', 'verified_local', 'verified_live', 'verified_mock', 'fallback', 'blocked'].includes(record.provenance.runtimeSource)
-    || !['not_applicable', 'media_not_studied', 'media_studied_local_partial', 'media_study_blocked', 'approved_edit_identity_not_verified', 'approved_edit_verified'].includes(record.provenance.mediaStudyStatus)
+    || !['not_applicable', 'media_not_studied', 'media_studied_local_partial', 'media_studied_visual_intelligence', 'media_study_blocked', 'approved_edit_identity_not_verified', 'approved_edit_verified'].includes(record.provenance.mediaStudyStatus)
     || !Array.isArray(record.provenance.sourceEvidenceIds)
     || !Array.isArray(record.provenance.toolIds)
     || !Array.isArray(record.provenance.skillIds)
@@ -2487,8 +2491,16 @@ function assertEvidenceRecord(record: EditReferenceAggregate['evidence'][number]
   if (record.provenance.sourceEvidenceIds.some((id) => typeof id !== 'string' || !evidenceIds.has(id))) {
     throw invalidAggregate('evidence_provenance_link_invalid')
   }
+  if (record.provenance.semanticRuntime && record.provenance.visualIntelligenceRuntime) {
+    throw invalidAggregate('evidence_multiple_semantic_runtime_provenance')
+  }
   if (record.provenance.semanticRuntime) {
     assertSemanticRuntimeProvenance(record.provenance.semanticRuntime, record.provenance.runtimeSource)
+  } else if (record.provenance.visualIntelligenceRuntime) {
+    assertVisualIntelligenceRuntimeProvenance(
+      record.provenance.visualIntelligenceRuntime,
+      record.provenance.runtimeSource,
+    )
   } else if (record.provenance.runtimeSource === 'verified_live') {
     throw invalidAggregate('evidence_live_runtime_provenance_missing')
   }
@@ -2548,6 +2560,77 @@ function assertSemanticRuntimeProvenance(
   }
 }
 
+function assertVisualIntelligenceRuntimeProvenance(
+  value: NonNullable<
+    EditReferenceAggregate['evidence'][number]['provenance']['visualIntelligenceRuntime']
+  >,
+  runtimeSource: EditReferenceAggregate['evidence'][number]['provenance']['runtimeSource'],
+): void {
+  const expectedKeys = [
+    'schemaVersion', 'adapterId', 'adapterVersion', 'providerAdapterId',
+    'providerId', 'modelId',
+    'providerModelVersion', 'thinkingLevel', 'mediaResolution',
+    'orchestraCallRef', 'orchestraResultRef', 'manifestRef',
+    'qualificationSnapshotRef', 'reportRef', 'providerReleaseRef',
+    'costEvidenceRef', 'studyDigestSha256', 'providerCallMade',
+    'modelCallEvidencePresent', 'replayedFromCache',
+    'substantiveCpuExecutionUsed', 'settledInternalCostMicros',
+    'billingAccountEffectiveRateUsed', 'publicListPriceUsed',
+    'customerPriceCalculated', 'customerCreditsMutated', 'serviceFeeIncluded',
+  ]
+  if (
+    runtimeSource !== 'verified_live'
+    || Object.keys(value).length !== expectedKeys.length
+    || expectedKeys.some((key) => !(key in value))
+    || value.schemaVersion
+      !== 'edit-reference-visual-intelligence-runtime-provenance-v2'
+    || value.adapterId !== EDIT_REFERENCE_VISUAL_INTELLIGENCE_BRIDGE_ID
+    || value.adapterVersion !== 'edit-reference-visual-intelligence-study-v1'
+    || value.providerAdapterId !== 'vertex_gemini_pro'
+    || value.providerId !== 'google_vertex_ai'
+    || value.modelId !== 'gemini-3.1-pro-preview'
+    || !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/.test(
+      value.providerModelVersion,
+    )
+    || value.thinkingLevel !== 'high'
+    || value.mediaResolution !== 'high'
+    || !isExactEvidenceRef(value.orchestraCallRef)
+    || !isExactEvidenceRef(value.orchestraResultRef)
+    || !isExactEvidenceRef(value.manifestRef)
+    || !isExactEvidenceRef(value.qualificationSnapshotRef)
+    || !isExactEvidenceRef(value.reportRef)
+    || !isExactEvidenceRef(value.providerReleaseRef)
+    || !isExactEvidenceRef(value.costEvidenceRef)
+    || !/^sha256:[a-f0-9]{64}$/.test(value.studyDigestSha256)
+    || value.providerCallMade !== true
+    || value.modelCallEvidencePresent !== true
+    || typeof value.replayedFromCache !== 'boolean'
+    || value.substantiveCpuExecutionUsed !== false
+    || !/^(?:0|[1-9][0-9]{0,15})$/.test(
+      value.settledInternalCostMicros,
+    )
+    || BigInt(value.settledInternalCostMicros) <= 0n
+    || value.billingAccountEffectiveRateUsed !== true
+    || value.publicListPriceUsed !== false
+    || value.customerPriceCalculated !== false
+    || value.customerCreditsMutated !== false
+    || value.serviceFeeIncluded !== false
+  ) throw invalidAggregate(
+    'evidence_visual_intelligence_runtime_provenance_invalid',
+  )
+}
+
+function isExactEvidenceRef(value: unknown): boolean {
+  if (!isRecord(value)) return false
+  return Object.keys(value).length === 3
+    && typeof value.id === 'string'
+    && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$/.test(value.id)
+    && Number.isSafeInteger(value.version)
+    && Number(value.version) > 0
+    && typeof value.contentHash === 'string'
+    && /^sha256:[a-f0-9]{64}$/.test(value.contentHash)
+}
+
 function isBoundedUniqueIds(value: unknown): value is string[] {
   return Array.isArray(value)
     && value.length <= 64
@@ -2562,7 +2645,7 @@ function assertAssetRecord(record: EditReferenceAggregate['assets'][number]): vo
     || !record.label
     || record.label.length > 240
     || !['user_owned', 'licensed_or_authorized', 'reference_only', 'workspace_approved_edit'].includes(record.rightsBasis)
-    || !['media_not_studied', 'media_studied_local_partial', 'media_study_blocked', 'approved_edit_identity_not_verified', 'approved_edit_verified'].includes(record.mediaStudyStatus)
+    || !['media_not_studied', 'media_studied_local_partial', 'media_studied_visual_intelligence', 'media_study_blocked', 'approved_edit_identity_not_verified', 'approved_edit_verified'].includes(record.mediaStudyStatus)
     || (Boolean(record.storageObjectRecordId) !== Boolean(record.mediaAssetId))
     || (record.representativeFrameCount !== undefined && (!Number.isSafeInteger(record.representativeFrameCount) || record.representativeFrameCount < 0 || record.representativeFrameCount > 12))
     || (record.keyframeSampleCount !== undefined && (!Number.isSafeInteger(record.keyframeSampleCount) || record.keyframeSampleCount < 0 || record.keyframeSampleCount > 12))
@@ -2591,7 +2674,7 @@ function assertAssetRecord(record: EditReferenceAggregate['assets'][number]): vo
     || (record.lastStudyBlocker !== undefined && (!record.lastStudyBlocker || record.lastStudyBlocker.length > 500))
   ) throw invalidAggregate('asset_contract_invalid')
   if (
-    ['media_studied_local_partial', 'media_study_blocked'].includes(record.mediaStudyStatus)
+    ['media_studied_local_partial', 'media_studied_visual_intelligence', 'media_study_blocked'].includes(record.mediaStudyStatus)
     && (!record.storageObjectRecordId || !record.mediaAssetId)
   ) throw invalidAggregate('studied_media_asset_identity_invalid')
   if (
@@ -3433,6 +3516,8 @@ function assertSkillRunRecord(record: EditReferenceAggregate['skillRuns'][number
     || (record.modelCallMade && !['verified_local', 'verified_live'].includes(record.runtimeSource))
     || (record.runtimeSource === 'verified_live' && !record.providerCallMade)
     || (record.status === 'completed' && record.resultState === 'analyzed' && !record.modelCallMade && [
+      EDIT_REFERENCE_VISUAL_INTELLIGENCE_SKILL_ID,
+      // Historical immutable records retain the retired identity on reread.
       'edit_reference.visual_language.qwen_visual_analysis',
       'edit_reference.color_treatment.evidence',
       'edit_reference.graphics_motion.evidence',
@@ -3446,6 +3531,8 @@ function assertSkillRunRecord(record: EditReferenceAggregate['skillRuns'][number
       || !record.toolIds.some((toolId) => (
         toolId === 'ffprobe'
         || toolId === 'ffmpeg'
+        || toolId === EDIT_REFERENCE_VISUAL_INTELLIGENCE_BRIDGE_ID
+        // Historical immutable records retain the retired adapter identity.
         || toolId === 'edit_reference_qwen_visual_language_adapter'
         || toolId === 'edit_reference_qwen_color_treatment_adapter'
         || toolId === 'edit_reference_qwen_graphics_motion_adapter'

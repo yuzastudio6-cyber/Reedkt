@@ -70,7 +70,10 @@ The chain provides:
   immutable upload intent before any external target side effect, serializes
   one-use target issuance, associates exact idempotency receipts, recovers
   state after process restart, and permanently fences an unknown target
-  outcome. A separate envelope-encrypted escrow stores only AES-256-GCM
+  outcome. Its forward-only local protocol extension admits authenticated,
+  checksummed Content-Range uploads above the fixed 16 MiB request limit while
+  preserving one committed target and server-verified restart offsets. A
+  separate envelope-encrypted escrow stores only AES-256-GCM
   ciphertext and wrapped-key material, recovers through a fresh local server
   adapter, rejects a wrong key and another tenant, and scrubs ciphertext on
   expiry or explicit deletion. The wrapping key remains process-bound and

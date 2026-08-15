@@ -1,8 +1,10 @@
 import {
   PRODUCTION_TOOL_IDS,
+  listNonE2EToolCapabilityProfiles,
   listProductionToolProfiles,
 } from '../tool-registry'
 import type {
+  NonE2EToolCapabilityProfile,
   ProductionToolCategory,
   ProductionToolId,
   ProductionToolProfile,
@@ -133,12 +135,66 @@ function laneForUnmergedOwnerLane(ownerLane: UnmergedOwnerEvidenceLane): AllOwne
   return 'unknown_or_pending'
 }
 
+function laneForStudyOperations(
+  operationIds: readonly ToolCallingOperationId[],
+): AllOwnerToolLane {
+  if (operationIds.some((operationId) => operationId.startsWith('audio.'))) {
+    return 'sound_music_audio'
+  }
+  if (operationIds.some((operationId) =>
+    /^(?:caption|timeline|render|export)\./u.test(operationId))) {
+    return 'track_a_render_export'
+  }
+  if (operationIds.some((operationId) =>
+    /^(?:mask|background)\.|^video\.(?:enhance|slow_motion)$/u.test(
+      operationId,
+    ))) {
+    return 'ai_graphics'
+  }
+  if (operationIds.some((operationId) =>
+    /^(?:media|video|color|ocr|thumbnail)\./u.test(operationId))) {
+    return 'track_b_media'
+  }
+
+  return 'unknown_or_pending'
+}
+
 function statusesForProfile(profile: ProductionToolProfile): AllOwnerCurrentRepoStatus[] {
   const statuses: AllOwnerCurrentRepoStatus[] = ['first_class_production_tool_id']
   if (profile.productionStatus === 'evaluation_only') statuses.push('evaluation_only')
   if (profile.productionStatus === 'needs_license_review') statuses.push('blocked_pending_license')
   if (profile.productionStatus === 'blocked') statuses.push('blocked_pending_runtime_lane')
   if (profile.modelWeightsRequired) statuses.push('blocked_pending_model_weight')
+
+  return uniqueSorted(statuses)
+}
+
+function statusesForNonE2EProfile(
+  profile: NonE2EToolCapabilityProfile,
+): AllOwnerCurrentRepoStatus[] {
+  if (profile.toolId === 'sam2') {
+    return [
+      'owner_inventory_only',
+      'historical_read_only',
+      'blocked_pending_runtime_lane',
+    ]
+  }
+  const statuses: AllOwnerCurrentRepoStatus[] = [
+    'owner_inventory_only',
+    'blocked_pending_registry_expansion',
+  ]
+  if (profile.productionStatus === 'evaluation_only') {
+    statuses.push('evaluation_only')
+  }
+  if (profile.productionStatus === 'needs_license_review') {
+    statuses.push('blocked_pending_license')
+  }
+  if (profile.productionStatus === 'blocked') {
+    statuses.push('blocked_pending_runtime_lane')
+  }
+  if (profile.modelWeightsRequired) {
+    statuses.push('blocked_pending_model_weight')
+  }
 
   return uniqueSorted(statuses)
 }
@@ -197,6 +253,43 @@ function defaultSeedForProfile(profile: ProductionToolProfile): AllOwnerToolReco
     pendingAction: 'none',
     duplicateRisk: 'none',
     notes: 'Generated from live server/tool-registry metadata by all-owner reconciliation.',
+  }
+}
+
+function defaultSeedForNonE2EProfile(
+  profile: NonE2EToolCapabilityProfile,
+): AllOwnerToolReconciliationSeedRow {
+  return {
+    normalizedToolId: profile.toolId,
+    displayName: profile.displayName,
+    ownerLane: laneForCategory(profile.category),
+    sourceEvidence: ['server/tool-registry/production-tool-profiles.ts'],
+    currentRepoStatus: statusesForNonE2EProfile(profile),
+    productionToolId: null,
+    aliases: [profile.toolId],
+    packageNames: [],
+    dockerEvidence: [],
+    requirementsEvidence: [],
+    packageJsonEvidence: [],
+    proofEvidence: [
+      'Non-E2E capability metadata is present, but it is not a first-class ProductionToolId.',
+    ],
+    runtimeEvidence: arrayOrEmpty(profile.runtimeNotes),
+    operationCoverage: [],
+    hasToolCallingStudyCard: false,
+    hasAdapterContract: false,
+    hasSafeCommandIntent: false,
+    hasFixturePlan: false,
+    hasDryRunFixture: false,
+    hasBinaryFixturePlan: false,
+    hasControlledReadinessProbe: false,
+    hasFixtureBoundProbe: false,
+    selectableAsRuntimeTool: false,
+    pendingAction: profile.toolId === 'sam2'
+      ? 'do_not_duplicate_owner_lane'
+      : 'wait_for_worker_runtime_gate',
+    duplicateRisk: 'none',
+    notes: 'Generated from the live non-E2E capability catalog; caller selection and dispatch remain forbidden.',
   }
 }
 
@@ -283,8 +376,14 @@ export function buildAllOwnerToolReconciliationMatrix(
 ): AllOwnerToolReconciliationRow[] {
   const sourceBundle = loadAllOwnerReconciliationSources(unmergedOwnerEvidence)
   const profiles = listProductionToolProfiles()
+  const nonE2EProfiles = listNonE2EToolCapabilityProfiles()
   const studyCards = listExplicitToolStudyCards()
   const studyCardByToolId = new Map(studyCards.filter((card) => card.toolId).map((card) => [card.toolId as ProductionToolId, card]))
+  const studyCardByCatalogId = new Map<string, (typeof studyCards)[number]>()
+  for (const studyCard of studyCards) {
+    const toolId = studyCard.toolId ?? studyCard.externalToolId
+    if (toolId) studyCardByCatalogId.set(toolId, studyCard)
+  }
   const capabilityCardByToolId = new Map(listExpandedToolCapabilityCards().filter((card) => 'toolId' in card).map((card) => [card.toolId, card]))
   const adapterToolIds = new Set(listToolAdapterContracts().map((contract) => contract.toolId))
   const commandToolIds = new Set<string>(listCommandIntentPolicies().map((policy) => policy.toolId))
@@ -362,6 +461,127 @@ export function buildAllOwnerToolReconciliationMatrix(
       pendingAction,
       duplicateRisk: rowDuplicateRisk,
       unmergedOwnerEvidenceRefs: duplicateRisk?.refs ?? [],
+    })
+  }
+
+  for (const profile of nonE2EProfiles) {
+    const seed = sourceBundle.seedDocument.rows.find(
+      (row) => row.normalizedToolId === profile.toolId,
+    ) ?? defaultSeedForNonE2EProfile(profile)
+    const studyCard = studyCardByCatalogId.get(profile.toolId)
+    const duplicateRisk = duplicateRiskByTool.get(profile.toolId)
+    const rowDuplicateRisk = duplicateRisk?.duplicateRisk ?? seed.duplicateRisk
+    const currentRepoStatus: AllOwnerCurrentRepoStatus[] = [
+      ...statusesForNonE2EProfile(profile),
+      ...(studyCard ? ['explicit_tool_calling_study_card' as const] : []),
+    ]
+    const pendingAction = profile.toolId === 'sam2'
+      ? 'do_not_duplicate_owner_lane'
+      : pendingActionForRow({
+        firstClass: false,
+        hasStudy: Boolean(studyCard),
+        hasAdapter: false,
+        modelWeightsRequired: profile.modelWeightsRequired,
+        productionStatus: profile.productionStatus,
+        seedPendingAction: seed.pendingAction,
+        duplicateRisk: rowDuplicateRisk,
+      })
+
+    addOrMergeRow(rowsById, seed, {
+      productionToolId: null,
+      ownerLane: laneForCategory(profile.category),
+      sourceEvidence: [
+        'server/tool-registry/production-tool-profiles.ts',
+        ...(studyCard?.sourceEvidence?.map((evidence) =>
+          evidence.sourcePath) ?? []),
+      ],
+      currentRepoStatus,
+      aliases: [
+        profile.toolId,
+        ...(studyCard?.aliases ?? []),
+        ...(ownerLabelAliasesByToolId[profile.toolId] ?? []),
+      ],
+      proofEvidence: [
+        ...(studyCard?.sourceEvidence?.map((evidence) => evidence.summary) ?? []),
+        'Non-E2E capability metadata is visible for reconciliation but cannot authorize tool selection or dispatch.',
+      ],
+      runtimeEvidence: arrayOrEmpty(profile.runtimeNotes),
+      operationCoverage: [
+        ...(studyCard?.operations.map((operation) => operation.operationId) ?? []),
+      ],
+      hasToolCallingStudyCard: Boolean(studyCard),
+      hasAdapterContract: false,
+      hasSafeCommandIntent: false,
+      hasFixturePlan: fixtureToolIds.has(profile.toolId),
+      hasDryRunFixture: fixtureToolIds.has(profile.toolId),
+      hasBinaryFixturePlan: fixtureToolIds.has(profile.toolId),
+      hasControlledReadinessProbe: false,
+      hasFixtureBoundProbe: false,
+      selectableAsRuntimeTool: false,
+      pendingAction,
+      duplicateRisk: rowDuplicateRisk,
+      unmergedOwnerEvidenceRefs: duplicateRisk?.refs ?? [],
+    })
+  }
+
+  for (const studyCard of studyCards) {
+    const toolId = studyCard.toolId ?? studyCard.externalToolId
+    if (!toolId) continue
+    const existing = [...rowsById.values()].find((row) =>
+      rowMatchesTool(row, toolId))
+    if (existing) continue
+
+    const operationIds = studyCard.operations.map((operation) =>
+      operation.operationId)
+    const currentRepoStatus: AllOwnerCurrentRepoStatus[] = [
+      'explicit_tool_calling_study_card',
+      'blocked_pending_registry_expansion',
+    ]
+    if (studyCard.qualityProfile.productionStatus === 'evaluation_only') {
+      currentRepoStatus.push('evaluation_only')
+    }
+    if (studyCard.qualityProfile.productionStatus === 'needs_license_review') {
+      currentRepoStatus.push('blocked_pending_license')
+    }
+    if (studyCard.qualityProfile.modelWeightsRequired) {
+      currentRepoStatus.push('blocked_pending_model_weight')
+    }
+
+    addOrMergeRow(rowsById, {
+      normalizedToolId: toolId,
+      displayName: studyCard.displayName,
+      ownerLane: laneForStudyOperations(operationIds),
+      sourceEvidence: studyCard.sourceEvidence?.map((evidence) =>
+        evidence.sourcePath) ?? [],
+      currentRepoStatus: uniqueSorted(currentRepoStatus),
+      productionToolId: null,
+      aliases: uniqueSorted([toolId, ...studyCard.aliases]),
+      packageNames: [],
+      dockerEvidence: [],
+      requirementsEvidence: [],
+      packageJsonEvidence: [],
+      proofEvidence: [
+        ...(studyCard.sourceEvidence?.map((evidence) => evidence.summary) ?? []),
+        'External study-card evidence is reconciliation metadata only and cannot authorize caller selection or dispatch.',
+      ],
+      runtimeEvidence: [...studyCard.readinessNotes],
+      operationCoverage: operationIds,
+      hasToolCallingStudyCard: true,
+      hasAdapterContract: false,
+      hasSafeCommandIntent: false,
+      hasFixturePlan: fixtureToolIds.has(toolId),
+      hasDryRunFixture: fixtureToolIds.has(toolId),
+      hasBinaryFixturePlan: fixtureToolIds.has(toolId),
+      hasControlledReadinessProbe: controlledProbeToolIds.has(toolId),
+      hasFixtureBoundProbe: fixtureBoundProbeToolIds.has(toolId),
+      selectableAsRuntimeTool: false,
+      pendingAction: studyCard.qualityProfile.modelWeightsRequired
+        ? 'wait_for_model_weight_review'
+        : studyCard.qualityProfile.productionStatus === 'needs_license_review'
+          ? 'wait_for_license_review'
+          : 'add_production_tool_registry_id',
+      duplicateRisk: 'none',
+      notes: 'Generated from an explicit external study card; first-class registry admission remains pending.',
     })
   }
 
@@ -454,6 +674,8 @@ export function recommendNextToolCallingExpansionMilestones(
 ): AllOwnerRecommendedMilestone[] {
   const blocked = new Set(listToolsBlockedByOwnerOrLicense(matrixRows))
   const needsRegistry = new Set(listToolsNeedingRuntimeRegistryExpansion(matrixRows))
+  const currentCandidateRows = matrixRows.filter((row) =>
+    !row.currentRepoStatus.includes('historical_read_only'))
   const firstClassExternalProbesPassed = ['mediainfo', 'exiftool', 'tesseract', 'imagemagick']
     .every((toolId) => matrixRows.some((row) => row.normalizedToolId === toolId && row.currentRepoStatus.includes('controlled_probe_passed')))
 
@@ -462,7 +684,7 @@ export function recommendNextToolCallingExpansionMilestones(
       milestone: 'REEDITPRO-TOOL-CALLING-SOUND-MUSIC-AUDIO-OWNER-EXPANSION-1',
       ownerLane: 'sound_music_audio' as const,
       reason: 'Reconcile Sound/Music/Audio and SFX owner proof before promoting soundfile/libsndfile, sox, aubio, MMAudio, SoundSync, or cue-manifest surfaces.',
-      candidateToolIds: matrixRows
+      candidateToolIds: currentCandidateRows
         .filter((row) => (row.ownerLane === 'sound_music_audio' || row.ownerLane === 'sfx_soundsync') && (needsRegistry.has(row.normalizedToolId) || blocked.has(row.normalizedToolId)))
         .map((row) => row.normalizedToolId),
     },
@@ -470,7 +692,7 @@ export function recommendNextToolCallingExpansionMilestones(
       milestone: 'REEDITPRO-TOOL-CALLING-AI-GRAPHICS-OWNER-EVIDENCE-RECONCILIATION-1',
       ownerLane: 'ai_graphics' as const,
       reason: 'AI graphics/static/chart/model candidates require owner install, license, model-weight, or runtime proof before registry expansion.',
-      candidateToolIds: matrixRows
+      candidateToolIds: currentCandidateRows
         .filter((row) => row.ownerLane === 'ai_graphics' && (needsRegistry.has(row.normalizedToolId) || blocked.has(row.normalizedToolId)))
         .map((row) => row.normalizedToolId),
     },
@@ -478,7 +700,7 @@ export function recommendNextToolCallingExpansionMilestones(
       milestone: 'REEDITPRO-TOOL-CALLING-TRACKA-NATIVE-CONTAINER-OWNER-EXPANSION-1',
       ownerLane: 'track_a_render_export' as const,
       reason: 'Track A native/container candidates need owner proof and must reuse existing final-render/caption/container lanes before tool-calling expansion.',
-      candidateToolIds: matrixRows
+      candidateToolIds: currentCandidateRows
         .filter((row) => row.ownerLane === 'track_a_render_export' && (needsRegistry.has(row.normalizedToolId) || blocked.has(row.normalizedToolId) || row.pendingAction === 'do_not_duplicate_owner_lane'))
         .map((row) => row.normalizedToolId),
     },

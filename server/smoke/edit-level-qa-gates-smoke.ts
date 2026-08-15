@@ -68,7 +68,6 @@ const requiredFiles = [
   'src/components/edit-level/EditLevelQAFallbackNotice.tsx',
   'src/components/edit-level/EditLevelQAReadinessCard.tsx',
   'server/smoke/edit-level-qa-gates-smoke.ts',
-  'tests/e2e/edit-level-qa-gates.spec.ts',
   'docs/edit-level-qa-gates.md',
   'docs/edit-level-qa-gate-registry.md',
   'docs/edit-level-qa-by-level.md',
@@ -98,7 +97,7 @@ const expectedGateIds: EditLevelQAGateId[] = [
   'edit_brief_priority_consistency',
   'preference_dna_match',
   'qwen_response_validation',
-  'qwen25vl_visual_confidence',
+  'visual_intelligence_confidence',
   'transcript_coverage',
   'source_context_coverage',
   'broll_timing',
@@ -115,7 +114,7 @@ const expectedGateIds: EditLevelQAGateId[] = [
 const falseFlagKeys: Array<Exclude<keyof EditLevelQAGateSideEffectFlags, 'mockOnly'>> = [
   'providerCallMade',
   'qwenCallMade',
-  'qwen25vlCallMade',
+  'visualIntelligenceCallMade',
   'deepseekCallMade',
   'plannerExecuted',
   'editPlanCreated',
@@ -181,7 +180,7 @@ assert.equal(premium.qaStrictness, 'premium')
 assert.equal(premium.readinessStatus, 'ready_with_warnings')
 assert.equal(premium.requiredGates.includes('caption_readability'), true)
 assert.equal(premium.recommendedGates.includes('audio_music_ducking'), true)
-assert.equal(premium.warningOnlyGates.includes('qwen25vl_visual_confidence'), true)
+assert.equal(premium.warningOnlyGates.includes('visual_intelligence_confidence'), true)
 assert.equal(premium.requiredGates.includes('plan_completeness'), true)
 
 assert.equal(ultra.qaStrictness, 'ultra')
@@ -193,7 +192,7 @@ assert.equal(ultra.requiredGates.includes('preference_dna_match'), true)
 assert.equal(ultra.futureOnlyGates.includes('render_readiness_future'), true)
 assert.equal(ultra.futureOnlyGates.includes('revision_budget_future'), true)
 assert.equal(ultra.futureOnlyGates.includes('credit_gate_future'), true)
-assert.equal(ultra.degradedGates.includes('qwen25vl_visual_confidence'), true)
+assert.equal(ultra.degradedGates.includes('visual_intelligence_confidence'), true)
 
 for (const qaPackage of [normal, premium, ultra]) {
   assert.equal(qaPackage.gates.length, 30)
@@ -272,7 +271,7 @@ for (const term of [
   'credit',
   'no runtime implementation',
   'No Qwen',
-  'No Qwen2.5-VL',
+  'No Visual Intelligence',
   'DeepSeek',
   'mockOnly: true',
 ]) {
@@ -286,7 +285,6 @@ const frontendFiles = [
   readRepoFile('src/components/edit-level/EditLevelQAFallbackNotice.tsx'),
   readRepoFile('src/components/edit-level/EditLevelQAReadinessCard.tsx'),
   readRepoFile('src/pages/CreateProjectPage.tsx'),
-  readRepoFile('src/components/editor/InlineEditLevelCard.tsx'),
   readRepoFile('src/components/editor/InlinePlanningContextCard.tsx'),
   readRepoFile('src/components/editor/edit-brief/EditBriefSummaryCard.tsx'),
 ].join('\n')
@@ -298,6 +296,6 @@ assert.equal(frontendFiles.includes('MockDatabase'), false)
 
 const migrationDir = repoPath('supabase/migrations')
 const migrationCount = readdirSync(migrationDir).filter((entry) => statSync(new URL(entry, `${migrationDir.href}/`)).isFile()).length
-assert.equal(migrationCount, 25)
+assert.equal(migrationCount, 24)
 
 console.log(`RP-EDITLEVEL-08 QA gate smoke passed with ${definitions.length} gates and ${listMockEditLevelQAGateScenarios().length} scenarios.`)

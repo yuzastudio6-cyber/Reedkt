@@ -1,0 +1,174 @@
+# syntax=docker/dockerfile:1
+#
+# WeEditPro fixed NVIDIA L4 qualification-source preparation image.
+#
+# This purpose-bound image contains no model, checkpoint, OCR stack, runtime
+# installer, or network download path. It prepares one exact 4K source into
+# the canonical 49-chunk SAM 3.1 qualification input using GPU NVDEC/NVENC.
+# An image built from this file remains candidate-only until its immutable
+# digest, SBOM, vulnerability scan, signature, provenance, and real L4 run are
+# persisted and reread by the canonical release owners.
+
+FROM gcc:14.2.0-bookworm@sha256:82549aa8f90ada3236a8be70c74543132a76662ef33f0c3271ed802b81584a82 AS ffmpeg_builder
+
+ENV SOURCE_DATE_EPOCH=0 \
+  TZ=UTC \
+  LANG=C \
+  LC_ALL=C
+WORKDIR /build
+
+# The pinned classic Cloud Build Docker frontend does not parse ADD
+# --checksum. Each downloaded source is therefore verified immediately below
+# by both an exact SHA-256 and an exact byte length before extraction.
+ADD https://ffmpeg.org/releases/ffmpeg-8.0.3.tar.gz \
+  /build/ffmpeg-8.0.3.tar.gz
+ADD https://distfiles.ariadne.space/pkgconf/pkgconf-3.0.4.tar.gz \
+  /build/pkgconf-3.0.4.tar.gz
+ADD https://github.com/FFmpeg/nv-codec-headers/archive/refs/tags/n12.2.72.0.tar.gz \
+  /build/nv-codec-headers-n12.2.72.0.tar.gz
+
+RUN test "$(uname -m)" = x86_64 \
+  && printf '%s  %s\n' \
+    '5c868087e6a0d4243b97776c16f3bfe1511cc53f15c26c822b393a3289608121' \
+    /build/ffmpeg-8.0.3.tar.gz | sha256sum --check --strict \
+  && test "$(stat --format='%s' /build/ffmpeg-8.0.3.tar.gz)" = 17211188 \
+  && printf '%s  %s\n' \
+    '67dd778366d1a094f26a9bf5ad0cce1b2e25588420c49a4c9fea6452a6eef829' \
+    /build/pkgconf-3.0.4.tar.gz | sha256sum --check --strict \
+  && test "$(stat --format='%s' /build/pkgconf-3.0.4.tar.gz)" = 611767 \
+  && printf '%s  %s\n' \
+    'dbeaec433d93b850714760282f1d0992b1254fc3b5a6cb7d76fc1340a1e47563' \
+    /build/nv-codec-headers-n12.2.72.0.tar.gz \
+    | sha256sum --check --strict \
+  && test "$(stat --format='%s' \
+    /build/nv-codec-headers-n12.2.72.0.tar.gz)" = 80935 \
+  && mkdir /build/pkgconf /build/nv-codec-headers /build/ffmpeg \
+  && tar --extract --gzip --file /build/pkgconf-3.0.4.tar.gz \
+    --directory /build/pkgconf --strip-components=1 \
+    --no-same-owner --no-same-permissions \
+  && cd /build/pkgconf \
+  && ./configure --prefix=/opt/weeditpro/pkgconf \
+    --disable-shared --enable-static \
+  && make -j4 \
+  && make install \
+  && test "$(/opt/weeditpro/pkgconf/bin/pkgconf --version)" = 3.0.4 \
+  && tar --extract --gzip \
+    --file /build/nv-codec-headers-n12.2.72.0.tar.gz \
+    --directory /build/nv-codec-headers --strip-components=1 \
+    --no-same-owner --no-same-permissions \
+  && make -C /build/nv-codec-headers \
+    PREFIX=/opt/weeditpro/ffnvcodec install \
+  && tar --extract --gzip --file /build/ffmpeg-8.0.3.tar.gz \
+    --directory /build/ffmpeg --strip-components=1 \
+    --no-same-owner --no-same-permissions \
+  && cd /build/ffmpeg \
+  && PATH=/opt/weeditpro/pkgconf/bin:${PATH} \
+    PKG_CONFIG=/opt/weeditpro/pkgconf/bin/pkgconf \
+    PKG_CONFIG_PATH=/opt/weeditpro/ffnvcodec/lib/pkgconfig \
+    ./configure \
+      --prefix=/opt/weeditpro/ffmpeg \
+      --enable-shared \
+      --disable-static \
+      --disable-doc \
+      --disable-debug \
+      --disable-network \
+      --disable-autodetect \
+      --disable-x86asm \
+      --enable-ffnvcodec \
+      --enable-nvdec \
+      --enable-cuvid \
+      --enable-nvenc \
+      --disable-libnpp \
+      --disable-vulkan \
+      --disable-vaapi \
+      --disable-vdpau \
+      --extra-cflags=-I/opt/weeditpro/ffnvcodec/include \
+      --extra-ldflags=-Wl,-rpath,/opt/weeditpro/ffmpeg/lib \
+  && grep -Fx '#define CONFIG_GPL 0' config.h \
+  && grep -Fx '#define CONFIG_NONFREE 0' config.h \
+  && grep -Fx '#define CONFIG_NVDEC 1' config.h \
+  && grep -Fx '#define CONFIG_NVENC 1' config.h \
+  && make -j4 \
+  && make install \
+  && LD_LIBRARY_PATH=/opt/weeditpro/ffmpeg/lib \
+    /opt/weeditpro/ffmpeg/bin/ffmpeg -hide_banner -version \
+    | grep -F 'ffmpeg version 8.0.3' \
+  && LD_LIBRARY_PATH=/opt/weeditpro/ffmpeg/lib \
+    /opt/weeditpro/ffmpeg/bin/ffmpeg -hide_banner -decoders \
+    | grep -E '[[:space:]]h264_cuvid[[:space:]]' \
+  && LD_LIBRARY_PATH=/opt/weeditpro/ffmpeg/lib \
+    /opt/weeditpro/ffmpeg/bin/ffmpeg -hide_banner -encoders \
+    | grep -E '[[:space:]]h264_nvenc[[:space:]]' \
+  && ! LD_LIBRARY_PATH=/opt/weeditpro/ffmpeg/lib \
+    /opt/weeditpro/ffmpeg/bin/ffmpeg -hide_banner -buildconf \
+    | grep -E -- '--enable-(gpl|nonfree|libnpp)'
+
+FROM node:24.13.1-bookworm-slim@sha256:85a395c77b811fa7f5b5e4aa69cd6eb4c3b80c7f1a8e34704dc0ce061e5b404e AS server_builder
+WORKDIR /app
+ENV NODE_ENV=development \
+  NODE_OPTIONS=--max-old-space-size=6144
+ARG WEEDITPRO_SOURCE_COMMIT_SHA
+ARG WEEDITPRO_SOURCE_TREE_HASH
+ARG WEEDITPRO_SOURCE_CLEAN
+RUN printf '%s' "${WEEDITPRO_SOURCE_COMMIT_SHA}" \
+    | grep -Eq '^[a-f0-9]{40}$' \
+  && printf '%s' "${WEEDITPRO_SOURCE_TREE_HASH}" \
+    | grep -Eq '^[a-f0-9]{40}$' \
+  && test "${WEEDITPRO_SOURCE_CLEAN}" = true
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+RUN npm run build:server \
+  && npm prune --omit=dev \
+  && chmod 0444 \
+    /app/docker/prod/gpu-worker/sam3_1-source-preparation/source-provenance.lock \
+  && test -f \
+    dist-server/weeditpro-sam3_1-eight-minute-source-preparation-worker.js \
+  && test -f \
+    dist-server/weeditpro-sam3_1-source-preparation-private-qualification-worker.js
+
+FROM gcr.io/distroless/nodejs24-debian13:nonroot@sha256:fbbdda866ea71aef98c4abece17e3d61fbf820cc2ef3961522caa2478716171a
+
+ARG WEEDITPRO_SOURCE_COMMIT_SHA
+ARG WEEDITPRO_SOURCE_TREE_HASH
+ARG WEEDITPRO_SOURCE_CLEAN
+
+LABEL org.opencontainers.image.revision="${WEEDITPRO_SOURCE_COMMIT_SHA}" \
+  io.weeditpro.product="WeEditPro" \
+  io.weeditpro.image.role="sam3_1-source-preparation-l4" \
+  io.weeditpro.operation.id="tool.sam3_1.prepare_qualification_source.v1" \
+  io.weeditpro.runtime.accelerator="nvidia-l4" \
+  io.weeditpro.runtime.scale="user-triggered-scale-from-zero" \
+  io.weeditpro.runtime.cpu.substantive="forbidden" \
+  io.weeditpro.runtime.network-download="forbidden" \
+  io.weeditpro.runtime.model-or-checkpoint-included="false" \
+  io.weeditpro.runtime.qualification="candidate-only" \
+  io.weeditpro.source.tree="${WEEDITPRO_SOURCE_TREE_HASH}" \
+  io.weeditpro.source.clean="${WEEDITPRO_SOURCE_CLEAN}" \
+  io.reeditpro.compatibility="legacy-cloud-identifiers-only"
+
+ENV NODE_ENV=production \
+  REEDITPRO_RUNTIME_ROLE=sam3_1_source_preparation_l4_worker \
+  PATH=/opt/weeditpro/ffmpeg/bin:${PATH} \
+  LD_LIBRARY_PATH=/opt/weeditpro/ffmpeg/lib:/usr/local/cuda/lib64:/usr/local/cuda/compat:/usr/local/nvidia/lib64:/usr/local/nvidia/lib \
+  NVIDIA_VISIBLE_DEVICES=all \
+  NVIDIA_DRIVER_CAPABILITIES=compute,utility,video \
+  HF_HUB_OFFLINE=1 \
+  TRANSFORMERS_OFFLINE=1
+
+COPY --from=ffmpeg_builder --chown=65532:65532 \
+  /opt/weeditpro/ffmpeg/ /opt/weeditpro/ffmpeg/
+COPY --from=server_builder --chown=65532:65532 \
+  /app/dist-server /app/dist-server
+COPY --from=server_builder --chown=65532:65532 \
+  /app/node_modules /app/node_modules
+COPY --from=server_builder --chown=65532:65532 \
+  /app/package.json /app/package.json
+COPY --from=server_builder --chown=65532:65532 \
+  /app/docker/prod/gpu-worker/sam3_1-source-preparation/source-provenance.lock \
+  /opt/weeditpro/sam3_1-source-preparation/source-provenance.lock
+
+USER 65532:65532
+WORKDIR /nonexistent
+ENTRYPOINT []
+CMD ["/nodejs/bin/node", "/app/dist-server/weeditpro-sam3_1-eight-minute-source-preparation-worker.js"]

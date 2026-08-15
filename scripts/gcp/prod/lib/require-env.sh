@@ -16,18 +16,18 @@ require_gcp_foundation_env() {
   require_env REEDITPRO_ENV
   require_env REEDITPRO_SECRET_PREFIX
   require_env REEDITPRO_API_SERVICE_ACCOUNT
-  require_env REEDITPRO_CPU_WORKER_SERVICE_ACCOUNT
+  require_env REEDITPRO_IMAGE_BUILDER_SERVICE_ACCOUNT
+  require_env REEDITPRO_IMAGE_SIGNER_SERVICE_ACCOUNT
   require_env REEDITPRO_GPU_WORKER_SERVICE_ACCOUNT
-  require_env REEDITPRO_RENDER_WORKER_SERVICE_ACCOUNT
-  require_env REEDITPRO_QA_WORKER_SERVICE_ACCOUNT
-  require_env REEDITPRO_TOOL_READINESS_SERVICE_ACCOUNT
   require_env REEDITPRO_ARTIFACT_REPOSITORY
+  require_env REEDITPRO_IMAGE_SIGNING_KEY_RING
+  require_env REEDITPRO_IMAGE_SIGNING_KEY
   require_env REEDITPRO_IMAGE_TAG
 }
 
 print_gcp_foundation_context() {
   echo "============================================================"
-  echo "ReeditPro production GCP foundation"
+  echo "WeEditPro production GCP foundation"
   echo "Project:          ${GCP_PROJECT_ID}"
   echo "Region:           ${GCP_REGION}"
   echo "Artifact region:  ${GCP_ARTIFACT_REGION}"

@@ -89,6 +89,29 @@ const FIXED_BT709_X264_VUI_PARAMETERS =
   'colorprim=bt709:transfer=bt709:colormatrix=bt709:fullrange=off'
 const execFileAsync = promisify(execFile)
 
+function executionFailureDiagnostic(error, stage) {
+  const message = error instanceof Error ? error.message : 'unknown execution failure'
+  const family = /(?:out of memory|enomem|heap|allocation failed)/i.test(message)
+    ? 'memory_pressure'
+    : /(?:timed out|timeout|delayrender)/i.test(message)
+      ? 'render_timeout'
+      : /(?:decode|demux|codec|ffmpeg|video|audio|media)/i.test(message)
+        ? 'media_decode_or_encode'
+        : /(?:browser|chromium|chrome|page|puppeteer)/i.test(message)
+          ? 'browser_runtime'
+          : /(?:frame|render)/i.test(message)
+            ? 'frame_render'
+            : /(?:manifest|request|commitment|identity|authority|unsupported|invalid)/i
+                .test(message)
+              ? 'request_or_authority_validation'
+              : 'unclassified'
+  return {
+    diagnosticStage: stage,
+    diagnosticFamily: family,
+    diagnosticMessageSha256: sha256(message),
+  }
+}
+
 const canonical = (value) => JSON.stringify(value, Object.keys(value).sort())
 const sha256 = (value) => createHash('sha256').update(value).digest('hex')
 
@@ -393,8 +416,8 @@ function isCaptionTrackProfile(value) {
 }
 
 function validateCaptionOverlayCues(value, durationFrames) {
-  if (!Array.isArray(value) || value.length < 1 || value.length > 7) {
-    throw new Error('caption track requires one to seven cues')
+  if (!Array.isArray(value) || value.length > 7) {
+    throw new Error('caption track supports zero to seven cues')
   }
   const seen = new Set()
   let previousEndFrame = 0
@@ -466,8 +489,17 @@ function validateVoiceTrackCommitments(value, expected, fps) {
   const outputKeys = new Set()
   let totalBytes = 0
   const tracks = value.map((candidate, index) => {
+    const sourceSliceProvided =
+      candidate && typeof candidate === 'object' &&
+      (
+        Object.hasOwn(candidate, 'sourceStartFrame') ||
+        Object.hasOwn(candidate, 'sourceEndFrameExclusive')
+      )
     const track = exactObject(candidate, [
       'sourceSequenceItemId', 'outputKey', 'durationFrames',
+      ...(sourceSliceProvided
+        ? ['sourceStartFrame', 'sourceEndFrameExclusive']
+        : []),
       'mimeType', 'byteLength', 'sha256', 'bytesBase64',
     ], `voice-track commitment ${index + 1}`)
     const sourceSequenceItemId = safeIdentity(
@@ -478,14 +510,42 @@ function validateVoiceTrackCommitments(value, expected, fps) {
     const durationFrames = integer(
       track.durationFrames,
       1,
-      MAXIMUM_SOURCE_SEGMENT_FRAMES,
+      sourceSliceProvided
+        ? MAXIMUM_SOURCE_SLICE_LONG_FORM_FRAMES
+        : MAXIMUM_SOURCE_SEGMENT_FRAMES,
       'voice-track durationFrames',
     )
+    const sourceStartFrame = sourceSliceProvided
+      ? integer(
+          track.sourceStartFrame,
+          0,
+          MAXIMUM_SOURCE_SLICE_LONG_FORM_FRAMES - 1,
+          'voice-track sourceStartFrame',
+        )
+      : undefined
+    const sourceEndFrameExclusive = sourceSliceProvided
+      ? integer(
+          track.sourceEndFrameExclusive,
+          1,
+          MAXIMUM_SOURCE_SLICE_LONG_FORM_FRAMES,
+          'voice-track sourceEndFrameExclusive',
+        )
+      : undefined
     if (
       sourceIds.has(sourceSequenceItemId) || outputKeys.has(outputKey) ||
       (expected[index].sourceSequenceItemId !== undefined &&
         sourceSequenceItemId !== expected[index].sourceSequenceItemId) ||
-      durationFrames !== expected[index].durationFrames || track.mimeType !== 'audio/wav' ||
+      (
+        sourceSliceProvided
+          ? (
+              sourceEndFrameExclusive <= sourceStartFrame ||
+              sourceEndFrameExclusive > durationFrames ||
+              sourceEndFrameExclusive - sourceStartFrame !==
+                expected[index].durationFrames
+            )
+          : durationFrames !== expected[index].durationFrames
+      ) ||
+      track.mimeType !== 'audio/wav' ||
       !Number.isSafeInteger(track.byteLength) || typeof track.sha256 !== 'string' ||
       !/^[a-f0-9]{64}$/.test(track.sha256) || typeof track.bytesBase64 !== 'string'
     ) throw new Error('voice-track identity, order, or content commitment is invalid')
@@ -503,6 +563,9 @@ function validateVoiceTrackCommitments(value, expected, fps) {
       sourceSequenceItemId,
       outputKey,
       durationFrames,
+      ...(sourceSliceProvided
+        ? { sourceStartFrame, sourceEndFrameExclusive }
+        : {}),
       mimeType: 'audio/wav',
       byteLength: bytes.byteLength,
       sha256: track.sha256,
@@ -988,11 +1051,7 @@ function validateRequest(value) {
     if (
       (sourceMediaPolicyProvided && !approvedColorIntermediate) ||
       (approvedColorIntermediate && (
-        payload.audioPolicy !== 'replace_with_approved_voice_tracks' ||
-        sourceSegments.some((segment) =>
-          segment.sourceStartFrame !== 0 ||
-          segment.sourceEndFrameExclusive !==
-            segment.timelineEndFrameExclusive - segment.timelineStartFrame)
+        payload.audioPolicy !== 'replace_with_approved_voice_tracks'
       ))
     ) throw new Error('source-sequence color intermediate policy is unsupported')
     const transitionAuthority = boundedSourceTransitions
@@ -1171,8 +1230,7 @@ function validateRequest(value) {
     if (
       approvedColorIntermediate &&
       (
-        payload.audioPolicy !== 'replace_with_approved_voice_tracks' ||
-        sourceStartFrame !== 0 || sourceEndFrameExclusive !== durationFrames
+        payload.audioPolicy !== 'replace_with_approved_voice_tracks'
       )
     ) throw new Error('professional color intermediate policy is invalid')
     const color = (value, label) => {
@@ -1231,8 +1289,17 @@ function validateStreamingVoicePlans(value, expected, fps) {
   const sourceIds = new Set()
   const outputKeys = new Set()
   return value.map((candidate, index) => {
+    const sourceSliceProvided =
+      candidate && typeof candidate === 'object' &&
+      (
+        Object.hasOwn(candidate, 'sourceStartFrame') ||
+        Object.hasOwn(candidate, 'sourceEndFrameExclusive')
+      )
     const track = exactObject(candidate, [
       'sourceSequenceItemId', 'outputKey', 'durationFrames',
+      ...(sourceSliceProvided
+        ? ['sourceStartFrame', 'sourceEndFrameExclusive']
+        : []),
     ], `streaming voice plan ${index + 1}`)
     const sourceSequenceItemId = safeIdentity(
       track.sourceSequenceItemId,
@@ -1242,19 +1309,53 @@ function validateStreamingVoicePlans(value, expected, fps) {
     const durationFrames = integer(
       track.durationFrames,
       1,
-      MAXIMUM_SOURCE_SEGMENT_FRAMES,
+      sourceSliceProvided
+        ? MAXIMUM_SOURCE_SLICE_LONG_FORM_FRAMES
+        : MAXIMUM_SOURCE_SEGMENT_FRAMES,
       'streaming voice durationFrames',
     )
+    const sourceStartFrame = sourceSliceProvided
+      ? integer(
+          track.sourceStartFrame,
+          0,
+          MAXIMUM_SOURCE_SLICE_LONG_FORM_FRAMES - 1,
+          'streaming voice sourceStartFrame',
+        )
+      : undefined
+    const sourceEndFrameExclusive = sourceSliceProvided
+      ? integer(
+          track.sourceEndFrameExclusive,
+          1,
+          MAXIMUM_SOURCE_SLICE_LONG_FORM_FRAMES,
+          'streaming voice sourceEndFrameExclusive',
+        )
+      : undefined
     if (
       sourceIds.has(sourceSequenceItemId) || outputKeys.has(outputKey) ||
       (expected[index].sourceSequenceItemId !== undefined &&
         sourceSequenceItemId !== expected[index].sourceSequenceItemId) ||
-      durationFrames !== expected[index].durationFrames ||
+      (
+        sourceSliceProvided
+          ? (
+              sourceEndFrameExclusive <= sourceStartFrame ||
+              sourceEndFrameExclusive > durationFrames ||
+              sourceEndFrameExclusive - sourceStartFrame !==
+                expected[index].durationFrames
+            )
+          : durationFrames !== expected[index].durationFrames
+      ) ||
       !Number.isInteger(durationFrames * (48_000 / fps))
     ) throw new Error('streaming voice plan identity, order, or duration is invalid')
     sourceIds.add(sourceSequenceItemId)
     outputKeys.add(outputKey)
-    return { sourceSequenceItemId, outputKey, durationFrames }
+    return {
+      sourceSequenceItemId,
+      outputKey,
+      durationFrames,
+      ...(sourceSliceProvided
+        ? { sourceStartFrame, sourceEndFrameExclusive }
+        : {}),
+    }
   })
 }
 
@@ -1627,11 +1728,7 @@ function validateStreamingPlanningPayload(value) {
     if (
       (sourceMediaPolicyProvided && !approvedColorIntermediate) ||
       (approvedColorIntermediate && (
-        payload.audioPolicy !== 'replace_with_approved_voice_tracks' ||
-        sourceSegments.some((segment) =>
-          segment.sourceStartFrame !== 0 ||
-          segment.sourceEndFrameExclusive !==
-            segment.timelineEndFrameExclusive - segment.timelineStartFrame)
+        payload.audioPolicy !== 'replace_with_approved_voice_tracks'
       )) ||
       ![
         'approved_hard_cuts_only',
@@ -1767,8 +1864,7 @@ function validateStreamingPlanningPayload(value) {
     ) ||
     (sourceMediaPolicyProvided && !approvedColorIntermediate) ||
     (approvedColorIntermediate && (
-      payload.audioPolicy !== 'replace_with_approved_voice_tracks' ||
-      sourceStartFrame !== 0 || sourceEndFrameExclusive !== durationFrames
+      payload.audioPolicy !== 'replace_with_approved_voice_tracks'
     ))
   ) throw new Error('streaming single-source composition policy is unsupported')
   const voiceTracks = replaceVoice
@@ -2030,10 +2126,15 @@ function validateStreamingManifest(value) {
     throw new Error('streaming voice count does not match approved planning')
   }
   const voiceTracks = inputs.voiceTracks.map((candidate, index) => {
+    const expected = expectedVoiceTracks[index]
+    const sourceSliceProvided = expected?.sourceStartFrame !== undefined
     const voice = validateStreamingInputCommitment(
       candidate,
       [
         'inputId', 'sourceSequenceItemId', 'outputKey', 'durationFrames',
+        ...(sourceSliceProvided
+          ? ['sourceStartFrame', 'sourceEndFrameExclusive']
+          : []),
         'mimeType', 'byteLength', 'sha256',
       ],
       'audio/wav',
@@ -2049,15 +2150,32 @@ function validateStreamingManifest(value) {
     const durationFrames = integer(
       candidate.durationFrames,
       1,
-      MAXIMUM_SOURCE_SEGMENT_FRAMES,
+      sourceSliceProvided
+        ? MAXIMUM_SOURCE_SLICE_LONG_FORM_FRAMES
+        : MAXIMUM_SOURCE_SEGMENT_FRAMES,
       `streaming voice ${index + 1} durationFrames`,
     )
-    const expected = expectedVoiceTracks[index]
     if (!expected || sourceSequenceItemId !== expected.sourceSequenceItemId ||
-        outputKey !== expected.outputKey || durationFrames !== expected.durationFrames) {
+        outputKey !== expected.outputKey ||
+        durationFrames !== expected.durationFrames ||
+        (sourceSliceProvided && (
+          candidate.sourceStartFrame !== expected.sourceStartFrame ||
+          candidate.sourceEndFrameExclusive !== expected.sourceEndFrameExclusive
+        ))) {
       throw new Error('streaming voice order diverges from approved planning')
     }
-    return { ...voice, sourceSequenceItemId, outputKey, durationFrames }
+    return {
+      ...voice,
+      sourceSequenceItemId,
+      outputKey,
+      durationFrames,
+      ...(sourceSliceProvided
+        ? {
+            sourceStartFrame: expected.sourceStartFrame,
+            sourceEndFrameExclusive: expected.sourceEndFrameExclusive,
+          }
+        : {}),
+    }
   })
   const combinedVoiceBytes = voiceTracks.reduce((total, voice) => total + voice.byteLength, 0)
   if (!Number.isSafeInteger(combinedVoiceBytes) ||
@@ -3141,6 +3259,13 @@ async function execute(request, options = {}) {
         voiceTrackInternalUrls: request.payload.voiceTracks.map((track, index) => ({
           sourceSequenceItemId: track.sourceSequenceItemId,
           outputKey: track.outputKey,
+          durationFrames: track.durationFrames,
+          ...(track.sourceStartFrame === undefined
+            ? {}
+            : {
+                sourceStartFrame: track.sourceStartFrame,
+                sourceEndFrameExclusive: track.sourceEndFrameExclusive,
+              }),
           voiceTrackInternalUrl: `${mediaServer.origin}/voice/${index}.wav`,
         })),
       }
@@ -4039,20 +4164,24 @@ const reader = new FramedStdinReader(process.stdin)
 let streamingHeaderWritten = false
 let streamingFiles = []
 let streamingOutputPath
+let executionStage = 'read_request'
 try {
   const rawHeader = await reader.readLine(MAXIMUM_REQUEST_BYTES)
   const parsed = JSON.parse(rawHeader.toString('utf8'))
   if (parsed?.schemaVersion === DELIVERY_H264_CHUNK_STREAMING_PROTOCOL) {
+    executionStage = 'validate_request'
     if (rawHeader.byteLength > MAXIMUM_DELIVERY_H264_CHUNK_MANIFEST_BYTES) {
       throw new Error('delivery H.264 chunk manifest exceeded its metadata ceiling')
     }
     const manifest = validateDeliveryH264ChunkManifest(parsed)
+    executionStage = 'materialize_private_inputs'
     const materialized = await materializeDeliveryH264ChunkRequest(
       manifest,
       reader,
       sha256(rawHeader),
     )
     streamingFiles = materialized.materialized
+    executionStage = 'render_media'
     const execution = await execute(materialized.request, {
       streamingOutput: true,
       maximumOutputBytes: MAXIMUM_DELIVERY_H264_CHUNK_OUTPUT_BYTES,
@@ -4065,20 +4194,24 @@ try {
       materialized.request,
       true,
     )
+    executionStage = 'commit_output'
     process.stdout.write(`${JSON.stringify(response)}\n`)
     streamingHeaderWritten = true
     await writeFileToStdout(execution.outputPath)
   } else if (parsed?.schemaVersion === LONG_FORM_MERGE_STREAMING_PROTOCOL) {
+    executionStage = 'validate_request'
     if (rawHeader.byteLength > MAXIMUM_STREAMING_MANIFEST_BYTES) {
       throw new Error('long-form merge manifest exceeded its metadata ceiling')
     }
     const manifest = validateLongFormMergeManifest(parsed)
+    executionStage = 'materialize_private_inputs'
     const materialized = await materializeLongFormMergeRequest(
       manifest,
       reader,
       sha256(rawHeader),
     )
     streamingFiles = materialized.materialized
+    executionStage = 'render_media'
     const execution = await execute(materialized.request, { streamingOutput: true })
     streamingOutputPath = execution.outputPath
     const response = responseEnvelope(
@@ -4088,20 +4221,24 @@ try {
       materialized.request,
       true,
     )
+    executionStage = 'commit_output'
     process.stdout.write(`${JSON.stringify(response)}\n`)
     streamingHeaderWritten = true
     await writeFileToStdout(execution.outputPath)
   } else if (parsed?.schemaVersion === STREAMING_PROTOCOL) {
+    executionStage = 'validate_request'
     if (rawHeader.byteLength > MAXIMUM_STREAMING_MANIFEST_BYTES) {
       throw new Error('streaming manifest exceeded its metadata ceiling')
     }
     const manifest = validateStreamingManifest(parsed)
+    executionStage = 'materialize_private_inputs'
     const materialized = await materializeStreamingRequest(
       manifest,
       reader,
       sha256(rawHeader),
     )
     streamingFiles = materialized.materialized
+    executionStage = 'render_media'
     const execution = await execute(materialized.request, { streamingOutput: true })
     streamingOutputPath = execution.outputPath
     const response = responseEnvelope(
@@ -4111,13 +4248,17 @@ try {
       materialized.request,
       true,
     )
+    executionStage = 'commit_output'
     process.stdout.write(`${JSON.stringify(response)}\n`)
     streamingHeaderWritten = true
     await writeFileToStdout(execution.outputPath)
   } else {
+    executionStage = 'validate_request'
     await reader.assertEnd()
     const request = validateRequest(parsed)
+    executionStage = 'render_media'
     const artifact = await execute(request)
+    executionStage = 'commit_output'
     process.stdout.write(JSON.stringify(responseEnvelope(
       'offline-remotion-render-execution-container-v1',
       sha256(JSON.stringify(request)),
@@ -4127,10 +4268,14 @@ try {
     )))
   }
 } catch (error) {
-  void error
+  const diagnostic = executionFailureDiagnostic(error, executionStage)
   process.stderr.write('Private Remotion execution failed.\n')
   if (!streamingHeaderWritten) {
-    process.stdout.write(`${JSON.stringify({ ok: false, code: 'EXECUTION_FAILED' })}\n`)
+    process.stdout.write(`${JSON.stringify({
+      ok: false,
+      code: 'EXECUTION_FAILED',
+      ...diagnostic,
+    })}\n`)
   }
   process.exitCode = 3
 } finally {

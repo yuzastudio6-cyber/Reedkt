@@ -146,7 +146,7 @@ export function createEditLevelToolDepthSummaryModel(
     level,
     displayName: mapCanonicalEditLevelToPublicLabel(level),
     qwenReasoningDepth: routing.qwen3ReasoningDepth,
-    visualUnderstandingDepth: routing.qwen25vlVisualDepth,
+    visualUnderstandingDepth: routing.visualIntelligenceDepth,
     transcriptPolicy: routing.transcriptPolicy,
     audioPolicy: routing.audioPolicy,
     graphicsPolicy: routing.graphicsPolicy,

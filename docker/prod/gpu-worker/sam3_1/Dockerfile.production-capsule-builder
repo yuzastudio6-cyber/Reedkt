@@ -1,0 +1,51 @@
+# syntax=docker/dockerfile:1
+# Cloud-only deterministic builder for the checkpoint-free WeEditPro SAM 3.1
+# production image capsule. It cannot run the model or authorize a GPU job.
+
+FROM pytorch/pytorch@sha256:b574d4ccf6d8856a5d87dcadc667aa4f95dc18d337ef3a28d02b7b01897d7081
+
+ARG WEEDITPRO_BUILD_ID
+ARG WEEDITPRO_REPOSITORY_COMMIT
+ARG WEEDITPRO_REPOSITORY_TREE
+
+ENV SOURCE_DATE_EPOCH=0 \
+  TZ=UTC \
+  LANG=C \
+  LC_ALL=C \
+  PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1
+
+WORKDIR /opt/weeditpro-production-capsule-builder
+
+COPY Dockerfile.candidate source/Dockerfile.candidate
+COPY runner.py source/runner.py
+COPY vertex_prediction_server.py source/vertex_prediction_server.py
+COPY entrypoint.sh source/entrypoint.sh
+COPY source-provenance.lock source/source-provenance.lock
+COPY patches/0001-reeditpro-gpu-decode.patch source/patches/0001-reeditpro-gpu-decode.patch
+COPY patches/0002-weeditpro-importlib-resources.patch source/patches/0002-weeditpro-importlib-resources.patch
+COPY patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch source/patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch
+COPY patches/0004-weeditpro-forward-propagation-frame-count.patch source/patches/0004-weeditpro-forward-propagation-frame-count.patch
+COPY build-production-capsule.sh build-production-capsule.sh
+COPY private-staging/source-qualification-capsule.tar.gz private-staging/source-qualification-capsule.tar.gz
+COPY private-staging/source-qualification-capsule-manifest.json private-staging/source-qualification-capsule-manifest.json
+COPY private-staging/source-checkpoint-qualification-release.json private-staging/source-checkpoint-qualification-release.json
+COPY private-staging/private-artifact-build-binding.json private-staging/private-artifact-build-binding.json
+
+RUN test "$(uname -m)" = x86_64 \
+  && test -n "${WEEDITPRO_BUILD_ID}" \
+  && test -n "${WEEDITPRO_REPOSITORY_COMMIT}" \
+  && test -n "${WEEDITPRO_REPOSITORY_TREE}" \
+  && for command_name in bash cut find gzip python sha256sum sort tar touch; do \
+       command -v "${command_name}" >/dev/null \
+         || { printf 'ERROR: missing production capsule utility: %s\n' \
+           "${command_name}" >&2; exit 127; }; \
+     done \
+  && chmod 0555 build-production-capsule.sh \
+  && WEEDITPRO_BUILD_ID="${WEEDITPRO_BUILD_ID}" \
+     WEEDITPRO_REPOSITORY_COMMIT="${WEEDITPRO_REPOSITORY_COMMIT}" \
+     WEEDITPRO_REPOSITORY_TREE="${WEEDITPRO_REPOSITORY_TREE}" \
+     bash ./build-production-capsule.sh
+
+ENTRYPOINT []
+CMD ["/bin/false"]

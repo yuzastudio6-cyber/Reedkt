@@ -1,18 +1,24 @@
 # WeEditPro GPU Worker Image
 
-The GPU image is an unqualified build candidate for transcription,
-segmentation, masks, enhancement, interpolation, and AI audio tools. It is not
-a deployed or production-ready image.
+The shared GPU image is an unqualified build candidate for normal GPU media
+operations. Heavy model runtimes such as SAM 3.1 use separately immutable,
+accelerator-qualified images. No candidate is deployed or production-ready by
+being present in this directory.
 
-The image targets Cloud Run Jobs with NVIDIA L4 first:
+Current canonical placement is:
 
-- one GPU per instance;
-- minimum 4 CPU and 16Gi memory for L4;
-- `--no-gpu-zonal-redundancy`;
-- parallelism 1 by default.
+- NVIDIA A100 80 GB primary for heavy models and heavy processing;
+- NVIDIA L4 primary for normal substantive media work;
+- NVIDIA L4 only as a separately qualified, quality-preserving fallback for
+  eligible heavy operations;
+- one GPU and one user attempt per instance;
+- zero idle instances, no prewarming, and terminal scale to zero;
+- CPU limited to control-plane and GPU-adjacent bounded I/O/metadata helpers;
+- no CPU-only media/model/render fallback and no RTX PRO 6000 route.
 
-RTX PRO 6000 remains future/premium/evaluation only and requires 20 CPU, 80Gi
-memory, region/quota/cost approval, model-weight approval, and QA approval.
+Exact vCPU, memory, scratch, region, availability, account-effective price,
+image, source, model, and quality requirements come from the admitted runtime
+release—not from this README or caller input.
 
 The candidate includes the exact hash-locked Faster Whisper Python environment
 and fixed CUDA-only runner under

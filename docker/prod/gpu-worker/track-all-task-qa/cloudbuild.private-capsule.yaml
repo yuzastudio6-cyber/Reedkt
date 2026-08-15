@@ -1,0 +1,48 @@
+steps:
+  - name: gcr.io/cloud-builders/docker@sha256:f8b08c609fdc392ee6827ff3e1725e4980f7d96bde9f76f4695086405c96c147
+    id: build-fixed-private-capsule
+    entrypoint: bash
+    args:
+      - -ceu
+      - |
+        docker build \
+          --pull=false \
+          --no-cache \
+          --platform=linux/amd64 \
+          --file=Dockerfile.private-capsule-builder \
+          --tag=weeditpro-track-all-l4-task-qa-private-capsule:source-bound-v1 \
+          .
+        container_id="$$(docker create \
+          weeditpro-track-all-l4-task-qa-private-capsule:source-bound-v1)"
+        trap 'docker rm --force "$${container_id}" >/dev/null 2>&1 || true' EXIT
+        mkdir -p /workspace/private-capsule-output
+        docker cp "$${container_id}:/output/." /workspace/private-capsule-output/
+        test "$$(find /workspace/private-capsule-output \
+          -maxdepth 1 -type f -name '*.tar.gz' | wc -l)" = '1'
+        test "$$(find /workspace/private-capsule-output \
+          -maxdepth 1 -type f -name '*.receipt.txt' | wc -l)" = '1'
+        docker rm "$${container_id}" >/dev/null
+        trap - EXIT
+artifacts:
+  objects:
+    # Every compiler run writes create-only evidence beneath its Cloud Build
+    # identity. A reproducibility check must never overwrite an earlier
+    # immutable capsule merely because both runs produce the same SHA-256.
+    location: gs://reeditpro-production-reeditpro-image-build-inputs/private/image-build-inputs/track-all-l4-task-qa/reproducibility/${BUILD_ID}/
+    paths:
+      - private-capsule-output/*.tar.gz
+      - private-capsule-output/*.receipt.txt
+timeout: 7200s
+queueTtl: 600s
+serviceAccount: projects/reeditpro/serviceAccounts/reeditpro-image-builder-sa@reeditpro.iam.gserviceaccount.com
+options:
+  machineType: E2_HIGHCPU_8
+  diskSizeGb: '200'
+  logging: CLOUD_LOGGING_ONLY
+  requestedVerifyOption: VERIFIED
+  sourceProvenanceHash:
+    - SHA256
+tags:
+  - weeditpro
+  - track-all-l4-task-qa
+  - private-capsule-build

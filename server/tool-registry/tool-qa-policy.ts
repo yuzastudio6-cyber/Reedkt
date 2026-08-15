@@ -70,12 +70,22 @@ Record<ProfessionalToolCatalogId, ProductionQAProfile> = {
   kornia: { ...empty, gateTypes: ['mask_edge_quality', 'mask_temporal_stability', 'enhancement_artifacts'], requiredBeforePreview: ['mask_edge_quality'] },
   birefnet: { ...empty, gateTypes: ['mask_edge_quality', 'mask_subject_coverage'], requiredBeforePreview: ['mask_edge_quality'], requiredBeforeFinalExport: ['mask_edge_quality', 'mask_subject_coverage'] },
   sam2: { ...empty, gateTypes: ['mask_edge_quality', 'mask_temporal_stability', 'mask_subject_coverage'], requiredBeforePreview: ['mask_temporal_stability'], requiredBeforeFinalExport: ['mask_edge_quality', 'mask_temporal_stability', 'mask_subject_coverage'] },
+  sam3_1: { ...empty, gateTypes: ['mask_edge_quality', 'mask_temporal_stability', 'mask_subject_coverage'], requiredBeforePreview: ['mask_temporal_stability'], requiredBeforeFinalExport: ['mask_edge_quality', 'mask_temporal_stability', 'mask_subject_coverage'], notes: ['SAM 3.1 remains blocked until exact gated checkpoint, A100/L4 runtime, and temporal-quality qualification are released.'] },
   comfyui: {
     ...empty,
     gateTypes: ['render_asset_integrity', 'enhancement_artifacts'],
     requiredBeforePreview: ['render_asset_integrity'],
     requiredBeforeFinalExport: ['render_asset_integrity', 'enhancement_artifacts'],
     notes: ['Generated opaque PNG integrity only; Living Frame alpha, continuity, fact, destination, manifest, and private-review gates remain downstream.'],
+  },
+  stable_audio_3_small_sfx: {
+    ...empty,
+    gateTypes: ['audio_naturalness', 'audio_loudness', 'audio_sync'],
+    requiredBeforePreview: ['audio_naturalness', 'audio_loudness', 'audio_sync'],
+    requiredBeforeFinalExport: ['audio_naturalness', 'audio_loudness', 'audio_sync'],
+    notes: [
+      'Generated SFX must pass prompt-fit, artifact, clipping, transient, frame-anchor, speech-safety, and voice-first mix review before use.',
+    ],
   },
   transparent_background: { ...empty, gateTypes: ['mask_edge_quality', 'mask_subject_coverage'], requiredBeforePreview: ['mask_edge_quality'] },
   rembg: { ...empty, gateTypes: ['mask_edge_quality', 'mask_subject_coverage'], requiredBeforePreview: ['mask_edge_quality'] },

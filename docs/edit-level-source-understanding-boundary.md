@@ -5,7 +5,7 @@ RP-EDITLEVEL-06 is mock/local source understanding routing only.
 It does not:
 
 - call Qwen 3.7;
-- call Qwen2.5-VL;
+- call Visual Intelligence;
 - call DeepSeek;
 - call providers;
 - run media extraction, ffmpeg, ffprobe, Whisper, SoundSync, visual/audio/graphic workers, or Docker;

@@ -21,6 +21,9 @@ export type CanonicalSourceLedPlanPresentationReceipt = {
   planId: string
   planVersion: number
   planHash: string
+  publicationProfile:
+    | 'bounded_private_composition'
+    | 'professional_long_form_object_controller'
   sourceCount: number
   totalFrames: number
   fps: 30
@@ -219,6 +222,7 @@ function parseReceipt(
     'browserPlanAccepted',
     'browserTimingAccepted',
     'sourceRangePolicy',
+    'publicationProfile',
     'confirmedAspectRatio',
     'sourceCount',
     'totalFrames',
@@ -270,6 +274,9 @@ function parseReceipt(
     derivation.browserTimingAccepted !== false ||
     derivation.sourceRangePolicy !==
       'preserve_every_verified_source_frame' ||
+    !isCanonicalSourceLedPublicationProfile(
+      derivation.publicationProfile,
+    ) ||
     derivation.confirmedAspectRatio !== input.confirmedAspectRatio ||
     derivation.sourceCount !== input.orderedMediaAssetIds.length ||
     !isIntegerInRange(derivation.totalFrames, 24, Number.MAX_SAFE_INTEGER) ||
@@ -310,6 +317,7 @@ function parseReceipt(
       planId: publication.planId,
       planVersion: publication.planVersion,
       planHash: publication.planHash,
+      publicationProfile: derivation.publicationProfile,
       sourceCount: derivation.sourceCount as number,
       totalFrames: derivation.totalFrames as number,
       fps: 30,
@@ -321,6 +329,13 @@ function parseReceipt(
     },
     warnings,
   }
+}
+
+function isCanonicalSourceLedPublicationProfile(
+  value: unknown,
+): value is CanonicalSourceLedPlanPresentationReceipt['publicationProfile'] {
+  return value === 'bounded_private_composition' ||
+    value === 'professional_long_form_object_controller'
 }
 
 function parsePublishedPublication(value: unknown): {

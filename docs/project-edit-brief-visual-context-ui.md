@@ -1,7 +1,9 @@
-# Project Edit Brief Visual Context UI
+# Project Edit Brief Visual Intelligence UI
 
-The marker drawer now includes a Visual Context panel for saved markers. The panel shows runtime readiness, an Analyze Visual Context button, local source status, boundary copy, structured summary fields, sampled frame count, and fallback or live runtime status.
+The marker drawer shows a provider-neutral Visual Intelligence status card.
 
-If no local source video is selected, Analyze Visual Context is disabled and the panel shows "Select local source video first." When config is missing, the panel stores and displays deterministic fallback with an explicit no-Qwen2.5-VL-call summary.
+- `Authenticated report` means an immutable Orchestra-produced Visual Intelligence report was authenticated and reread.
+- `Historical only` means old Qwen marker metadata is visible for audit and cannot affect a new edit.
+- `Awaiting Orchestra` means no current canonical report has been supplied.
 
-Marker Chat shows whether visual context is available or fallback-used. This is display-only; it does not yet send visual summaries into Qwen 3.7 Max prompts.
+There is no Analyze Visual Context button, browser frame sampler, Qwen readiness probe, or direct model route. Selecting a local preview video never changes this authority. The browser remains a read-only presentation surface; it cannot dispatch Visual Intelligence, persist raw frames, reserve credits, or authorize planning and execution.

@@ -180,24 +180,16 @@ import { hashEditReferencePreferenceDnaStructuredContext } from '../edit-referen
 import { hashEditReferenceRequest } from '../edit-references/private-edit-reference-repository'
 import { orchestratePreferenceEvidenceStudy } from '../edit-references/edit-reference-evidence-orchestrator'
 import {
-  createBlockedEditReferenceMediaStudy,
-  runEditReferenceLocalMediaStudy,
-  type EditReferenceCaptionDesignOcrAuthorityResolver,
-  type EditReferenceCaptionDesignProductionAuthority,
-  type EditReferenceAudioSoundDesignRuntimeInput,
-  type EditReferenceAudioSoundDesignProductionAuthority,
-  type EditReferenceColorTreatmentProductionAuthority,
-  type EditReferenceColorTreatmentRuntimeInput,
-  type EditReferenceGraphicsMotionProductionAuthority,
-  type EditReferenceGraphicsMotionRuntimeInput,
-  type EditReferenceLocalMediaStudyResult,
-  type EditReferenceSpeechPacingProductionAuthority,
-  type EditReferenceSpeechPacingTranscriptAuthorityResolver,
-  type EditReferenceStoryEditorialEvidenceAuthorityResolver,
-  type EditReferenceStoryEditorialProductionAuthority,
-  type EditReferenceVisualLanguageRuntimeInput,
-  type EditReferenceVisualLanguageProductionAuthority,
-} from '../edit-references/edit-reference-media-study'
+  prepareEditReferenceVisualIntelligenceOrchestraBindingRequest,
+  type EditReferenceVisualIntelligenceOrchestraBindingRequest,
+  type EditReferenceVisualIntelligenceOrchestraReadPort,
+} from '../edit-references/edit-reference-visual-intelligence-result-bridge'
+import type { EditReferenceVisualIntelligenceStudy } from
+  '../edit-references/edit-reference-visual-intelligence-orchestra-consumer'
+import {
+  orchestraDigest,
+  orchestraEvidenceRef,
+} from '../orchestra/orchestra-skill-capability-contract'
 import {
   EDIT_REFERENCE_LONG_FORM_STUDY_POLICY_VERSION,
   createEditReferenceLongFormStudyPlan,
@@ -260,22 +252,6 @@ import {
 import { instrumentEditReferenceService } from './edit-reference-observability-service'
 import type { EditReferenceObservabilitySink } from '../edit-references/edit-reference-observability-contract'
 import {
-  createQwenVisualUnderstandingProvider,
-  type QwenVisualUnderstandingProvider,
-} from './qwen-visual-understanding-provider'
-import {
-  createQwenStoryEditorialReasoningProvider,
-  type QwenStoryEditorialReasoningProvider,
-} from './qwen-story-editorial-provider'
-import {
-  createQwenSpeechPacingReasoningProvider,
-  type QwenSpeechPacingReasoningProvider,
-} from './qwen-speech-pacing-provider'
-import {
-  createUnavailableEditReferenceAudioSoundDesignProvider,
-  type EditReferenceAudioSoundDesignProvider,
-} from './edit-reference-audio-sound-design-provider'
-import {
   type EditReferenceApprovedHistoryReader,
 } from './edit-reference-approved-history-reader'
 import { createUnavailableEditReferenceApprovedHistoryReader } from './edit-reference-approved-history-reader'
@@ -316,24 +292,6 @@ export interface EditReferenceServiceResult<T> {
 
 export interface EditReferenceServiceRuntimeOptions {
   readonly observabilitySink?: EditReferenceObservabilitySink
-  readonly visualLanguageProvider?: QwenVisualUnderstandingProvider
-  readonly visualLanguageProductionAuthority?: EditReferenceVisualLanguageProductionAuthority
-  readonly reviewedLocalVisualLanguageRuntime?: EditReferenceReviewedLocalVisualLanguageRuntimeOptions
-  readonly colorTreatmentProductionAuthority?: EditReferenceColorTreatmentProductionAuthority
-  readonly reviewedLocalColorTreatmentRuntime?: EditReferenceReviewedLocalColorTreatmentRuntimeOptions
-  readonly graphicsMotionProductionAuthority?: EditReferenceGraphicsMotionProductionAuthority
-  readonly reviewedLocalGraphicsMotionRuntime?: EditReferenceReviewedLocalGraphicsMotionRuntimeOptions
-  readonly captionDesignOcrAuthorityResolver?: EditReferenceCaptionDesignOcrAuthorityResolver
-  readonly captionDesignProductionAuthority?: EditReferenceCaptionDesignProductionAuthority
-  readonly storyEditorialProvider?: QwenStoryEditorialReasoningProvider
-  readonly storyEditorialEvidenceAuthorityResolver?: EditReferenceStoryEditorialEvidenceAuthorityResolver
-  readonly storyEditorialProductionAuthority?: EditReferenceStoryEditorialProductionAuthority
-  readonly speechPacingProvider?: QwenSpeechPacingReasoningProvider
-  readonly speechPacingTranscriptAuthorityResolver?: EditReferenceSpeechPacingTranscriptAuthorityResolver
-  readonly speechPacingProductionAuthority?: EditReferenceSpeechPacingProductionAuthority
-  readonly audioSoundDesignProvider?: EditReferenceAudioSoundDesignProvider
-  readonly audioSoundDesignProductionAuthority?: EditReferenceAudioSoundDesignProductionAuthority
-  readonly reviewedLocalAudioSoundDesignRuntime?: EditReferenceReviewedLocalAudioSoundDesignRuntimeOptions
   readonly previousApprovedEditHistoryReader?: EditReferenceApprovedHistoryReader
   readonly domainRepositoryRuntimePort?: EditReferenceDomainRepositoryRuntimePort
   readonly longFormStudyRuntimePort?: EditReferenceLongFormStudyRuntimePort
@@ -341,28 +299,14 @@ export interface EditReferenceServiceRuntimeOptions {
   readonly longFormSourceInspector?: EditReferenceLongFormSourceInspector
   readonly longFormStudyScheduler?: EditReferenceLongFormStudyScheduler
   readonly targetVideoUnderstandingRepository?: PrivateTargetVideoUnderstandingRepository
+  readonly visualIntelligenceOrchestraReadPort?:
+    EditReferenceVisualIntelligenceOrchestraReadPort
 }
 
-export interface EditReferenceReviewedLocalVisualLanguageRuntimeOptions {
-  readonly manifestPath: string
-  readonly modelPath: string
-  readonly pythonCommand: string
-  readonly runnerScriptPath?: string
-  readonly timeoutMs?: number
-}
-
-export type EditReferenceReviewedLocalColorTreatmentRuntimeOptions =
-  EditReferenceReviewedLocalVisualLanguageRuntimeOptions
-
-export type EditReferenceReviewedLocalGraphicsMotionRuntimeOptions =
-  EditReferenceReviewedLocalVisualLanguageRuntimeOptions
-
-export interface EditReferenceReviewedLocalAudioSoundDesignRuntimeOptions {
-  readonly manifestPath: string
-  readonly modelPath: string
-  readonly pythonCommand: string
-  readonly runnerScriptPath?: string
-  readonly timeoutMs?: number
+export interface PrepareEditReferenceVisualIntelligenceBindingRequestInput {
+  readonly workspaceId: string
+  readonly expectedStudyRevision: number
+  readonly orchestraCall: unknown
 }
 
 export interface EditReferenceService {
@@ -370,6 +314,11 @@ export interface EditReferenceService {
   listApplications(workspaceId: string): Promise<EditReferenceServiceResult<PreferenceApplicationListData>>
   getReference(workspaceId: string, referenceId: string): Promise<EditReferenceServiceResult<EditReferenceDetailData>>
   getStudy(workspaceId: string, studyId: string): Promise<EditReferenceServiceResult<PreferenceStudyData>>
+  prepareVisualIntelligenceOrchestraBindingRequest(
+    studyId: string,
+    referenceAssetId: string,
+    input: PrepareEditReferenceVisualIntelligenceBindingRequestInput,
+  ): Promise<EditReferenceServiceResult<EditReferenceVisualIntelligenceOrchestraBindingRequest>>
   listStudyMessages(workspaceId: string, studyId: string): Promise<EditReferenceServiceResult<PreferenceStudyMessageListData>>
   prepareStudyChatReasoning(workspaceId: string, input: EditReferenceStudyChatReasoningServiceInput): Promise<PreparedEditReferenceStudyChatReasoning>
   getStudyChatReasoningAttempt(workspaceId: string, attemptId: string): Promise<EditReferenceServiceResult<EditReferenceStudyChatReasoningAttemptRecord>>
@@ -436,47 +385,6 @@ export function createEditReferenceService(
   const ownerUserId = context.auth?.userId
   if (!ownerUserId) throw new ApiError('AUTH_REQUIRED', 'Edit Reference requires an authenticated user.', 401)
   if (
-    runtimeOptions.reviewedLocalVisualLanguageRuntime
-    && runtimeOptions.visualLanguageProductionAuthority
-  ) {
-    throw new ApiError(
-      'VALIDATION_FAILED',
-      'Reviewed-local Visual Language study cannot be combined with paid-provider production authority.',
-      500,
-    )
-  }
-  if (
-    runtimeOptions.reviewedLocalColorTreatmentRuntime
-    && runtimeOptions.colorTreatmentProductionAuthority
-  ) {
-    throw new ApiError(
-      'VALIDATION_FAILED',
-      'Reviewed-local Color Treatment study cannot be combined with paid-provider production authority.',
-      500,
-    )
-  }
-  if (
-    runtimeOptions.reviewedLocalGraphicsMotionRuntime
-    && runtimeOptions.graphicsMotionProductionAuthority
-  ) {
-    throw new ApiError(
-      'VALIDATION_FAILED',
-      'Reviewed-local Graphics/Motion study cannot be combined with paid-provider production authority.',
-      500,
-    )
-  }
-  if (
-    runtimeOptions.reviewedLocalAudioSoundDesignRuntime
-    && (runtimeOptions.audioSoundDesignProvider || runtimeOptions.audioSoundDesignProductionAuthority)
-  ) {
-    throw new ApiError(
-      'VALIDATION_FAILED',
-      'Reviewed-local Audio/Sound Design study cannot be combined with another semantic-audio provider or paid-provider production authority.',
-      500,
-    )
-  }
-
-  if (
     runtimeOptions.domainRepositoryRuntimePort
     && context.editReferenceDomainRepositoryRuntimePort
     && runtimeOptions.domainRepositoryRuntimePort !== context.editReferenceDomainRepositoryRuntimePort
@@ -492,6 +400,21 @@ export function createEditReferenceService(
       },
     )
   }
+  if (
+    runtimeOptions.visualIntelligenceOrchestraReadPort
+    && context.editReferenceVisualIntelligenceReadPort
+    && runtimeOptions.visualIntelligenceOrchestraReadPort
+      !== context.editReferenceVisualIntelligenceReadPort
+  ) {
+    throw new ApiError(
+      'TOOL_NOT_READY',
+      'Edit Reference received conflicting Orchestra Visual Intelligence read authorities.',
+      503,
+      {
+        requiredGate: 'edit_reference_visual_intelligence_one_writer',
+      },
+    )
+  }
   const domainRepositoryRuntime = resolveEditReferenceDomainRepositoryRuntimePort({
     context,
     runtimePort: runtimeOptions.domainRepositoryRuntimePort
@@ -504,14 +427,6 @@ export function createEditReferenceService(
     warnings: editReferenceDomainRepositoryRuntimeWarnings(domainRepositoryRuntime),
     ...(replayed === undefined ? {} : { replayed }),
   })
-  const visualLanguageProvider = runtimeOptions.visualLanguageProvider
-    ?? createQwenVisualUnderstandingProvider()
-  const storyEditorialProvider = runtimeOptions.storyEditorialProvider
-    ?? createQwenStoryEditorialReasoningProvider()
-  const speechPacingProvider = runtimeOptions.speechPacingProvider
-    ?? createQwenSpeechPacingReasoningProvider()
-  const audioSoundDesignProvider = runtimeOptions.audioSoundDesignProvider
-    ?? createUnavailableEditReferenceAudioSoundDesignProvider()
   const previousApprovedEditAdapter = createEditReferencePreviousApprovedEditAdapter({
     reader: runtimeOptions.previousApprovedEditHistoryReader
       ?? createUnavailableEditReferenceApprovedHistoryReader(),
@@ -545,6 +460,9 @@ export function createEditReferenceService(
     ?? inspectEditReferenceLongFormSource
   const targetVideoUnderstandingRepository = runtimeOptions.targetVideoUnderstandingRepository
     ?? new PrivateTargetVideoUnderstandingRepository()
+  const visualIntelligenceOrchestraReadPort =
+    runtimeOptions.visualIntelligenceOrchestraReadPort
+    ?? context.editReferenceVisualIntelligenceReadPort
   const scope = (workspaceId: string): EditReferenceRepositoryScope => ({
     localStorageRoot: context.env.localStorageRoot,
     ownerUserId,
@@ -612,6 +530,49 @@ export function createEditReferenceService(
         messages: studyMessages(aggregate, study.id),
         safety: EDIT_REFERENCE_SAFETY_FLAGS,
       })
+    },
+
+    async prepareVisualIntelligenceOrchestraBindingRequest(
+      studyId,
+      referenceAssetId,
+      input,
+    ) {
+      const workspaceId = requireWorkspaceId(input.workspaceId)
+      const expectedStudyRevision = requirePositiveInteger(
+        input.expectedStudyRevision,
+        'expectedStudyRevision',
+      )
+      const aggregate = await repository.read(scope(workspaceId))
+      if (!aggregate) throw studyNotFound(studyId)
+      const study = requireStudy(aggregate, studyId)
+      const reference = requireReference(aggregate, study.editReferenceId)
+      assertActiveStudy(reference, study)
+      assertRevision(study.revision, expectedStudyRevision, 'Preference Study')
+      if (reference.currentStudyId !== study.id) {
+        throw new ApiError(
+          'VERSION_CONFLICT',
+          'Only the current Preference Study can be bound to a new Orchestra Visual Intelligence call.',
+          409,
+        )
+      }
+      const bindingScope = await resolveEditReferenceVisualIntelligenceBindingScope({
+        context,
+        aggregate,
+        study,
+        reference,
+        referenceAssetId: requireText(
+          referenceAssetId,
+          'referenceAssetId',
+          200,
+        ),
+        ownerUserId,
+      })
+      return result(
+        prepareEditReferenceVisualIntelligenceOrchestraBindingRequest({
+          scope: bindingScope,
+          orchestraCall: input.orchestraCall,
+        }),
+      )
     },
 
     async getLongFormStudy(workspaceId, studyId, referenceAssetId) {
@@ -4400,31 +4361,35 @@ export function createEditReferenceService(
           if (!studyEvidence.some((record) => record.sourceType !== 'derived_skill_evidence')) {
             throw new ApiError('PREFERENCE_EVIDENCE_REQUIRED', 'Add evidence before asking ReEditPro to study it.', 409)
           }
+          if (
+            studyEvidence.some((record) => record.sourceType === 'reference_video_metadata')
+            && !visualIntelligenceOrchestraReadPort
+          ) {
+            throw new ApiError(
+              'TOOL_NOT_READY',
+              'Reference-video analysis requires the authenticated Orchestra Visual Intelligence result reader.',
+              503,
+              {
+                requiredGate: 'edit_reference_visual_intelligence_orchestra_result_reread',
+                retiredLocalMediaStudyAccepted: false,
+                callerProviderAccepted: false,
+                mediaProcessingStarted: false,
+                providerCallMade: false,
+                productionReady: false,
+              },
+            )
+          }
           const orchestrationId = `preference-evidence-study-${randomUUID()}`
-          const mediaStudies = await prepareEditReferenceMediaStudies({
-            context,
-            aggregate,
-            studyId,
-            orchestrationId,
-            visualLanguageProvider,
-            visualLanguageProductionAuthority: runtimeOptions.visualLanguageProductionAuthority,
-            reviewedLocalVisualLanguageRuntime: runtimeOptions.reviewedLocalVisualLanguageRuntime,
-            colorTreatmentProductionAuthority: runtimeOptions.colorTreatmentProductionAuthority,
-            reviewedLocalColorTreatmentRuntime: runtimeOptions.reviewedLocalColorTreatmentRuntime,
-            graphicsMotionProductionAuthority: runtimeOptions.graphicsMotionProductionAuthority,
-            reviewedLocalGraphicsMotionRuntime: runtimeOptions.reviewedLocalGraphicsMotionRuntime,
-            captionDesignOcrAuthorityResolver: runtimeOptions.captionDesignOcrAuthorityResolver,
-            captionDesignProductionAuthority: runtimeOptions.captionDesignProductionAuthority,
-            storyEditorialProvider,
-            storyEditorialEvidenceAuthorityResolver: runtimeOptions.storyEditorialEvidenceAuthorityResolver,
-            storyEditorialProductionAuthority: runtimeOptions.storyEditorialProductionAuthority,
-            speechPacingProvider,
-            speechPacingTranscriptAuthorityResolver: runtimeOptions.speechPacingTranscriptAuthorityResolver,
-            speechPacingProductionAuthority: runtimeOptions.speechPacingProductionAuthority,
-            audioSoundDesignProvider,
-            audioSoundDesignProductionAuthority: runtimeOptions.audioSoundDesignProductionAuthority,
-            reviewedLocalAudioSoundDesignRuntime: runtimeOptions.reviewedLocalAudioSoundDesignRuntime,
-          })
+          const visualIntelligenceStudies =
+            visualIntelligenceOrchestraReadPort
+              ? await prepareEditReferenceVisualIntelligenceStudies({
+                  context,
+                  aggregate,
+                  studyId,
+                  ownerUserId,
+                  readPort: visualIntelligenceOrchestraReadPort,
+                })
+              : []
           const previousApprovedEditStudies = await preparePreviousApprovedEditStudies({
             aggregate,
             studyId,
@@ -4437,39 +4402,20 @@ export function createEditReferenceService(
             editReferenceId: reference.id,
             study,
             evidence: studyEvidence,
-            mediaStudies,
+            visualIntelligenceStudies,
             previousApprovedEditStudies,
             now,
           })
-          for (const mediaStudy of mediaStudies) {
-            const asset = aggregate.assets.find((record) => record.id === mediaStudy.referenceAssetId)
+          for (const visualIntelligenceStudy of visualIntelligenceStudies) {
+            const asset = aggregate.assets.find((record) => (
+              record.privateAssetId === visualIntelligenceStudy.privateAssetId
+              && record.studySessionId === study.id
+              && record.assetKind === 'reference_video_metadata'
+            ))
             if (!asset) continue
-            asset.mediaStudyStatus = mediaStudy.status === 'verified_local'
-              ? 'media_studied_local_partial'
-              : 'media_study_blocked'
-            asset.representativeFrameCount = mediaStudy.representativeFrameCount
-            asset.keyframeSampleCount = mediaStudy.keyframeSampleCount
-            asset.mediaAnalysisReportId = mediaStudy.mediaAnalysisReportId
-            asset.technicalAudioStatus = mediaStudy.technicalAudio.status
-            asset.technicalAudioLowLevel = structuredClone(mediaStudy.technicalAudioLowLevel)
-            asset.technicalSceneBoundaryStatus = mediaStudy.shotDetectionStatus
-            asset.technicalSceneBoundaryCount = mediaStudy.shotBoundaryCount
-            asset.technicalSceneBoundaryTimesSeconds = [...mediaStudy.shotBoundaryTimesSeconds]
-            asset.technicalSceneBoundaryCoverage = mediaStudy.shotDetectionCoverage
-            asset.technicalSceneBoundaryThreshold = mediaStudy.shotDetectionThreshold
-            asset.technicalSceneBoundaryScannedDurationSeconds = mediaStudy.shotDetectionScannedDurationSeconds
-            asset.technicalSourceConditionSignal = structuredClone(mediaStudy.technicalSourceCondition)
-            asset.technicalEdgeWidthSignal = structuredClone(mediaStudy.technicalEdgeWidth)
-            asset.technicalCaptionRegionSignal = structuredClone(mediaStudy.technicalCaptionRegions)
-            asset.technicalColorSignal = { ...mediaStudy.technicalColor }
-            asset.technicalMotionSignal = structuredClone(mediaStudy.technicalMotion)
-            asset.technicalStudyUsage = structuredClone(mediaStudy.technicalStudyUsage)
+            asset.mediaStudyStatus = 'media_studied_visual_intelligence'
             asset.lastStudyAt = now
-            if (mediaStudy.status === 'blocked') {
-              asset.lastStudyBlocker = mediaStudy.blockerMessage ?? 'Private media study blocked.'
-            } else {
-              delete asset.lastStudyBlocker
-            }
+            delete asset.lastStudyBlocker
           }
           for (const approvedHistoryStudy of previousApprovedEditStudies) {
             const sourceEvidence = studyEvidence.find((record) => record.id === approvedHistoryStudy.sourceEvidenceId)
@@ -5213,258 +5159,174 @@ async function preparePreviousApprovedEditStudies(input: {
   return studies
 }
 
-async function prepareEditReferenceMediaStudies(input: {
+async function prepareEditReferenceVisualIntelligenceStudies(input: {
   readonly context: ServiceContext
   readonly aggregate: EditReferenceAggregate
   readonly studyId: string
-  readonly orchestrationId: string
-  readonly visualLanguageProvider: QwenVisualUnderstandingProvider
-  readonly visualLanguageProductionAuthority?: EditReferenceVisualLanguageProductionAuthority
-  readonly reviewedLocalVisualLanguageRuntime?: EditReferenceReviewedLocalVisualLanguageRuntimeOptions
-  readonly colorTreatmentProductionAuthority?: EditReferenceColorTreatmentProductionAuthority
-  readonly reviewedLocalColorTreatmentRuntime?: EditReferenceReviewedLocalColorTreatmentRuntimeOptions
-  readonly graphicsMotionProductionAuthority?: EditReferenceGraphicsMotionProductionAuthority
-  readonly reviewedLocalGraphicsMotionRuntime?: EditReferenceReviewedLocalGraphicsMotionRuntimeOptions
-  readonly captionDesignOcrAuthorityResolver?: EditReferenceCaptionDesignOcrAuthorityResolver
-  readonly captionDesignProductionAuthority?: EditReferenceCaptionDesignProductionAuthority
-  readonly storyEditorialProvider: QwenStoryEditorialReasoningProvider
-  readonly storyEditorialEvidenceAuthorityResolver?: EditReferenceStoryEditorialEvidenceAuthorityResolver
-  readonly storyEditorialProductionAuthority?: EditReferenceStoryEditorialProductionAuthority
-  readonly speechPacingProvider: QwenSpeechPacingReasoningProvider
-  readonly speechPacingTranscriptAuthorityResolver?: EditReferenceSpeechPacingTranscriptAuthorityResolver
-  readonly speechPacingProductionAuthority?: EditReferenceSpeechPacingProductionAuthority
-  readonly audioSoundDesignProvider: EditReferenceAudioSoundDesignProvider
-  readonly audioSoundDesignProductionAuthority?: EditReferenceAudioSoundDesignProductionAuthority
-  readonly reviewedLocalAudioSoundDesignRuntime?: EditReferenceReviewedLocalAudioSoundDesignRuntimeOptions
-}): Promise<EditReferenceLocalMediaStudyResult[]> {
-  const { context, aggregate, studyId } = input
-  const study = aggregate.studies.find((record) => record.id === studyId)
+  readonly ownerUserId: string
+  readonly readPort: EditReferenceVisualIntelligenceOrchestraReadPort
+}): Promise<EditReferenceVisualIntelligenceStudy[]> {
+  const study = input.aggregate.studies.find((record) => (
+    record.id === input.studyId
+  ))
   if (!study) return []
-  const reference = aggregate.references.find((record) => record.id === study.editReferenceId)
+  const reference = input.aggregate.references.find((record) => (
+    record.id === study.editReferenceId
+  ))
   if (!reference) return []
-  const uploadService = createUploadService(context)
-  const studies: EditReferenceLocalMediaStudyResult[] = []
-  for (const asset of aggregate.assets.filter((record) => (
-    record.studySessionId === studyId
+  const uploadService = createUploadService(input.context)
+  const studies: EditReferenceVisualIntelligenceStudy[] = []
+  for (const asset of input.aggregate.assets.filter((record) => (
+    record.studySessionId === study.id
     && record.assetKind === 'reference_video_metadata'
     && Boolean(record.storageObjectRecordId)
     && Boolean(record.mediaAssetId)
   ))) {
-    const sourceEvidence = aggregate.evidence.find((record) => (
-      record.studySessionId === studyId
+    const sourceEvidence = input.aggregate.evidence.find((record) => (
+      record.studySessionId === study.id
       && record.sourceType === 'reference_video_metadata'
       && record.provenance.privateAssetId === asset.privateAssetId
     ))
-    if (!sourceEvidence || !asset.storageObjectRecordId) continue
-    try {
-      const storage = await uploadService.getStorageObjectRecord(asset.storageObjectRecordId, reference.workspaceId)
-      if (
-        (storage.storageObjectRecord.editReferenceId ?? storage.storageObjectRecord.projectId) !== reference.id
-        || storage.storageObjectRecord.mediaAssetId !== asset.mediaAssetId
-      ) {
-        studies.push(createBlockedEditReferenceMediaStudy({
-          referenceAssetId: asset.id,
-          privateAssetId: asset.privateAssetId,
-          sourceEvidenceId: sourceEvidence.id,
-        }, 'reference_media_identity_mismatch', 'The private reference asset identity no longer matches this Edit Reference. Reconnect it before retrying.'))
-        continue
-      }
-      studies.push(await runEditReferenceLocalMediaStudy({
-        env: context.env,
-        referenceAssetId: asset.id,
-        privateAssetId: asset.privateAssetId,
-        sourceEvidenceId: sourceEvidence.id,
-        storageObject: storage.storageObjectRecord,
-        visualLanguageRuntime: createVisualLanguageRuntime({
-          orchestrationId: input.orchestrationId,
-          studySessionId: study.id,
-          studyGoalEvidenceId: `${study.id}:visual-language-goal`,
-          provider: input.visualLanguageProvider,
-          productionAuthority: input.visualLanguageProductionAuthority,
-          reviewedLocalRuntime: input.reviewedLocalVisualLanguageRuntime,
-        }),
-        colorTreatmentRuntime: createColorTreatmentRuntime({
-          orchestrationId: input.orchestrationId,
-          studySessionId: study.id,
-          studyGoalEvidenceId: `${study.id}:color-treatment-goal`,
-          provider: input.visualLanguageProvider,
-          productionAuthority: input.colorTreatmentProductionAuthority,
-          reviewedLocalRuntime: input.reviewedLocalColorTreatmentRuntime,
-        }),
-        graphicsMotionRuntime: createGraphicsMotionRuntime({
-          orchestrationId: input.orchestrationId,
-          studySessionId: study.id,
-          studyGoalEvidenceId: `${study.id}:graphics-motion-goal`,
-          provider: input.visualLanguageProvider,
-          productionAuthority: input.graphicsMotionProductionAuthority,
-          reviewedLocalRuntime: input.reviewedLocalGraphicsMotionRuntime,
-        }),
-        captionDesignRuntime: {
-          orchestrationId: input.orchestrationId,
-          studySessionId: study.id,
-          studyGoalEvidenceId: `${study.id}:caption-design-goal`,
-          provider: input.visualLanguageProvider,
-          captionOcrAuthorityResolver: input.captionDesignOcrAuthorityResolver,
-          productionAuthority: input.captionDesignProductionAuthority,
-        },
-        storyEditorialRuntime: {
-          orchestrationId: input.orchestrationId,
-          studySessionId: study.id,
-          studyGoalEvidence: study.initialGoals.map((goal) => ({
-            evidenceId: `${study.id}:story-editorial-goal:${goal}`,
-            summary: `The saved Edit Reference study goal authorizes generalized ${goal.replaceAll('_', ' ')} analysis without copying source wording, sequence, timing, or identity.`,
-            confidence: 1,
-            requiresUserReview: false,
-          })),
-          provider: input.storyEditorialProvider,
-          evidenceAuthorityResolver: input.storyEditorialEvidenceAuthorityResolver,
-          productionAuthority: input.storyEditorialProductionAuthority,
-        },
-        speechPacingRuntime: {
-          orchestrationId: input.orchestrationId,
-          studySessionId: study.id,
-          studyGoalEvidence: study.initialGoals.map((goal) => ({
-            evidenceId: `${study.id}:speech-pacing-goal:${goal}`,
-            summary: `The saved Edit Reference study goal authorizes generalized ${goal.replaceAll('_', ' ')} speech and pacing analysis without copying source wording, timing, voice identity, captions, or cut maps.`,
-          })),
-          provider: input.speechPacingProvider,
-          transcriptAuthorityResolver: input.speechPacingTranscriptAuthorityResolver,
-          productionAuthority: input.speechPacingProductionAuthority,
-        },
-        audioSoundDesignRuntime: createAudioSoundDesignRuntime({
-          orchestrationId: input.orchestrationId,
-          studySessionId: study.id,
-          studyGoalEvidenceId: `${study.id}:audio-sound-design-goal`,
-          provider: input.audioSoundDesignProvider,
-          sourceAudioRightsBasis: sourceEvidence.provenance.rightsBasis === 'workspace_approved_edit'
-            ? 'unknown'
-            : sourceEvidence.provenance.rightsBasis ?? 'unknown',
-          productionAuthority: input.audioSoundDesignProductionAuthority,
-          reviewedLocalRuntime: input.reviewedLocalAudioSoundDesignRuntime,
-        }),
-      }))
-    } catch {
-      studies.push(createBlockedEditReferenceMediaStudy({
-        referenceAssetId: asset.id,
-        privateAssetId: asset.privateAssetId,
-        sourceEvidenceId: sourceEvidence.id,
-      }, 'reference_media_private_asset_unavailable', 'The private reference asset could not be opened by the approved local runtime. Reconnect it and retry.'))
-    }
+    if (
+      !sourceEvidence
+      || !asset.storageObjectRecordId
+      || !asset.mediaAssetId
+    ) continue
+    const storage = await uploadService.getStorageObjectRecord(
+      asset.storageObjectRecordId,
+      reference.workspaceId,
+    )
+    const object = storage.storageObjectRecord
+    if (
+      (object.editReferenceId ?? object.projectId) !== reference.id
+      || object.mediaAssetId !== asset.mediaAssetId
+      || object.objectPurpose !== 'reference_media'
+      || object.status !== 'ready'
+      || typeof object.checksumSha256 !== 'string'
+      || !/^[a-f0-9]{64}$/u.test(object.checksumSha256)
+    ) throw new ApiError(
+      'TOOL_NOT_READY',
+      'The canonical reference media identity is not ready for Orchestra Visual Intelligence reread.',
+      503,
+      {
+        requiredGate: 'edit_reference_visual_intelligence_source_authority',
+      },
+    )
+    const sourceArtifactRef = orchestraEvidenceRef(
+      asset.mediaAssetId,
+      `sha256:${object.checksumSha256}`,
+    )
+    const result = await input.readPort.readCompletedReferenceAnalysis({
+      ownerUserId: input.ownerUserId,
+      workspaceId: reference.workspaceId,
+      editReferenceId: reference.id,
+      studySessionId: study.id,
+      sourceArtifactRef,
+      sourceEvidenceId: sourceEvidence.id,
+      privateAssetId: asset.privateAssetId,
+      sourceEvidenceRef: orchestraEvidenceRef(
+        sourceEvidence.id,
+        orchestraDigest(sourceEvidence),
+      ),
+      studyAuthorityRef: orchestraEvidenceRef(
+        study.id,
+        orchestraDigest(study),
+      ),
+    })
+    if (result) studies.push(result)
   }
   return studies
 }
 
-function createVisualLanguageRuntime(input: {
-  readonly orchestrationId: string
-  readonly studySessionId: string
-  readonly studyGoalEvidenceId: string
-  readonly provider: QwenVisualUnderstandingProvider
-  readonly productionAuthority?: EditReferenceVisualLanguageProductionAuthority
-  readonly reviewedLocalRuntime?: EditReferenceReviewedLocalVisualLanguageRuntimeOptions
-}): EditReferenceVisualLanguageRuntimeInput {
-  const identity = {
-    orchestrationId: input.orchestrationId,
-    studySessionId: input.studySessionId,
-    studyGoalEvidenceId: input.studyGoalEvidenceId,
+async function resolveEditReferenceVisualIntelligenceBindingScope(input: {
+  readonly context: ServiceContext
+  readonly aggregate: EditReferenceAggregate
+  readonly study: PreferenceStudySessionRecord
+  readonly reference: EditReferenceRecord
+  readonly referenceAssetId: string
+  readonly ownerUserId: string
+}): Promise<Parameters<
+  typeof prepareEditReferenceVisualIntelligenceOrchestraBindingRequest
+>[0]['scope']> {
+  const asset = requireReferenceVideoAsset(
+    input.aggregate,
+    input.study,
+    input.referenceAssetId,
+  )
+  if (!asset.storageObjectRecordId || !asset.mediaAssetId) {
+    throw new ApiError(
+      'REFERENCE_VIDEO_NOT_FINALIZED',
+      'The selected reference does not have an exact finalized private media identity.',
+      409,
+    )
   }
-  if (input.reviewedLocalRuntime) {
-    return {
-      ...identity,
-      runtimeKind: 'reviewed_local_qwen25vl_mlx',
-      ...input.reviewedLocalRuntime,
-    }
+  const activeEvidence = activePreferenceSourceEvidence(
+    input.aggregate.evidence.filter((record) => (
+      record.studySessionId === input.study.id
+    )),
+  )
+  const sourceEvidence = activeEvidence.filter((record) => (
+    record.sourceType === 'reference_video_metadata'
+    && record.editReferenceId === input.reference.id
+    && record.provenance.privateAssetId === asset.privateAssetId
+  ))
+  if (sourceEvidence.length !== 1) {
+    throw new ApiError(
+      'VERSION_CONFLICT',
+      'The selected reference must have exactly one current canonical source-evidence record before Orchestra can bind it.',
+      409,
+      {
+        requiredGate: 'edit_reference_visual_intelligence_source_evidence',
+      },
+    )
   }
-  return {
-    ...identity,
-    runtimeKind: 'provider',
-    provider: input.provider,
-    productionAuthority: input.productionAuthority,
-  }
-}
-
-function createColorTreatmentRuntime(input: {
-  readonly orchestrationId: string
-  readonly studySessionId: string
-  readonly studyGoalEvidenceId: string
-  readonly provider: QwenVisualUnderstandingProvider
-  readonly productionAuthority?: EditReferenceColorTreatmentProductionAuthority
-  readonly reviewedLocalRuntime?: EditReferenceReviewedLocalColorTreatmentRuntimeOptions
-}): EditReferenceColorTreatmentRuntimeInput {
-  const identity = {
-    orchestrationId: input.orchestrationId,
-    studySessionId: input.studySessionId,
-    studyGoalEvidenceId: input.studyGoalEvidenceId,
-  }
-  if (input.reviewedLocalRuntime) {
-    return {
-      ...identity,
-      runtimeKind: 'reviewed_local_qwen25vl_mlx',
-      ...input.reviewedLocalRuntime,
-    }
-  }
-  return {
-    ...identity,
-    runtimeKind: 'provider',
-    provider: input.provider,
-    productionAuthority: input.productionAuthority,
-  }
-}
-
-function createGraphicsMotionRuntime(input: {
-  readonly orchestrationId: string
-  readonly studySessionId: string
-  readonly studyGoalEvidenceId: string
-  readonly provider: QwenVisualUnderstandingProvider
-  readonly productionAuthority?: EditReferenceGraphicsMotionProductionAuthority
-  readonly reviewedLocalRuntime?: EditReferenceReviewedLocalGraphicsMotionRuntimeOptions
-}): EditReferenceGraphicsMotionRuntimeInput {
-  const identity = {
-    orchestrationId: input.orchestrationId,
-    studySessionId: input.studySessionId,
-    studyGoalEvidenceId: input.studyGoalEvidenceId,
-  }
-  if (input.reviewedLocalRuntime) {
-    return {
-      ...identity,
-      runtimeKind: 'reviewed_local_qwen25vl_mlx',
-      ...input.reviewedLocalRuntime,
-    }
+  const storage = (await createUploadService(input.context)
+    .getStorageObjectRecord(
+      asset.storageObjectRecordId,
+      input.reference.workspaceId,
+    )).storageObjectRecord
+  validateLongFormStorageBinding({
+    reference: input.reference,
+    asset,
+    storageObjectRecordId: storage.id,
+    storageEditReferenceId: storage.editReferenceId,
+    storageProjectId: storage.projectId,
+    storageMediaAssetId: storage.mediaAssetId,
+    storageStatus: storage.status,
+    storageObjectPurpose: storage.objectPurpose,
+    storageMimeType: storage.mimeType,
+    storageSizeBytes: storage.sizeBytes,
+    storageChecksumSha256: storage.checksumSha256,
+  })
+  if (
+    storage.integrityVerified !== true
+    || storage.checksumSource !== 'server_computed_bytes'
+  ) {
+    throw new ApiError(
+      'REFERENCE_VIDEO_NOT_FINALIZED',
+      'The selected reference must retain server-verified byte integrity before Orchestra can bind it.',
+      409,
+    )
   }
   return {
-    ...identity,
-    runtimeKind: 'provider',
-    provider: input.provider,
-    productionAuthority: input.productionAuthority,
-  }
-}
-
-function createAudioSoundDesignRuntime(input: {
-  readonly orchestrationId: string
-  readonly studySessionId: string
-  readonly studyGoalEvidenceId: string
-  readonly sourceAudioRightsBasis: 'user_owned' | 'licensed_or_authorized' | 'reference_only' | 'unknown'
-  readonly provider: EditReferenceAudioSoundDesignProvider
-  readonly productionAuthority?: EditReferenceAudioSoundDesignProductionAuthority
-  readonly reviewedLocalRuntime?: EditReferenceReviewedLocalAudioSoundDesignRuntimeOptions
-}): EditReferenceAudioSoundDesignRuntimeInput {
-  const identity = {
-    orchestrationId: input.orchestrationId,
-    studySessionId: input.studySessionId,
-    studyGoalEvidenceId: input.studyGoalEvidenceId,
-    sourceAudioRightsBasis: input.sourceAudioRightsBasis,
-  }
-  if (input.reviewedLocalRuntime) {
-    return {
-      ...identity,
-      runtimeKind: 'reviewed_local_ast_audioset',
-      ...input.reviewedLocalRuntime,
-    }
-  }
-  return {
-    ...identity,
-    runtimeKind: 'provider',
-    provider: input.provider,
-    productionAuthority: input.productionAuthority,
+    ownerUserId: input.ownerUserId,
+    workspaceId: input.reference.workspaceId,
+    editReferenceId: input.reference.id,
+    studySessionId: input.study.id,
+    sourceArtifactRef: orchestraEvidenceRef(
+      asset.mediaAssetId,
+      `sha256:${storage.checksumSha256!}`,
+    ),
+    sourceEvidenceId: sourceEvidence[0]!.id,
+    privateAssetId: asset.privateAssetId,
+    sourceEvidenceRef: orchestraEvidenceRef(
+      sourceEvidence[0]!.id,
+      orchestraDigest(sourceEvidence[0]!),
+    ),
+    studyAuthorityRef: orchestraEvidenceRef(
+      input.study.id,
+      orchestraDigest(input.study),
+    ),
   }
 }
 

@@ -12,6 +12,9 @@ export function validateMaskExecutionInput(input: MaskExecutionInput): MaskExecu
   if (input.allowFinalRender === true) issues.push(blocking('final_render_blocked', 'Final render is out of scope for M15C.'))
   if ((input.arbitraryModelArgs?.length ?? 0) > 0) issues.push(blocking('arbitrary_model_args', 'Arbitrary model args are blocked.'))
   if ((input.arbitraryFfmpegArgs?.length ?? 0) > 0) issues.push(blocking('arbitrary_ffmpeg_args', 'Arbitrary FFmpeg args are blocked.'))
+  if (input.selectedPrimaryTool === 'sam2' || input.fallbackTools?.includes('sam2') || input.legacySam2InputRejected === true) {
+    issues.push(blocking('sam2_historical_only', 'SAM 2 cannot be selected for new mask work; the canonical SAM 3.1 route is required.'))
+  }
 
   for (const [label, value] of [
     ['sourceImageLocalPath', input.sourceImageLocalPath],
@@ -19,7 +22,6 @@ export function validateMaskExecutionInput(input: MaskExecutionInput): MaskExecu
     ['proxyVideoLocalPath', input.proxyVideoLocalPath],
     ['outputDirectory', input.outputDirectory],
     ['birefnetModelLocalPath', input.birefnetModelLocalPath],
-    ['sam2CheckpointLocalPath', input.sam2CheckpointLocalPath],
   ] as const) {
     if (!value) continue
     try {
@@ -95,6 +97,25 @@ export function validateMaskTaskPlan(plan: MaskTaskPlan): MaskExecutionValidatio
   if (plan.maskIntent === 'text_behind_subject' && !plan.expectedArtifacts.includes('render_manifest')) {
     issues.push(blocking('depth_manifest_missing', 'Text-behind-subject plans require metadata-only depth composition manifest artifact.'))
   }
+  if ((plan.primaryTool as string) === 'sam2' || (plan.fallbackTools as string[]).includes('sam2')) {
+    issues.push(blocking('sam2_historical_only', 'A new mask task plan must not contain SAM 2.'))
+  }
+  if (
+    plan.canonicalGpuExecutionPolicy.cpuOnlySubstantiveExecutionAllowed
+    || !plan.canonicalGpuExecutionPolicy.userTriggeredScaleFromZeroRequired
+    || !plan.canonicalGpuExecutionPolicy.stopAfterTerminalAttemptRequired
+    || !plan.canonicalGpuExecutionPolicy.canonicalRuntimeReleaseRequired
+  ) {
+    issues.push(blocking('canonical_gpu_execution_policy_invalid', 'Mask model/media work must remain on the qualified user-triggered A100/L4 scale-zero path.'))
+  }
+  if (
+    (plan.maskIntent === 'background_removal_video' || plan.maskIntent === 'text_behind_subject')
+    && (!plan.canonicalGpuExecutionPolicy.completeSelectedIntervalRequired
+      || plan.canonicalGpuExecutionPolicy.placementClass !== 'a100_80gb_heavy_primary_l4_qualified_fallback'
+      || plan.primaryTool !== 'sam3_1')
+  ) {
+    issues.push(blocking('sam3_1_video_gpu_coverage_required', 'Video masks require SAM 3.1 over the complete selected interval on the qualified A100/L4 path.'))
+  }
   return {
     valid: !issues.some((issue) => issue.severity === 'blocking'),
     issues,
@@ -104,6 +125,7 @@ export function validateMaskTaskPlan(plan: MaskTaskPlan): MaskExecutionValidatio
 function requiresStructuredSubjectSelection(input: MaskExecutionInput): boolean {
   return input.maskIntent === 'background_removal_video' ||
     input.maskIntent === 'text_behind_subject' ||
+    input.selectedPrimaryTool === 'sam3_1' ||
     input.selectedPrimaryTool === 'sam2' ||
     input.motionRequiresTracking === true
 }

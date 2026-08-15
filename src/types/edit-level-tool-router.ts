@@ -7,7 +7,7 @@ import type { OpenSourceToolId } from './reeditpro'
 
 export type EditLevelToolCapabilityId =
   | 'qwen_3_reasoning'
-  | 'qwen25vl_visual_understanding'
+  | 'visual_intelligence'
   | 'speech_transcript'
   | 'media_extraction'
   | 'audio_soundsync'
@@ -61,7 +61,7 @@ export interface EditLevelToolRouterSideEffectFlags {
   mockOnly: true
   providerCallMade: false
   qwen3CallMade: false
-  qwen25vlCallMade: false
+  visualIntelligenceCallMade: false
   deepSeekCallMade: false
   mediaProcessingStarted: false
   transcriptStarted: false

@@ -5,6 +5,7 @@ import {
   CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES,
   CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_FRAMES,
   CANONICAL_PRIVATE_SOURCE_SEQUENCE_MAXIMUM_ITEMS,
+  CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_FRAMES,
 } from '../../../src/types/canonical-private-composition-capacity'
 import { ApiError } from '../../errors/api-error'
 
@@ -234,6 +235,8 @@ export interface OfflineRemotionVoiceTrackPlanningPayload {
   sourceSequenceItemId: string
   outputKey: string
   durationFrames: number
+  sourceStartFrame?: number
+  sourceEndFrameExclusive?: number
 }
 
 export interface OfflineRemotionSupplementalAudioTrackPlanningPayload {
@@ -398,6 +401,8 @@ export interface OfflineRemotionCommittedVoiceTrack {
   sourceSequenceItemId: string
   outputKey: string
   durationFrames: number
+  sourceStartFrame?: number
+  sourceEndFrameExclusive?: number
   mimeType: 'audio/wav'
   byteLength: number
   sha256: string
@@ -827,11 +832,7 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
       ) ||
       (sourceMediaPolicyProvided && !approvedColorIntermediate) ||
       (approvedColorIntermediate && (
-        payload.audioPolicy !== 'replace_with_approved_voice_tracks' ||
-        sourceSegments.some((segment) =>
-          segment.sourceStartFrame !== 0 ||
-          segment.sourceEndFrameExclusive !==
-            segment.timelineEndFrameExclusive - segment.timelineStartFrame)
+        payload.audioPolicy !== 'replace_with_approved_voice_tracks'
       ))
     ) throw validationFailure('Source-sequence final composition policy is unsupported.')
     const commonResult = {
@@ -979,8 +980,7 @@ export function validateOfflineRemotionFinalCompositionPlanningPayload(
     sourceEndFrameExclusive - sourceStartFrame !== common.durationFrames
     || (sourceMediaPolicyProvided && !approvedColorIntermediate)
     || (approvedColorIntermediate && (
-      payload.audioPolicy !== 'replace_with_approved_voice_tracks' ||
-      sourceStartFrame !== 0 || sourceEndFrameExclusive !== common.durationFrames
+      payload.audioPolicy !== 'replace_with_approved_voice_tracks'
     ))
   ) throw validationFailure('Final composition policy is unsupported.')
   const commonResult = {
@@ -1819,8 +1819,8 @@ function captionOverlayCues(
   value: unknown,
   durationFrames: number,
 ): OfflineRemotionCaptionOverlayCuePlanningPayload[] {
-  if (!Array.isArray(value) || value.length < 1 || value.length > 7) {
-    throw validationFailure('Caption-track composition requires one to seven approved cues.')
+  if (!Array.isArray(value) || value.length > 7) {
+    throw validationFailure('Caption-track composition supports zero to seven approved cues.')
   }
   const seen = new Set<string>()
   let previousEndFrame = 0
@@ -2273,6 +2273,12 @@ function committedVoiceTracks(
       sourceSequenceItemId: authority.sourceSequenceItemId,
       outputKey: authority.outputKey,
       durationFrames: authority.durationFrames,
+      ...(authority.sourceStartFrame === undefined
+        ? {}
+        : {
+            sourceStartFrame: authority.sourceStartFrame,
+            sourceEndFrameExclusive: authority.sourceEndFrameExclusive!,
+          }),
       mimeType: 'audio/wav' as const,
       byteLength: committed.bytes.byteLength,
       sha256: committed.sha256,
@@ -2293,10 +2299,19 @@ function voiceTrackPlanningFromCommitments(
   }
   return value.map((candidate, index) => {
     const track = record(candidate, `voice-track commitment ${index + 1}`)
+    const sourceSliceProvided =
+      Object.hasOwn(track, 'sourceStartFrame') ||
+      Object.hasOwn(track, 'sourceEndFrameExclusive')
     return {
       sourceSequenceItemId: String(track.sourceSequenceItemId ?? ''),
       outputKey: String(track.outputKey ?? ''),
       durationFrames: Number(track.durationFrames),
+      ...(sourceSliceProvided
+        ? {
+            sourceStartFrame: Number(track.sourceStartFrame),
+            sourceEndFrameExclusive: Number(track.sourceEndFrameExclusive),
+          }
+        : {}),
     }
   })
 }
@@ -2311,10 +2326,17 @@ function decodeVoiceTrackRecords(
   }
   let totalBytes = 0
   const tracks = value.map((candidate, index) => {
+    const rawTrack = record(candidate, `voice-track commitment ${index + 1}`)
+    const sourceSliceProvided =
+      Object.hasOwn(rawTrack, 'sourceStartFrame') ||
+      Object.hasOwn(rawTrack, 'sourceEndFrameExclusive')
     const track = exactRecord(
       candidate,
       [
         'sourceSequenceItemId', 'outputKey', 'durationFrames',
+        ...(sourceSliceProvided
+          ? ['sourceStartFrame', 'sourceEndFrameExclusive']
+          : []),
         'mimeType', 'byteLength', 'sha256', 'bytesBase64',
       ],
       `voice-track commitment ${index + 1}`,
@@ -2324,6 +2346,11 @@ function decodeVoiceTrackRecords(
       track.sourceSequenceItemId !== authority.sourceSequenceItemId ||
       track.outputKey !== authority.outputKey ||
       track.durationFrames !== authority.durationFrames ||
+      (sourceSliceProvided !== (authority.sourceStartFrame !== undefined)) ||
+      (sourceSliceProvided && (
+        track.sourceStartFrame !== authority.sourceStartFrame ||
+        track.sourceEndFrameExclusive !== authority.sourceEndFrameExclusive
+      )) ||
       track.mimeType !== 'audio/wav' ||
       !Number.isSafeInteger(track.byteLength) ||
       typeof track.sha256 !== 'string' || !SHA256.test(track.sha256) ||
@@ -2342,6 +2369,12 @@ function decodeVoiceTrackRecords(
       sourceSequenceItemId: authority.sourceSequenceItemId,
       outputKey: authority.outputKey,
       durationFrames: authority.durationFrames,
+      ...(authority.sourceStartFrame === undefined
+        ? {}
+        : {
+            sourceStartFrame: authority.sourceStartFrame,
+            sourceEndFrameExclusive: authority.sourceEndFrameExclusive!,
+          }),
       mimeType: 'audio/wav' as const,
       byteLength: bytes.byteLength,
       sha256: String(track.sha256),
@@ -2465,9 +2498,18 @@ function voiceTrackPlanningPayloads(
   const outputKeys = new Set<string>()
   const sourceIds = new Set<string>()
   return value.map((candidate, index) => {
+    const rawTrack = record(candidate, `approved voice track ${index + 1}`)
+    const sourceSliceProvided =
+      Object.hasOwn(rawTrack, 'sourceStartFrame') ||
+      Object.hasOwn(rawTrack, 'sourceEndFrameExclusive')
     const track = exactRecord(
       candidate,
-      ['sourceSequenceItemId', 'outputKey', 'durationFrames'],
+      [
+        'sourceSequenceItemId', 'outputKey', 'durationFrames',
+        ...(sourceSliceProvided
+          ? ['sourceStartFrame', 'sourceEndFrameExclusive']
+          : []),
+      ],
       `approved voice track ${index + 1}`,
     )
     const sourceSequenceItemId = safeIdentity(
@@ -2478,19 +2520,53 @@ function voiceTrackPlanningPayloads(
     const durationFrames = integer(
       track.durationFrames,
       1,
-      CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES,
+      sourceSliceProvided
+        ? CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_FRAMES
+        : CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES,
       'voice track durationFrames',
     )
     const expectedTrack = expected[index]!
+    const sourceStartFrame = sourceSliceProvided
+      ? integer(
+          track.sourceStartFrame,
+          0,
+          CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_FRAMES - 1,
+          'voice track sourceStartFrame',
+        )
+      : undefined
+    const sourceEndFrameExclusive = sourceSliceProvided
+      ? integer(
+          track.sourceEndFrameExclusive,
+          1,
+          CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_MAXIMUM_FRAMES,
+          'voice track sourceEndFrameExclusive',
+        )
+      : undefined
     if (
       outputKeys.has(outputKey) || sourceIds.has(sourceSequenceItemId) ||
       (expectedTrack.sourceSequenceItemId !== undefined &&
         sourceSequenceItemId !== expectedTrack.sourceSequenceItemId) ||
-      durationFrames !== expectedTrack.durationFrames
+      (
+        sourceSliceProvided
+          ? (
+              sourceEndFrameExclusive! <= sourceStartFrame! ||
+              sourceEndFrameExclusive! > durationFrames ||
+              sourceEndFrameExclusive! - sourceStartFrame! !==
+                expectedTrack.durationFrames
+            )
+          : durationFrames !== expectedTrack.durationFrames
+      )
     ) throw validationFailure('Approved voice-track identity, order, or duration is invalid.')
     outputKeys.add(outputKey)
     sourceIds.add(sourceSequenceItemId)
-    return { sourceSequenceItemId, outputKey, durationFrames }
+    return {
+      sourceSequenceItemId,
+      outputKey,
+      durationFrames,
+      ...(sourceSliceProvided
+        ? { sourceStartFrame, sourceEndFrameExclusive }
+        : {}),
+    }
   })
 }
 

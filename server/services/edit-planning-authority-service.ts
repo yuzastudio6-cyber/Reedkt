@@ -75,6 +75,9 @@ import {
 import {
   revalidateCanonicalSourceLedChatPlanBinding,
 } from './canonical-source-led-chat-direction-service'
+import {
+  revalidateCanonicalSourceCleanupPlanAuthority,
+} from './canonical-source-cleanup-authority-repository'
 import { createProjectService } from './project-service'
 import {
   type AuthorityApprovedSnapshotManifest,
@@ -293,6 +296,7 @@ export function canonicalPlanningHandoffPublicationRequestHash(input: {
   handoffId: string
   handoffHash: string
   body: PublishCanonicalEditPlanBody
+  professionalLongFormSeedDraft?: unknown
 }): string {
   return sha256AuthorityValue({
     operation: 'publish_canonical_plan_from_persisted_handoff',
@@ -301,6 +305,12 @@ export function canonicalPlanningHandoffPublicationRequestHash(input: {
     editSessionId: input.editSessionId,
     handoffId: input.handoffId,
     handoffHash: input.handoffHash,
+    ...(input.professionalLongFormSeedDraft === undefined
+      ? {}
+      : {
+          professionalLongFormSeedDraft:
+            input.professionalLongFormSeedDraft,
+        }),
     planningRequestId: input.body.planningRequestId,
     revisionAuthority: input.body.revisionAuthority,
     canonicalPlan: input.body.canonicalPlan,
@@ -518,6 +528,8 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
           handoffId: planningHandoffBinding.handoffId,
           handoffHash: planningHandoffBinding.handoffHash,
           body,
+          professionalLongFormSeedDraft:
+            input.professionalLongFormSeedDraft,
         }) ||
         planningHandoffBinding.idempotencyKeyHash !==
           canonicalPlanningHandoffIdempotencyKeyHash(idempotencyKey)
@@ -1275,6 +1287,15 @@ export function createEditPlanningAuthorityService(context: ServiceContext) {
             compiledIntent: approvalComponents.compiledIntent,
             confirmedAspectRatio:
               approvalComponents.confirmedSettings.aspectRatio,
+          })
+          await revalidateCanonicalSourceCleanupPlanAuthority({
+            readPort: context.canonicalSourceCleanupAuthorityReadPort,
+            ownerUserId: access.userId,
+            workspaceId: access.workspaceId,
+            projectId: plan.projectId,
+            editSessionId: plan.editSessionId,
+            sourceSequence: approvalComponents.sourceSequence,
+            compiledIntent: approvalComponents.compiledIntent,
           })
           const lockedStorytellingProductionAuthority =
             await revalidateCanonicalMotionStudioStorytellingProductionAuthority({
@@ -2659,6 +2680,14 @@ function assertLivingFrameExecutionAuthorityReady(
     }
     return
   }
+  const projectedRembgGpuMaskWorkItemCount =
+    estimateWorkAssetProjection.scenes.reduce(
+      (count, scene) => count + scene.workRequirements.filter(
+        (work) => work.operationClass ===
+          'remove_still_image_background',
+      ).length,
+      0,
+    )
   if (
     requirements.readiness !==
       'blocked_until_canonical_execution_projection'
@@ -2709,12 +2738,10 @@ function assertLivingFrameExecutionAuthorityReady(
           .admittedExactSourceFrameWorkItemCount
     || workGraphProjection.metrics
       .admittedExactSourceFrameWorkItemCount !==
-      estimateWorkAssetProjection.metrics
-        .projectedGpuWorkItemCount
+      projectedRembgGpuMaskWorkItemCount
     || workGraphProjection.metrics
       .admittedRembgGpuMaskWorkItemCount !==
-      estimateWorkAssetProjection.metrics
-        .projectedGpuWorkItemCount
+      projectedRembgGpuMaskWorkItemCount
     || workGraphProjection.metrics
       .admittedSharpComponentWorkItemCount !==
       publication.binding.selectedSceneCount

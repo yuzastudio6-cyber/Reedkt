@@ -137,13 +137,9 @@ function readStringArray(value: unknown, context: string): string[] {
 }
 
 function readProductionToolIds(value: unknown, context: string): ProductionToolId[] {
-  return readStringArray(value, context).map((toolId) => {
-    if (!isProductionToolId(toolId)) {
-      throw new Error(`${context} contains non-production fallback tool ID: ${toolId}`)
-    }
-
-    return toolId
-  })
+  // Study metadata may preserve historical or unqualified candidates, but an
+  // active planner card may expose only canonical private-E2E fallback IDs.
+  return readStringArray(value, context).filter(isProductionToolId)
 }
 
 function readOperationId(value: unknown, context: string): ToolCallingOperationId {
@@ -451,13 +447,27 @@ export function listExplicitToolStudyCards(): ToolCapabilityStudyCard[] {
   }
 
   return readdirSync(STUDY_CARDS_DIRECTORY)
-    .filter((fileName) => fileName.endsWith('.json'))
+    .filter((fileName) =>
+      fileName.endsWith('.json')
+      && !fileName.startsWith('._'))
     .sort()
-    .map((fileName) => {
+    .flatMap((fileName) => {
       const fileUrl = new URL(fileName, STUDY_CARDS_DIRECTORY)
       const parsed = JSON.parse(readFileSync(fileUrl, 'utf8')) as unknown
-      return readToolCapabilityStudyCard(parsed, fileName)
+      if (hasRetiredOrNonE2EToolId(parsed)) {
+        return []
+      }
+      return [readToolCapabilityStudyCard(parsed, fileName)]
     })
+}
+
+function hasRetiredOrNonE2EToolId(value: unknown): boolean {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  const toolId = (value as Record<string, unknown>).toolId
+  // A legacy study file is not dispatch or selection authority. Candidates
+  // such as SAM 3.1 are admitted through their canonical owner/release path,
+  // while SAM 2 remains historical-only.
+  return typeof toolId === 'string' && !isProductionToolId(toolId)
 }
 
 export function listGeneratedToolCapabilityCards(): ToolCapabilityCard[] {

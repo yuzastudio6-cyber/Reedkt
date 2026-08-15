@@ -276,7 +276,7 @@ try {
         'initialized preference revision',
       ),
       patch: {
-        editLevel: 'basic',
+        editLevel: 'premium',
         workflowType: 'simple_clean_edit',
         cleanupPreference: 'preserve_natural',
         visualPreference: 'no_extra_visuals',
@@ -360,6 +360,8 @@ try {
         pacingPreference: 'natural',
         captionPreference: 'minimal',
         musicPreference: 'none',
+        bRollPreference:
+          'Do not add B-roll; keep the real speaker and source footage primary.',
         status: 'ready',
       },
     },
@@ -974,7 +976,11 @@ try {
   const privatePreparationProgress = record(privatePreparation.progress)
   const privatePreparationReadiness = record(privatePreparation.readiness)
   assert.equal(privatePreparation.disposition, 'in_progress')
-  assert.equal(privatePreparationProgress.totalJobCount, 5)
+  assert.equal(
+    privatePreparationProgress.totalJobCount,
+    7,
+    'Source-led review should include the five canonical edit jobs plus the approved voice and color preparation jobs.',
+  )
   assert.equal(
     privatePreparationReadiness.nextRequiredGate,
     'canonical_private_work_graph_advancement',
@@ -987,6 +993,30 @@ try {
     journeyUrl:
       `${baseUrl}/v1/projects/${projectId}/edit-sessions/${editSessionId}` +
       `/canonical-journey?workspaceId=${encodeURIComponent(workspaceId)}`,
+    retryPreparation: async () => {
+      const retryResponse = await jsonRequest({
+        url:
+          `${baseUrl}/v1/edit-executions/packages/${packageRecordId}` +
+          '/canonical-private-edit-preparation',
+        method: 'POST',
+        idempotencyKey:
+          'source-led-route-private-edit-preparation-explicit-retry',
+        body: {
+          workspaceId,
+          expectedProjectId: projectId,
+          expectedEditSessionId: editSessionId,
+          expectedSnapshotId: snapshotId,
+          expectedSnapshotHash: snapshotHash,
+          expectedPackageHash: packageHash,
+          purpose: 'prepare_canonical_private_edit_review',
+        },
+      })
+      assert.equal(
+        retryResponse.status,
+        202,
+        `Explicit approved retry should be acknowledged: ${JSON.stringify(retryResponse.json)}`,
+      )
+    },
     timeoutMs: 30 * 60 * 1_000,
   })
   const privateReview = record(privateReviewJourney.review)
@@ -1346,6 +1376,30 @@ try {
     journeyUrl:
       `${baseUrl}/v1/projects/${projectId}/edit-sessions/${editSessionId}` +
       `/canonical-journey?workspaceId=${encodeURIComponent(workspaceId)}`,
+    retryPreparation: async () => {
+      const retryResponse = await jsonRequest({
+        url:
+          `${baseUrl}/v1/edit-executions/packages/` +
+          `${replacementPackageRecordId}/canonical-private-edit-preparation`,
+        method: 'POST',
+        idempotencyKey:
+          'source-led-route-replacement-private-preparation-explicit-retry',
+        body: {
+          workspaceId,
+          expectedProjectId: projectId,
+          expectedEditSessionId: editSessionId,
+          expectedSnapshotId: replacementSnapshotId,
+          expectedSnapshotHash: replacementSnapshotHash,
+          expectedPackageHash: replacementPackageHash,
+          purpose: 'prepare_canonical_private_edit_review',
+        },
+      })
+      assert.equal(
+        retryResponse.status,
+        202,
+        `Replacement explicit retry should be acknowledged: ${JSON.stringify(retryResponse.json)}`,
+      )
+    },
     timeoutMs: 30 * 60 * 1_000,
   })
   const replacementReview = record(replacementReviewJourney.review)
@@ -1569,11 +1623,13 @@ try {
 
 async function waitForPrivateReviewJourney(input: {
   journeyUrl: string
+  retryPreparation?: () => Promise<void>
   timeoutMs: number
 }): Promise<Record<string, unknown>> {
   const deadline = Date.now() + input.timeoutMs
   let lastProgress = ''
   let blockedSince: number | undefined
+  let explicitRetryRequested = false
   while (Date.now() < deadline) {
     const response = await jsonRequest({
       url: input.journeyUrl,
@@ -1605,6 +1661,13 @@ async function waitForPrivateReviewJourney(input: {
       lastProgress = progressSummary
     }
     if (progress?.status === 'blocked_required_jobs') {
+      if (!explicitRetryRequested && input.retryPreparation) {
+        explicitRetryRequested = true
+        await input.retryPreparation()
+        blockedSince = undefined
+        await delay(2_000)
+        continue
+      }
       blockedSince ??= Date.now()
       if (Date.now() - blockedSince >= 30_000) {
         const blockedRun = await readBlockedWorkGraphRunDiagnostic()
@@ -1668,6 +1731,10 @@ async function readBlockedWorkGraphRunDiagnostic(): Promise<unknown> {
         originalCode: value.failure.failure.originalCode,
         executionState: value.failure.failure.executionState,
         attemptNumber: value.failure.failure.attemptNumber,
+        diagnosticClass: value.failure.failure.diagnosticClass,
+        diagnosticFingerprintSha256:
+          value.failure.failure.diagnosticFingerprintSha256,
+        originRequiredGate: value.failure.failure.originRequiredGate,
       })
     }
     if (Array.isArray(value.response?.jobs) && outcomes.length === 0) {

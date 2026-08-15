@@ -26,8 +26,10 @@ digests and measurements only.
 
 The runtime must be non-root UID/GID `65532:65532`, read-only, capability-free,
 no-new-privileges, network-disabled, and provided only ephemeral writable
-operation roots. The operation-scoped import guard denies inherited `sam2`;
-the separately governed SAM2 operation is unaffected.
+operation roots. The operation-scoped import guard denies inherited `sam2`.
+There is no active SAM2 operation: immutable historical records remain
+readable only through their original evidence contracts, while every new
+segmentation/tracking plan uses the separately qualified SAM 3.1 owner path.
 
 These sources do not authorize a production registry entry, dispatch, model
 ingest, customer charge, asset-manifest mutation, QA approval, public

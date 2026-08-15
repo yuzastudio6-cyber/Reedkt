@@ -260,6 +260,7 @@ export function createCanonicalPrivateJobCompletionRecoveryService(context: Serv
           reconciliationId: reconciliation.reconciliationId,
           consumedDispatchGrantId: dispatch?.id ?? null,
           consumedDispatchGrantHash: dispatch?.immutableGrantHash ?? null,
+          internalAttemptCostProfileId: input.attemptCostProfileId,
           internalAttemptCostEvidenceHash: attemptCost?.evidenceHash ?? null,
           responseHash: response.responseHash,
           executionCompletedAt: lease.executionFence.completedAt,
@@ -604,7 +605,8 @@ function assertExistingRecoveryMatches(
   if (
     record.evidence.leaseImmutableHash !== lease.immutableLeaseHash ||
     record.evidence.leaseDependencyAuthorityHash !== lease.dependencyAuthorityHash ||
-    record.evidence.executionCompletedAt !== lease.executionFence.completedAt
+    record.evidence.executionCompletedAt !== lease.executionFence.completedAt ||
+    record.evidence.internalAttemptCostProfileId !== input.attemptCostProfileId
   ) {
     throw new ApiError('IDEMPOTENCY_CONFLICT', 'Completed-execution recovery lease evidence changed.', 409)
   }

@@ -7,7 +7,7 @@ The router produces degraded notices when a selected level references a future m
 | Missing capability | Safe fallback |
 | --- | --- |
 | Qwen 3.7 | Use deterministic reasoning fallback and say Qwen did not run. |
-| Qwen2.5-VL | Use visible-context/source-summary fallback or lower visual depth. |
+| Visual Intelligence | Use deterministic visible-context/source-summary fallback or lower visual depth without claiming semantic inspection ran. |
 | Transcript | Use source summary and ask for clarification when speech meaning matters. |
 | Audio/SoundSync | Use a basic voice-first audio policy and do not claim beat/waveform analysis. |
 | Graphic/design understanding | Use basic captions/cards and controlled layout guidance. |

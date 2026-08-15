@@ -19,7 +19,7 @@ export type UnsafeEditLevelEstimatePackage =
 const falseFlagKeys: Array<Exclude<keyof EditLevelEstimateSideEffectFlags, 'mockOnly'>> = [
   'providerCallMade',
   'qwenCallMade',
-  'qwen25vlCallMade',
+  'visualIntelligenceCallMade',
   'deepseekCallMade',
   'plannerExecuted',
   'editPlanCreated',

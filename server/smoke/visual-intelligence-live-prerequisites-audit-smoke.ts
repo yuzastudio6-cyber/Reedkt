@@ -1,0 +1,274 @@
+import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
+import { readFileSync } from 'node:fs'
+
+const source = readFileSync(
+  'scripts/gcp/prod/16-audit-visual-intelligence-live-prerequisites.sh',
+  'utf8',
+)
+const accountPriceReadinessSource = readFileSync(
+  'scripts/gcp/prod/read-visual-intelligence-account-price-readiness.mjs',
+  'utf8',
+)
+
+assert.match(source, /PROJECT_ID='reeditpro'/u)
+assert.match(source, /weeditpro-visual-intelligence-live-prerequisites-v22/u)
+assert.match(source, /observed_at="\$\(date -u/u)
+assert.match(source, /observedAt: \$observedAt/u)
+assert.match(source, /REGION='us-central1'/u)
+assert.match(source, /NVIDIA_A100_80GB_GPUS/u)
+assert.match(source, /NVIDIA_L4_GPUS/u)
+assert.match(source,
+  /A100_QUOTA_PREFERENCE_ID='reeditpro-a100-80gb-us-central1-1'/u)
+for (const candidate of [
+  ['us-central1', 'reeditpro-a100-80gb-us-central1-1'],
+  ['us-east4', 'weeditpro-a100-80gb-us-east4-1'],
+  ['us-east5', 'weeditpro-a100-80gb-us-east5-1'],
+] as const) {
+  assert.match(source, new RegExp(candidate[0], 'u'))
+  assert.match(source, new RegExp(candidate[1], 'u'))
+}
+assert.match(source, /gcloud beta quotas preferences describe/u)
+assert.match(source, /a100QuotaPreference: \$a100QuotaPreference/u)
+assert.match(source, /a100CapacityCandidates: \$a100CapacityCandidates/u)
+assert.match(source, /a100CandidateRequestCount/u)
+assert.match(source, /a100PendingReviewCount/u)
+assert.match(source, /a100GrantedCandidateCount/u)
+assert.match(source, /a100DispatchReadyCandidateCount/u)
+assert.match(source, /resourceFoundationObserved/u)
+assert.match(source, /dispatchCapacityReady/u)
+assert.match(source,
+  /VERTEX_A100_QUOTA_PREFERENCE_ID='weeditpro-vertex-a100-80gb-us-central1-1'/u)
+assert.match(source,
+  /VERTEX_A100_QUOTA_ID='CustomModelTrainingA10080GBGPUsPerProjectPerRegion'/u)
+assert.match(source, /gcloud beta quotas info describe/u)
+assert.match(source, /vertexA100CustomJobCapacity/u)
+assert.match(source, /userTriggeredCustomJobOnly: true/u)
+assert.match(source, /persistentEndpointAllowed: false/u)
+assert.match(source, /restrictedImageTrainingQuotaMayBeUsed: false/u)
+assert.match(source, /VERTEX_A100_ROUTE_ARCHITECTURE_SOURCE_BINDINGS/u)
+assert.match(source, /sha256_file/u)
+assert.match(source, /routeArchitectureQualified: \$routeArchitectureQualified/u)
+assert.match(source, /routeArchitectureSourceBindingCount: \$routeArchitectureSourceBindingCount/u)
+assert.match(source, /and \$routeArchitectureQualified/u)
+for (const sourceHash of [
+  '00c962fb1baf39dd9e3b88fc0254a69673cf2ef3da1bb977a8de7e21837cc2d2',
+  '3f1170ca5049d673a55dddb2a6a0d45435efd614ba112483650e32e68101f3dd',
+  '5eebff824a6d0672c522747e79d3a8ee68d3cac2e8af250a1b11578cc8082596',
+  'f01a834c0d67a6c64eda9251f6db14b2db135628ddb12929b46d7b36d4a30b89',
+  'd14267f1a3162d60ecefcc9d9a3b4bea3cb0968b0a4b9d3d13fd68101846ceb5',
+  'f986ae3a1e87559ce9299ee98f78bc9d05a745bb51511ac1f812245634c84c37',
+  'ed27af38bc5013fe8d2d8444d1e3546e5c2f9e8531fa81a38d4ba364fe5e3660',
+  '01594033a52078d7c959802387ceb195fd52bcb83271dcf16065cfe02c3192d6',
+  '4568e3f1a45872298dcb6f56629776277a53b45deb503652bdbffd16ae2c9731',
+  '12f2ae01e9d0ceb8ba0d6853845b4bab8b513b030c1b24b95fcfd551b7fb73c6',
+  '6bdcf10f1cb7c76c980c9fee23d625fdc224f7b0fec85796a4a4c339a6c0a77e',
+  '2f0829a64706fae863af428a306f370b496b46e6a272434b3a6d0415e41b787a',
+] as const) assert.match(source, new RegExp(sourceHash, 'u'))
+
+const vertexRouteSourceBindings = [...source.matchAll(
+  /'([a-f0-9]{64})\|([^']+)'/gu,
+)].map((match) => ({
+  expectedSha256: match[1],
+  repositoryPath: match[2],
+}))
+assert.equal(vertexRouteSourceBindings.length, 12)
+for (const binding of vertexRouteSourceBindings) {
+  assert.equal(
+    createHash('sha256')
+      .update(readFileSync(binding.repositoryPath))
+      .digest('hex'),
+    binding.expectedSha256,
+    `Stale Vertex A100 route source binding: ${binding.repositoryPath}`,
+  )
+}
+assert.match(source, /disposition/u)
+assert.match(source, /capacityGranted/u)
+assert.match(source, /a100QualificationFoundation/u)
+assert.match(source, /weeditpro-sam31-qualification-a100-v1/u)
+assert.match(source, /a2-ultragpu-1g/u)
+assert.match(source, /batch-debian-11-official-20260730-00-p01/u)
+assert.match(source, /weeditpro-sam31-qual-sa@reeditpro\.iam\.gserviceaccount\.com/u)
+assert.match(source, /reeditpro-production-sam31-qualification-private/u)
+assert.match(source, /roles\/batch\.agentReporter/u)
+assert.match(source, /roles\/cloudkms\.cryptoKeyEncrypterDecrypter/u)
+assert.match(source, /activeQualificationBatchJobs/u)
+assert.match(source, /activeQualificationInstances/u)
+assert.match(source, /scaleFromZeroClean/u)
+assert.match(source, /gcloud batch jobs list/u)
+assert.match(source, /gcloud compute instances list/u)
+assert.match(source, /gcloud secrets versions list/u)
+assert.match(source, /--filter='state=ENABLED'/u)
+assert.match(source, /containerscanning\.googleapis\.com/u)
+assert.match(source, /cloudbilling\.googleapis\.com/u)
+assert.match(source, /bigquery\.googleapis\.com/u)
+assert.match(source, /bigquerydatatransfer\.googleapis\.com/u)
+assert.match(source, /cloudkms\.googleapis\.com/u)
+assert.match(source, /binaryauthorization\.googleapis\.com/u)
+assert.match(source, /gcloud billing projects describe/u)
+assert.match(source,
+  /read-visual-intelligence-account-price-readiness\.mjs/u)
+assert.match(source, /BILLING_EXPORT_DATASET='weeditpro_billing_export'/u)
+assert.match(source, /gcp_billing_export_resource_v1_/u)
+assert.match(source, /cloud_pricing_export/u)
+assert.match(source, /accountEffectiveBillingExportFoundation/u)
+assert.match(source, /exportDataPrinted: false/u)
+assert.match(source, /gcloud run jobs list/u)
+assert.match(source, /gcloud run services list/u)
+assert.match(source, /retiredLegacyCpuMediaRuntime/u)
+assert.match(source, /fixedAllowlistCount: 15/u)
+assert.match(source, /legacyCpuMediaRuntimeJobs/u)
+assert.match(source, /privateSearchControlPlaneIdentityIsolation/u)
+assert.match(source, /reeditpro-private-search-sa@reeditpro\.iam\.gserviceaccount\.com/u)
+assert.match(source, /legacyCpuIdentitiesRetired/u)
+assert.match(source, /legacyIdentityAllowlistCount: 5/u)
+assert.match(source, /substantiveMediaOrModelProcessingAllowed: false/u)
+assert.match(source, /allAuthenticatedUsers/u)
+assert.match(source, /gcloud artifacts docker images list/u)
+assert.match(source, /reeditpro-sam31-qualification/u)
+assert.match(source, /immutableSam31QualificationImagesObserved/u)
+assert.match(source, /reeditpro-track-all-l4-task-qa/u)
+assert.match(source, /immutableTrackAllL4TaskQaImagesObserved/u)
+assert.match(source, /immutableGpuWorkerImageSetReady/u)
+assert.match(source, /gcloud artifacts repositories describe/u)
+assert.match(source, /vulnerabilityScanningConfig\.enablementState/u)
+assert.match(source, /SCANNING_ACTIVE/u)
+assert.match(source, /gcloud artifacts repositories get-iam-policy/u)
+assert.match(source, /roles\/artifactregistry\.writer/u)
+assert.match(source, /gcloud storage buckets describe/u)
+assert.match(source, /gcloud storage buckets get-iam-policy/u)
+assert.match(source, /uniform_bucket_level_access/u)
+assert.match(source, /public_access_prevention/u)
+assert.match(source, /gcloud iam service-accounts describe/u)
+assert.match(source, /gcloud iam service-accounts get-iam-policy/u)
+assert.match(source, /gcloud kms keys describe/u)
+assert.match(source, /gcloud kms keys versions list/u)
+assert.match(source, /--filter='state=ENABLED'/u)
+assert.match(source, /gcloud kms keys get-iam-policy/u)
+assert.match(source, /roles\/cloudkms\.signerVerifier/u)
+assert.match(source, /EC_SIGN_P256_SHA256/u)
+assert.match(source, /versionTemplate\.protectionLevel == "HSM"/u)
+assert.match(source, /eligibleHsmP256VersionCount/u)
+assert.match(source, /cloudBuildCanUseImageSigner/u)
+assert.match(source, /gpuWorkerImageReader/u)
+assert.match(source, /gpuWorkerModelArtifactReader/u)
+assert.match(source, /imageBuilderBuildInputReader/u)
+assert.match(source, /apiBuildInputCreator/u)
+assert.match(source, /apiBuildInputReader/u)
+assert.match(source, /imageSignerSupplyChainEvidenceCreator/u)
+assert.match(source, /imageSignerSupplyChainBucketViewer/u)
+assert.match(source, /imageSignerSupplyChainEvidenceReader/u)
+assert.match(source, /roles\/storage\.bucketViewer/u)
+assert.match(source, /apiSupplyChainEvidenceReader/u)
+assert.match(source, /apiControlPlaneCreator/u)
+assert.match(source, /apiControlPlaneReader/u)
+assert.match(source, /reeditpro-production-reeditpro-model-artifacts/u)
+assert.match(source, /reeditpro-production-reeditpro-image-build-inputs/u)
+assert.match(source, /reeditpro-production-reeditpro-image-supply-chain-evidence/u)
+assert.match(source, /reeditpro-production-reeditpro-control-plane-state/u)
+assert.match(source, /reeditpro-production-reeditpro-masks/u)
+assert.match(source, /trackAllMaskQaPrivateObjectTransport/u)
+assert.match(source, /gpuWorkerObjectReader/u)
+assert.match(source, /gpuWorkerObjectCreator/u)
+assert.match(source, /apiObjectReader/u)
+assert.match(source, /apiObjectCreator/u)
+assert.match(source, /mountPath: "\/mnt\/reeditpro"/u)
+assert.match(source, /read_bounded_json_record_set/u)
+assert.match(source, /gcloud storage cat/u)
+assert.match(source,
+  /canonical-sam3_1-private-artifact-ingest-receipt-v3/u)
+assert.match(source, /officialPrivateArtifactIngest/u)
+assert.match(source,
+  /canonical-sam3_1-source-checkpoint-qualification-release-v2/u)
+assert.match(source,
+  /canonical-sam3_1-source-checkpoint-compatibility-qualification-v2/u)
+assert.match(source, /vertex_qualification_release_observation/u)
+assert.match(source,
+  /exactOfficialSam31A100CudaCompatibilityQualified/u)
+assert.match(source,
+  /productionRuntimeReleaseGrantedByThisObservation: false/u)
+assert.match(source, /legacyModelWeightTokenSecretRequired: false/u)
+assert.match(source, /freshAccessTokenCurrentlyRequired: false/u)
+assert.match(source,
+  /canonical-sam3_1-qualification-image-supply-chain-release-v1/u)
+assert.match(source, /qualificationImageSupplyChainRelease/u)
+assert.match(source,
+  /sourceCheckpointCompatibilityReceiptObserved:\s*\n\s*\$vertexSourceQualification\.ready/u)
+assert.match(source,
+  /imageSupplyChainReleaseObserved: \$imageSupplyChainRelease\.ready/u)
+assert.match(source, /GEMINI_LIVE_EXECUTION_PREFIX/u)
+assert.match(source,
+  /visual-intelligence-model-billing-sku-live-execution-v1/u)
+assert.match(source, /liveGeminiUsageQualification: \$geminiLiveExecution/u)
+assert.match(source,
+  /liveGeminiQualificationObserved: \$geminiLiveExecution\.ready/u)
+assert.match(source, /modelSkuCompatibilityQualificationObserved/u)
+assert.match(source, /SAM31_A100_SERVING_THIRTY_RUN_PREFIX/u)
+assert.match(source,
+  /canonical-sam3_1-vertex-serving-thirty-run-qualification-v2/u)
+assert.match(source, /sam31A100ServingThirtyRunQualification/u)
+assert.match(source, /SAM31_L4_THIRTY_RUN_PREFIX/u)
+assert.match(source,
+  /canonical-sam3_1-l4-runtime-thirty-run-qualification-v2/u)
+assert.match(source, /sam31L4ThirtyRunQualification/u)
+assert.match(source,
+  /liveGpuQualificationObserved:\s*\(\s*\$a100ServingThirtyRun\.ready\s+and\s+\$l4ThirtyRun\.ready/u)
+assert.match(source, /customerCreditsMutated: false/u)
+assert.match(source, /productionReady: false/u)
+
+for (const skuId of [
+  'EAC4-305F-1249',
+  '8308-9CED-8950',
+  '2737-2D33-D986',
+  'E0A5-FB5D-79F4',
+  '8A47-3936-DC92',
+  '3CE8-93F8-3C8F',
+] as const) assert.match(accountPriceReadinessSource, new RegExp(skuId, 'u'))
+assert.match(accountPriceReadinessSource,
+  /canonical_api_service_account_impersonation/u)
+assert.match(accountPriceReadinessSource,
+  /--impersonate-service-account=\$\{canonicalPricingServiceAccount\}/u)
+assert.match(accountPriceReadinessSource, /billingAccountPriceReadReady/u)
+assert.match(accountPriceReadinessSource,
+  /billing_account_price_permission_required/u)
+assert.match(accountPriceReadinessSource,
+  /exactModelSkuCompatibilityQualificationObserved: false/u)
+assert.match(accountPriceReadinessSource, /redirect: 'error'/u)
+assert.match(accountPriceReadinessSource, /AbortSignal\.timeout\(15_000\)/u)
+assert.doesNotMatch(accountPriceReadinessSource, /application_default_credentials/u)
+assert.match(accountPriceReadinessSource, /stateMutated: false/u)
+assert.doesNotMatch(accountPriceReadinessSource,
+  /console\.(?:log|error)\([^)]*billingAccountResourceName/u)
+
+for (const forbidden of [
+  /secrets versions access/u,
+  /gcloud services enable/u,
+  /gcloud iam service-accounts create/u,
+  /gcloud kms (?:keyrings|keys) create/u,
+  /gcloud storage buckets (?:create|update)/u,
+  /gcloud artifacts repositories add-iam-policy-binding/u,
+  /gcloud kms keys add-iam-policy-binding/u,
+  /gcloud run jobs execute/u,
+  /gcloud run jobs (?:create|deploy|delete|update)/u,
+  /gcloud run services (?:create|deploy|delete|update)/u,
+  /gcloud batch jobs (?:submit|delete)/u,
+  /gcloud beta quotas preferences (?:create|update|delete)/u,
+  /gcloud builds submit/u,
+  /artifacts docker images delete/u,
+  /\bcurl\b/u,
+  /\bwget\b/u,
+  /(?:^|\n)\s*docker(?:\s|$)/u,
+  /\bpython(?:3)?\b/u,
+] as const) assert.doesNotMatch(source, forbidden)
+
+console.log(JSON.stringify({
+  smoke: 'visual-intelligence-live-prerequisites-audit',
+  productName: 'WeEditPro',
+  readOnlyCloudAudit: true,
+  secretPayloadRead: false,
+  gpuJobStarted: false,
+  modelDownloaded: false,
+  customerCreditsMutated: false,
+  vertexA100RouteSourceBindingsVerified: vertexRouteSourceBindings.length,
+  productionReady: false,
+}, null, 2))

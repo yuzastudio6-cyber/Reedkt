@@ -1,5 +1,15 @@
 # Production Cloud Run Service And Job Plan
 
+> **Current WeEditPro authority:** the historical CPU/L4-first job list in
+> older milestones cannot authorize new work. Heavy processing targets one
+> private A100 80 GB Vertex dedicated prediction endpoint whose minimum
+> replica count is zero. Normal substantive media work uses the
+> L4 standard-primary Cloud Run Job, and eligible heavy work may use the
+> separately qualified L4 fallback only after an allowed A100 failure. All
+> accelerator routes start from zero and return to zero. The historical A100
+> Vertex Custom Job remains quality evidence only because its measured cold
+> provisioning exceeded the complete eight-minute target.
+
 ## Backend API Service
 
 - Runtime: Cloud Run Service.
@@ -15,11 +25,17 @@
 
 | Job | Runtime | Service account | GPU | Notes |
 | --- | --- | --- | --- | --- |
-| `reeditpro-cpu-analysis-worker` | Cloud Run Job | `reeditpro-cpu-worker-sa` | No | CPU/media analysis command placeholder. |
-| `reeditpro-gpu-ai-worker` | Cloud Run Job | `reeditpro-gpu-worker-sa` | `nvidia-l4`, 1 GPU | First GPU test template only. |
-| `reeditpro-render-worker` | Cloud Run Job | `reeditpro-render-worker-sa` | No by default | Core render stack template: Hyperframe, Remotion, FFmpeg, libass, OpenTimelineIO. |
-| `reeditpro-qa-worker` | Cloud Run Job | `reeditpro-qa-worker-sa` | No by default | GPU only if a later heavy CV QA milestone approves it. |
-| `reeditpro-tool-readiness-worker` | Cloud Run Job | `reeditpro-tool-readiness-sa` | No | No source media access by default. |
+| A100 heavy primary | Vertex dedicated prediction endpoint | `weeditpro-sam31-serving-sa` | A100 80 GB, 1 GPU | `a2-ultragpu-1g`; `minimumReplicaCount=0`, one inference at a time, non-customer readiness trigger, and 300-second idle scale-down. Customer inference remains blocked until 30-run p95 and quality qualification passes. |
+| Historical A100 quality route | Vertex Custom Job | `reeditpro-gpu-worker-sa` | A100 80 GB, 1 GPU | Readback/quality reference only; its measured 3,199,367 ms cold provisioning cannot authorize customer work. |
+| `reeditpro-professional-l4` | Cloud Run Job | `reeditpro-gpu-worker-sa` | `nvidia-l4`, 1 GPU | Standard-primary normal media/render/encode/inspection/QA route; 8 vCPU, 32 GiB. |
+| `reeditpro-sam31-l4-fallback` | Cloud Run Job | `reeditpro-gpu-worker-sa` | `nvidia-l4`, 1 GPU | Independently qualified SAM 3.1 heavy fallback only; 8 vCPU, 32 GiB. |
+| Legacy CPU/render/QA jobs | Historical Cloud Run Job templates | Legacy identities | None | Readback/migration only; cannot execute fresh substantive media/model work. |
+| Legacy tool-readiness job | Historical Cloud Run Job template | Retired identity | None | Cannot qualify fresh work; readiness must be measured inside the exact immutable A100/L4 qualification attempt. |
+
+The bounded private SearXNG Cloud Run service is not a worker job. It is a
+zero-idle, one-CPU search/control-plane service using the dedicated
+`reeditpro-private-search-sa` identity. It cannot decode media, render, encode,
+load a model, run inference, or satisfy any GPU qualification gate.
 
 Every job template uses task count `1`, parallelism `1`, and Cloud Run internal
 maximum retries `0`. The approved package queue is the sole authority for a
@@ -35,8 +51,10 @@ The frozen future flow is:
 approved package queue entry
   -> regional Cloud Tasks queue
   -> private authenticated dispatch controller
-  -> Cloud Run Jobs run API
-  -> one exact CPU, GPU, render, QA, or readiness job execution
+  -> exact route owner
+  -> A100 endpoint readiness/invocation or Cloud Run Jobs run API
+  -> one exact A100-heavy, L4-standard, L4-heavy-fallback,
+     lightweight-control, or readiness execution
 ```
 
 Cloud Tasks carries only an opaque dispatch-intent ID, package/job identity,
@@ -85,10 +103,10 @@ Google token/key-rotation and IAM proof using the source-implemented
 auth-library adapter, multi-replica coordination, deployment, and live worker
 completion flow are still required.
 
-The existing `us-central1` foundation defaults and coarse service-account
-templates must be reconciled with the canonical `us-east1`/`europe-west1`
-resource map before any human-run deployment. Target existence and IAM remain
-false until that reconciliation and live inspection pass.
+The active private-media cohort and primary runtime region are `us-central1`.
+A route may not move private media cross-region to chase capacity or price.
+Target existence, quota, IAM, image, model, price, and release evidence remain
+false until exact live inspection passes.
 
 The shared GPU worker now also has a source-implemented, one-shot
 process-bound operation router for the candidate-only Faster Whisper CUDA
@@ -112,7 +130,11 @@ Revideo is not deployed. It remains evaluation-only and future optional.
 
 ## Milestone 3 Boundary
 
-All deploy/run files are `.example.sh` templates. They require `REEDITPRO_CONFIRM_PROD_SETUP=true` if a human runs them later, but Codex must not run them.
+The L4 definition template requires `REEDITPRO_CONFIRM_PROD_SETUP=true`, a
+second exact confirmation, and two immutable image digests. It creates no
+execution. Historical CPU/render/QA/readiness scripts and the manual GPU-smoke
+script exit fail-closed; canonical qualification or funded dispatch is the
+only execution owner.
 
 ## Milestone 4 Worker Runtime Handoff
 
@@ -125,19 +147,26 @@ Cloud Run Jobs are still not deployed in Milestone 4, and the production worker 
 Milestone 5 adds production image template names that future Cloud Run services/jobs can reference after human build/push approval:
 
 - `reeditpro-api`
-- `reeditpro-cpu-worker`
 - `reeditpro-gpu-worker`
-- `reeditpro-render-worker`
-- `reeditpro-qa-worker`
-- `reeditpro-tool-readiness-worker`
+
+The earlier CPU/render/QA/tool-readiness image names are retained only in
+historical evidence. Active image release is now route-specific and digest
+pinned.
 
 The image templates live under `docker/prod/`, and the human-run build/push command templates live under `scripts/docker/prod/`. They do not deploy Cloud Run resources, and Codex does not build or push them in Milestone 5.
 
 ## Milestone 11 GPU Image Handoff
 
-The GPU worker image will be produced later from the M11 GPU Dockerfile after human build approval. The Cloud Run GPU job remains `nvidia-l4`, 1 GPU, at least 4 CPU and 16Gi memory, and `--no-gpu-zonal-redundancy`.
+The historical generic GPU image did not establish current placement. Active
+images are `reeditpro-sam31-gpu` for the separately qualified A100/L4 SAM 3.1
+routes and `reeditpro-l4-media-worker` for the L4 standard route. Both L4 jobs
+use one `nvidia-l4`, 8 vCPU, 32 GiB, parallelism 1, retries 0, and
+`--no-gpu-zonal-redundancy`.
 
-M11 does not execute the GPU job, build/push the image, download model weights, run inference, or deploy Cloud Run resources. RTX PRO 6000 remains future/premium/evaluation only with 20 CPU and 80Gi minimum requirements.
+RTX PRO 6000 is not part of the current A100/L4 policy. SAM 3.1 weights are
+never installed on a developer Mac or downloaded at runtime; they are ingested
+once from the official gated repository into the private artifact owner and
+mounted read-only by exact generation.
 ## Milestone 12 Readiness Requirement
 
 Cloud Run Jobs should not be deployed until the unified production readiness report has been reviewed. M12 does not run `gcloud`, deploy jobs, execute GPU inference, process media, or download model weights.

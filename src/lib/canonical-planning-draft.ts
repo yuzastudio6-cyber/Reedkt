@@ -217,6 +217,8 @@ type ApprovedColorDeliverySource = {
   recipeProfileId:
     | 'approved_source_color_delivery_matroska_v1'
     | 'approved_source_color_match_delivery_matroska_v1'
+    | 'approved_source_color_delivery_matroska_v2'
+    | 'approved_source_color_match_delivery_matroska_v2'
   sourceSequenceItemId: string
   cleanupDecisionId: string
   trimStartFrame: number
@@ -230,6 +232,15 @@ type ApprovedColorDeliverySource = {
   referenceCleanupDecisionId?: string
   referenceDurationFrames?: number
   referenceOutputKey?: string
+}
+
+function isApprovedColorMatchRecipe(
+  recipeProfileId: ApprovedColorDeliverySource['recipeProfileId'],
+): recipeProfileId is
+  | 'approved_source_color_match_delivery_matroska_v1'
+  | 'approved_source_color_match_delivery_matroska_v2' {
+  return recipeProfileId === 'approved_source_color_match_delivery_matroska_v1' ||
+    recipeProfileId === 'approved_source_color_match_delivery_matroska_v2'
 }
 
 type ApprovedColorOperationKind = Extract<
@@ -461,6 +472,8 @@ export type CanonicalPlanDraft = {
 export type CanonicalPlanningDraft = {
   orderedSourceItems: CanonicalSourceAuthorityItem[]
   components: CanonicalPlanComponentsDraft
+  planningRequestIdSeed: string
+  estimate?: CanonicalPlanDraft['estimate']
   publication?: {
     canonicalPlan: CanonicalPlanDraft
     planningRequestIdSeed: string
@@ -980,6 +993,12 @@ export function buildCanonicalPlanningDraft(input: {
   }
   const canonicalEstimate = buildEstimate(plan)
   if (!canonicalEstimate.ok) publicationBlockers.push(canonicalEstimate.blocker)
+  const planningRequestIdSeed = safeKey(
+    plan.planningInputTrace?.fingerprint ??
+      plan.planningContextTrace?.planningContextId ??
+      'named-edit-plan',
+    'named-edit-plan',
+  )
   const publication = publicationBlockers.length === 0 && canonicalEstimate.ok
     ? {
         canonicalPlan: ideaFirstStorytelling
@@ -1007,7 +1026,7 @@ export function buildCanonicalPlanningDraft(input: {
               },
               controlledDataVizOverlay: controlledDataViz.overlay,
             }),
-        planningRequestIdSeed: safeKey(plan.planningInputTrace?.fingerprint ?? plan.planningContextTrace?.planningContextId ?? 'named-edit-plan', 'named-edit-plan'),
+        planningRequestIdSeed,
       }
     : undefined
 
@@ -1016,6 +1035,10 @@ export function buildCanonicalPlanningDraft(input: {
     draft: {
       orderedSourceItems,
       components,
+      planningRequestIdSeed,
+      ...(canonicalEstimate.ok
+        ? { estimate: structuredClone(canonicalEstimate.estimate) }
+        : {}),
       publication,
       publicationBlockers,
       warnings: publicationBlockers.length > 0
@@ -1207,7 +1230,10 @@ function privateReviewPublicationBlockers(input: {
         })
         if (!sourceSlicePlan.ok) blockers.push(sourceSlicePlan.blocker)
       }
-      if (input.sourceMediaAssets[0]?.sourceMetadata?.hasAudio !== true) {
+      if (
+        input.sourceMediaAssets[0]?.sourceMetadata?.hasAudio !== true &&
+        !input.approvedVoiceDeliverySources
+      ) {
         blockers.push('The private mezzanine finalizer requires one verified approved source audio stream for continuous final audio.')
       }
     }
@@ -1333,15 +1359,6 @@ function privateReviewPublicationBlockers(input: {
       'Confirmed Edit Brief audio currently requires the bounded direct composition profile; chunk-spanning audio continuity evidence is not yet admitted.',
     )
   }
-  if (
-    input.orderedSourceItems.length === 1 &&
-    input.totalFrames > CANONICAL_PRIVATE_SOURCE_SEGMENT_MAXIMUM_FRAMES &&
-    (input.approvedVoiceDeliverySources || input.approvedColorDeliverySources)
-  ) {
-    blockers.push(
-      'The source-slice profile preserves the approved source audio/color as-is; slice-aware professional audio and color preprocessing need separate continuity evidence before this planned processing can execute.',
-    )
-  }
   return unique(blockers)
 }
 
@@ -1389,6 +1406,19 @@ function buildPrivateReviewCanonicalPlan(input: {
   const approvedLongFormChunkPlan = longFormChunkPlan?.ok
     ? longFormChunkPlan.plan
     : null
+  const voiceDeliverySources = input.approvedVoiceDeliverySources ?? []
+  const colorDeliverySources = input.approvedColorDeliverySources ?? []
+  const useSourceSliceColorDeliveries =
+    (
+      approvedLongFormChunkPlan?.profileId ===
+        CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID ||
+      approvedLongFormChunkPlan?.profileId ===
+        CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID
+    ) &&
+    colorDeliverySources.length === 1
+  const colorWorkItemCount = useSourceSliceColorDeliveries
+    ? approvedLongFormChunkPlan.chunkCount
+    : colorDeliverySources.length
   const editBriefAudioItems =
     input.components.editBriefAudioPlanning?.items ?? []
   const budgets = fitBudgets(
@@ -1397,13 +1427,11 @@ function buildPrivateReviewCanonicalPlan(input: {
     captionCues.length,
     input.approvedVoiceDeliverySources?.length ?? 0,
     editBriefAudioItems.length,
-    input.approvedColorDeliverySources?.length ?? 0,
+    colorWorkItemCount,
     input.controlledDataVizOverlay ? 1 : 0,
     approvedLongFormChunkPlan ? approvedLongFormChunkPlan.chunkCount + 1 : 1,
   )
   const sourceSequenceComposition = sourceTimeline.length > 1
-  const voiceDeliverySources = input.approvedVoiceDeliverySources ?? []
-  const colorDeliverySources = input.approvedColorDeliverySources ?? []
   // The timed-track profile is the canonical zero-or-many representation.
   // Keep the legacy single-cue profile only for exactly one full-duration
   // approved cue; a caption-free edit carries an empty, verified cue track.
@@ -1686,12 +1714,49 @@ function buildPrivateReviewCanonicalPlan(input: {
       }
     },
   )
-  const colorWorkItems = colorDeliverySources.map((source, index): CanonicalWorkItemDraft => {
-    const ordinal = index + 1
-    const workItemKey = `color-delivery-${ordinal}`
-    const outputKey = `color-delivery-${ordinal}-mkv`
-    const segmentId = input.components.segments[index]!.segmentId
-    const rendererLayerId = `color-source-layer-${ordinal}`
+  const colorWorkItemInputs = useSourceSliceColorDeliveries
+    ? approvedLongFormChunkPlan.chunks.map((chunk) => {
+        const sourceSlice = chunk.sourceSegments[0]
+        if (
+          chunk.sourceSegments.length !== 1 ||
+          !sourceSlice?.sourceSliceKey ||
+          sourceSlice.sourceSequenceItemId !==
+            colorDeliverySources[0]!.sourceSequenceItemId
+        ) {
+          throw new Error(
+            'Professional color source-slice work lost its exact approved source authority.',
+          )
+        }
+        return {
+          source: colorDeliverySources[0]!,
+          sourceIndex: 0,
+          sourceSlice: {
+            chunkIndex: chunk.chunkIndex,
+            chunkCount: chunk.chunkCount,
+            sourceSliceKey: sourceSlice.sourceSliceKey,
+            trimStartFrame: sourceSlice.sourceStartFrame,
+            trimEndFrameExclusive: sourceSlice.sourceEndFrameExclusive,
+          },
+        }
+      })
+    : colorDeliverySources.map((source, sourceIndex) => ({
+        source,
+        sourceIndex,
+        sourceSlice: undefined,
+      }))
+  const colorWorkItems = colorWorkItemInputs.map((
+    item,
+    colorWorkItemIndex,
+  ): CanonicalWorkItemDraft => {
+    const ordinal = item.sourceIndex + 1
+    const source = item.source
+    const sourceSliceSuffix = item.sourceSlice
+      ? `-slice-${item.sourceSlice.chunkIndex}-of-${item.sourceSlice.chunkCount}`
+      : ''
+    const workItemKey = `color-delivery-${ordinal}${sourceSliceSuffix}`
+    const outputKey = `${workItemKey}-mkv`
+    const segmentId = input.components.segments[item.sourceIndex]!.segmentId
+    const rendererLayerId = `color-source-layer-${ordinal}${sourceSliceSuffix}`
     return {
       workItemKey,
       workItemType: 'custom',
@@ -1705,19 +1770,21 @@ function buildPrivateReviewCanonicalPlan(input: {
           timestampPolicy: 'normalize_from_zero',
           overwriteExistingArtifact: false,
           allowUnreviewedCodec: false,
-          trimStartFrame: source.trimStartFrame,
-          trimEndFrameExclusive: source.trimEndFrameExclusive,
+          trimStartFrame:
+            item.sourceSlice?.trimStartFrame ?? source.trimStartFrame,
+          trimEndFrameExclusive:
+            item.sourceSlice?.trimEndFrameExclusive ??
+            source.trimEndFrameExclusive,
           frameRate: input.fps,
           colorGradeStyle: source.colorGradeStyle,
           intensity: source.intensity,
           approvedColorOperationIds: source.approvedColorOperationIds,
           approvedColorOperationKinds: source.approvedColorOperationKinds,
           analysisProfileId: 'approved_three_frame_rgb_stats_v1',
-          correctionProfileId: source.recipeProfileId ===
-            'approved_source_color_match_delivery_matroska_v1'
+          correctionProfileId: isApprovedColorMatchRecipe(source.recipeProfileId)
             ? 'bounded_reference_matched_professional_source_color_v1'
             : 'bounded_professional_source_color_v1',
-          ...(source.recipeProfileId === 'approved_source_color_match_delivery_matroska_v1'
+          ...(isApprovedColorMatchRecipe(source.recipeProfileId)
             ? {
                 shotMatchProfileId: 'approved_reference_three_frame_rgb_match_v1',
                 referenceSourceSequenceItemId: source.referenceSourceSequenceItemId!,
@@ -1743,8 +1810,7 @@ function buildPrivateReviewCanonicalPlan(input: {
           rendererLayerIds: [rendererLayerId],
         },
       )],
-      dependencyKeys: source.recipeProfileId ===
-        'approved_source_color_match_delivery_matroska_v1'
+      dependencyKeys: isApprovedColorMatchRecipe(source.recipeProfileId)
         ? ['color-delivery-1']
         : [],
       approvedToolIds: ['ffmpeg'],
@@ -1755,7 +1821,7 @@ function buildPrivateReviewCanonicalPlan(input: {
       scheduledDelaySeconds: 0,
       maximumCreditBudget: budgets[
         2 + captionCues.length + voiceWorkItems.length +
-        editBriefAudioWorkItems.length + index
+        editBriefAudioWorkItems.length + colorWorkItemIndex
       ]!,
       required: true,
     }
@@ -2114,6 +2180,8 @@ function buildLongFormRenderWorkItems(input: {
     sourceSequenceItemId: string
     outputKey: string
     durationFrames: number
+    sourceStartFrame?: number
+    sourceEndFrameExclusive?: number
   }>
   colorWorkItems: CanonicalWorkItemDraft[]
   approvedHardCutTransitions: ApprovedHardCutTransition[]
@@ -2142,12 +2210,18 @@ function buildLongFormRenderWorkItems(input: {
   const sourceSliceProfile = mezzanineFinalizationProfile ||
     input.chunkPlan.profileId ===
       CANONICAL_PRIVATE_SOURCE_SLICE_LONG_FORM_CAPACITY_PROFILE_ID
+  const sourceSliceColorDeliveries =
+    sourceSliceProfile &&
+    input.cleanupDecisions.length === 1 &&
+    input.colorWorkItems.length === input.chunkPlan.chunkCount
   if (
     sourceSliceProfile &&
-    (input.voiceWorkItems.length > 0 || input.colorWorkItems.length > 0)
+    input.colorWorkItems.length > 0 &&
+    !sourceSliceColorDeliveries &&
+    input.colorWorkItems.length !== input.cleanupDecisions.length
   ) {
     throw new Error(
-      'Source-slice compilation cannot execute planned audio/color processing without continuity evidence.',
+      'Long-form color delivery count does not match its source or source-slice authority.',
     )
   }
   const sourceIndexById = new Map(
@@ -2191,28 +2265,62 @@ function buildLongFormRenderWorkItems(input: {
     if (chunkTransitions.length !== Math.max(0, sourceIds.length - 1)) {
       throw new Error('Long-form chunk lost its approved hard-cut authority.')
     }
+    const chunkColorWorkItems = sourceSliceColorDeliveries
+      ? [input.colorWorkItems[chunkOffset]!]
+      : sourceIndices.flatMap((sourceIndex) => {
+          const item = input.colorWorkItems[sourceIndex]
+          return item ? [item] : []
+        })
     const sourceSegments = chunk.sourceSegments.map((segment) => {
+      const sourceIndex = sourceIndexById.get(segment.sourceSequenceItemId)
+      if (sourceIndex === undefined) {
+        throw new Error('Long-form chunk lost approved source order.')
+      }
+      const cleanup = input.cleanupDecisions[sourceIndex]!
       return {
         sourceSequenceItemId: segment.sourceSequenceItemId,
-        sourceStartFrame: segment.sourceStartFrame,
-        sourceEndFrameExclusive: segment.sourceEndFrameExclusive,
+        sourceStartFrame: sourceSliceColorDeliveries
+          ? 0
+          : input.colorWorkItems.length > 0
+          ? segment.sourceStartFrame - cleanup.startFrame
+          : segment.sourceStartFrame,
+        sourceEndFrameExclusive: sourceSliceColorDeliveries
+          ? segment.sourceEndFrameExclusive - segment.sourceStartFrame
+          : input.colorWorkItems.length > 0
+          ? segment.sourceEndFrameExclusive - cleanup.startFrame
+          : segment.sourceEndFrameExclusive,
         timelineStartFrame: segment.timelineStartFrame,
         timelineEndFrameExclusive: segment.timelineEndFrameExclusive,
       }
     })
-    const voiceTracks = input.approvedVoiceTracks.filter((track) =>
-      sourceIdSet.has(track.sourceSequenceItemId))
+    const voiceTracks = input.approvedVoiceTracks
+      .filter((track) => sourceIdSet.has(track.sourceSequenceItemId))
+      .map((track) => {
+        if (!sourceSliceProfile) return track
+        const sourceSegment = chunk.sourceSegments.find((segment) =>
+          segment.sourceSequenceItemId === track.sourceSequenceItemId)
+        const sourceIndex = sourceIndexById.get(track.sourceSequenceItemId)
+        if (!sourceSegment || sourceIndex === undefined) {
+          throw new Error('Long-form chunk lost source-bound voice slice authority.')
+        }
+        const cleanup = input.cleanupDecisions[sourceIndex]!
+        return {
+          ...track,
+          sourceStartFrame: sourceSegment.sourceStartFrame - cleanup.startFrame,
+          sourceEndFrameExclusive:
+            sourceSegment.sourceEndFrameExclusive - cleanup.startFrame,
+        }
+      })
     const voiceDependencyKeys = sourceIndices.flatMap((sourceIndex) => {
       const item = input.voiceWorkItems[sourceIndex]
       return item ? [item.workItemKey] : []
     })
-    const colorDependencyKeys = sourceIndices.flatMap((sourceIndex) => {
-      const item = input.colorWorkItems[sourceIndex]
-      return item ? [item.workItemKey] : []
-    })
+    const colorDependencyKeys = chunkColorWorkItems.map((item) =>
+      item.workItemKey)
     if (
       (input.voiceWorkItems.length > 0 && voiceTracks.length !== sourceIds.length) ||
-      (input.colorWorkItems.length > 0 && colorDependencyKeys.length !== sourceIds.length)
+      (input.colorWorkItems.length > 0 &&
+        colorDependencyKeys.length !== sourceIds.length)
     ) throw new Error('Long-form chunk lost source-bound voice or color authority.')
     const segmentIds = input.components.segments
       .filter((segment) =>
@@ -2223,10 +2331,10 @@ function buildLongFormRenderWorkItems(input: {
       'source-video-layer',
       ...chunkTransitions.map((_transition, index) =>
         `approved-hard-cut-boundary-${sourceIndices[0]! + index + 1}`),
-      ...sourceIndices.flatMap((sourceIndex) => [
-        ...(input.colorWorkItems[sourceIndex]?.expectedOutputs[0]?.rendererLayerIds ?? []),
-        ...(input.voiceWorkItems[sourceIndex]?.expectedOutputs[0]?.rendererLayerIds ?? []),
-      ]),
+      ...chunkColorWorkItems.flatMap((item) =>
+        item.expectedOutputs[0]?.rendererLayerIds ?? []),
+      ...sourceIndices.flatMap((sourceIndex) =>
+        input.voiceWorkItems[sourceIndex]?.expectedOutputs[0]?.rendererLayerIds ?? []),
       ...chunkCaptionEntries.flatMap(({ captionIndex }) =>
         input.captionWorkItems[captionIndex]?.expectedOutputs[0]?.rendererLayerIds ?? []),
     ]
@@ -2387,14 +2495,33 @@ function buildLongFormRenderWorkItems(input: {
   const finalizerCleanup = finalizerSource
     ? input.cleanupDecisions[sourceIndexById.get(finalizerSource.sourceSequenceItemId)!]
     : undefined
+  const finalizerVoiceTrack = mezzanineFinalizationProfile
+    ? input.approvedVoiceTracks[0]
+    : undefined
+  const finalizerVoiceWorkItem = mezzanineFinalizationProfile
+    ? input.voiceWorkItems[0]
+    : undefined
   if (
     mezzanineFinalizationProfile &&
     (!finalizerSource || !finalizerCleanup || input.cleanupDecisions.length !== 1 ||
       finalizerSource.sourceStartFrame !== finalizerCleanup.startFrame ||
       input.chunkPlan.chunks.at(-1)?.sourceSegments[0]?.sourceEndFrameExclusive !==
-        finalizerCleanup.endFrameExclusive)
+        finalizerCleanup.endFrameExclusive ||
+      input.approvedVoiceTracks.length > 1 ||
+      input.voiceWorkItems.length > 1 ||
+      Boolean(finalizerVoiceTrack) !== Boolean(finalizerVoiceWorkItem) ||
+      (
+        finalizerVoiceTrack &&
+        (
+          finalizerVoiceTrack.sourceSequenceItemId !==
+            finalizerSource.sourceSequenceItemId ||
+          finalizerVoiceTrack.durationFrames !== input.totalFrames ||
+          finalizerVoiceTrack.outputKey !==
+            finalizerVoiceWorkItem?.expectedOutputs[0]?.outputKey
+        )
+      ))
   ) throw new Error(
-    'Mezzanine finalization lost its exact approved source cleanup authority.',
+    'Mezzanine finalization lost its exact approved source, cleanup, or voice authority.',
   )
   const finalMerge: CanonicalWorkItemDraft = {
     workItemKey: 'final-export',
@@ -2445,7 +2572,12 @@ function buildLongFormRenderWorkItems(input: {
           toSourceSliceKey: continuity.toSourceSliceKey,
         })),
         videoFinalizationPolicy: 'compatible_h264_stream_copy_v1',
-        audioFinalizationPolicy: 'single_approved_source_audio_encode_v1',
+        audioFinalizationPolicy: finalizerVoiceTrack
+          ? 'single_approved_voice_delivery_audio_encode_v2'
+          : 'single_approved_source_audio_encode_v1',
+        ...(finalizerVoiceTrack
+          ? { approvedVoiceOutputKey: finalizerVoiceTrack.outputKey }
+          : {}),
         codecCompatibilityPolicy: 'exact_h264_extradata_timebase_frame_color_v1',
         timestampPolicy: 'normalize_from_zero',
         outputContainer: 'mp4',
@@ -2527,6 +2659,9 @@ function buildLongFormRenderWorkItems(input: {
     )],
     dependencyKeys: [
       ...(mezzanineFinalizationProfile ? ['source-trim-validation'] : []),
+      ...(mezzanineFinalizationProfile && finalizerVoiceWorkItem
+        ? [finalizerVoiceWorkItem.workItemKey]
+        : []),
       ...chunkWorkItems.map((item) => item.workItemKey),
     ],
     approvedToolIds: [mezzanineFinalizationProfile ? 'ffmpeg' : 'remotion'],
@@ -3516,7 +3651,6 @@ function buildApprovedColorDeliverySources(input: {
   const sourceCount = input.plannerInput.clips.length
   const multiSource = sourceCount >= 2 && sourceCount <= 8
   if (
-    input.plannerInput.editLevel === 'premium' ||
     (sourceCount !== 1 && !multiSource) || input.sourceItems.length !== sourceCount ||
     input.cleanupDecisions.length !== sourceCount || color.clipPlans.length !== sourceCount ||
     color.assetMatchPlans.length !== 0 || color.status !== 'planned' ||
@@ -3595,8 +3729,8 @@ function buildApprovedColorDeliverySources(input: {
     )].sort()
     return {
       recipeProfileId: index === 0 || !multiSource
-        ? 'approved_source_color_delivery_matroska_v1'
-        : 'approved_source_color_match_delivery_matroska_v1',
+        ? 'approved_source_color_delivery_matroska_v2'
+        : 'approved_source_color_match_delivery_matroska_v2',
       sourceSequenceItemId: sourceItem.sourceSequenceItemId,
       cleanupDecisionId: cleanup.decisionId,
       trimStartFrame: cleanup.startFrame,

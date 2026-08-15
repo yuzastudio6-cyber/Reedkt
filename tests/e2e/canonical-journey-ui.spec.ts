@@ -976,6 +976,10 @@ test.describe('canonical journey named-edit UI bridge', () => {
       'data-journey-stage',
       'revision_requested',
     )
+    await expect(
+      harness.getByTestId('canonical-plan-publication-blocker'),
+    ).toBeVisible()
+    await expect(harness.getByTestId('plan-review-card')).toHaveCount(0)
     await expect(prepare).toBeEnabled()
     await prepare.click()
     await expect(prepare).toBeDisabled()
@@ -1010,6 +1014,10 @@ test.describe('canonical journey named-edit UI bridge', () => {
       'data-journey-stage',
       'plan_approval_required',
     )
+    await expect(
+      harness.getByTestId('canonical-plan-publication-blocker'),
+    ).toHaveCount(0)
+    await expect(harness.getByTestId('plan-review-card')).toBeVisible()
     const approve = harness.getByTestId('plan-review-approve')
     await expect(approve).toBeEnabled()
     await expect(approve).toHaveText('Approve plan')
@@ -1775,6 +1783,10 @@ function canonicalSourceLedCaptionRevisionPresentationReceiptFixture(
       finalizedSourceObjectsReread: true,
       exactLockedPreferencesReread: true,
       immutableEditBriefReread: true,
+      chatDirectionReread: true,
+      chatDirectionCount: 1,
+      chatThreadRevision: 2,
+      chatDirectionAuthorityDigestSha256: 'e'.repeat(64),
       exactCaptionReplacementApplied: true,
       revisionIntentHash: 'c'.repeat(64),
       sourceCount: 1,

@@ -49,6 +49,14 @@ export function getServiceContext(request: Request): ServiceContext {
       runtimeRequest.runtime.canonicalVisualCalibrationReferenceFrameReaderPort,
     canonicalProviderAttemptRuntimeRecordSourcePort:
       runtimeRequest.runtime.canonicalProviderAttemptRuntimeRecordSourcePort,
+    visualIntelligenceReportRepository:
+      runtimeRequest.runtime.visualIntelligenceReportRepository,
+    visualIntelligenceOrchestraJobRuntimePort:
+      runtimeRequest.runtime.visualIntelligenceOrchestraJobRuntimePort,
+    editReferenceVisualIntelligenceBindingStore:
+      runtimeRequest.runtime.editReferenceVisualIntelligenceBindingStore,
+    editReferenceVisualIntelligenceReadPort:
+      runtimeRequest.runtime.editReferenceVisualIntelligenceReadPort,
     motionStudioCommandRepositoryRuntimePort:
       runtimeRequest.runtime.motionStudioCommandRepositoryRuntimePort,
     editReferenceExactEditApplyRuntimePort:
@@ -72,6 +80,36 @@ export function getServiceContext(request: Request): ServiceContext {
       runtimeRequest.runtime.editBriefPrivateWorkspaceRuntimePort,
     kimiK3SourceLedChatAssistantPort:
       runtimeRequest.runtime.kimiK3SourceLedChatAssistantPort,
+    canonicalSourceCleanupAuthorityReadPort:
+      runtimeRequest.runtime.canonicalSourceCleanupAuthorityReadPort,
+    canonicalSourceVisualIntelligenceOrchestraReadPort:
+      runtimeRequest.runtime
+        .canonicalSourceVisualIntelligenceOrchestraReadPort,
+    canonicalSourceLedOrchestraPlanningReconciliationPort:
+      runtimeRequest.runtime
+        .canonicalSourceLedOrchestraPlanningReconciliationPort,
+    trackAllSam31AuthenticatedGpuStartRuntimePort:
+      runtimeRequest.runtime.trackAllSam31AuthenticatedGpuStartRuntimePort,
+    trackAllSam31AuthenticatedGpuInvocationRuntimePort:
+      runtimeRequest.runtime
+        .trackAllSam31AuthenticatedGpuInvocationRuntimePort,
+    trackAllSam31QueuedGpuStartRuntimePort:
+      runtimeRequest.runtime.trackAllSam31QueuedGpuStartRuntimePort,
+    professionalGpuCloudTaskScheduler:
+      runtimeRequest.runtime.professionalGpuCloudTaskScheduler,
+    professionalGpuCloudTaskConsumer:
+      runtimeRequest.runtime.professionalGpuCloudTaskConsumer,
+    trackAllSam31L4TaskQaAuthenticatedStartRuntimePort:
+      runtimeRequest.runtime
+        .trackAllSam31L4TaskQaAuthenticatedStartRuntimePort,
+    trackAllSam31L4TaskQaQueuedStartRuntimePort:
+      runtimeRequest.runtime.trackAllSam31L4TaskQaQueuedStartRuntimePort,
+    trackAllSam31CaptionEvidenceFinalizationRuntimePort:
+      runtimeRequest.runtime
+        .trackAllSam31CaptionEvidenceFinalizationRuntimePort,
+    trackAllSam31TaskQaEvidenceFinalizationRuntimePort:
+      runtimeRequest.runtime
+        .trackAllSam31TaskQaEvidenceFinalizationRuntimePort,
   }
 }
 

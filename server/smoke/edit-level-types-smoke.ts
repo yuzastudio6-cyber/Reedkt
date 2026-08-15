@@ -88,7 +88,7 @@ for (const profile of EDIT_LEVEL_PROFILES) {
   const qaProfile = createEditLevelQAProfileDefinition(profile.level)
   const estimate = createEditLevelEstimateProfile(profile.level)
   assert.ok(routing.qwen3ReasoningDepth)
-  assert.ok(routing.qwen25vlVisualDepth)
+  assert.ok(routing.visualIntelligenceDepth)
   assert.ok(profile.editBriefPolicy)
   assert.ok(qaProfile.checks.length > 0)
   assert.equal(estimate.estimateOnly, true)

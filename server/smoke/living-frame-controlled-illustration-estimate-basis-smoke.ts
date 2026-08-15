@@ -66,8 +66,17 @@ assert.equal(
 )
 assert.equal(
   basis.costComponents[1]!.componentId,
-  'auraface_cpu_continuity_measurement',
+  'auraface_l4_gpu_continuity_measurement',
 )
+assert.equal(
+  basis.costComponents[1]!.executionPlacement,
+  'google_cloud_run_gpu',
+)
+assert.equal(
+  basis.costComponents[1]!.cpuFallbackAllowed,
+  false,
+)
+assert.equal(basis.costComponents[1]!.gpuCount, 1)
 assert.equal(
   basis.costComponents[1]!.attemptOrComparisonCount,
   4,

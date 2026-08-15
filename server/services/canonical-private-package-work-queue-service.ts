@@ -20,12 +20,15 @@ import type {
 import {
   claimPrivateCanonicalPackageWorkQueueJob,
   completePrivateCanonicalPackageWorkQueueClaim,
+  completePrivateCanonicalPackageWorkQueueRecovery,
   ensurePrivateCanonicalPackageWorkQueue,
   heartbeatPrivateCanonicalPackageWorkQueueClaim,
   readPrivateCanonicalPackageWorkQueue,
   releasePrivateCanonicalPackageWorkQueueClaim,
   type CanonicalPrivatePackageWorkQueueStoreScope,
 } from './private-canonical-package-work-queue-store'
+import { readPrivateCanonicalWorkerLeaseAggregate } from
+  './private-canonical-worker-lease-store'
 
 export interface CanonicalPrivatePackageWorkQueueRunEvidence {
   definitionVersion: CanonicalPrivatePackageWorkQueueDefinition['schemaVersion']
@@ -151,14 +154,62 @@ export function createCanonicalPrivatePackageWorkQueueService(input: {
           outcome: { ...claim.outcome, adapterReplayed: true },
         }
       }
+      if (claim.disposition === 'attempts_exhausted') {
+        const workerLeaseAggregate = await readPrivateCanonicalWorkerLeaseAggregate({
+          localStorageRoot: context.env.localStorageRoot,
+          ownerUserId: scope.ownerUserId,
+          workspaceId: scope.workspaceId,
+        })
+        const completedExecutionExists = workerLeaseAggregate?.leases.some((lease) =>
+          lease.workspaceId === scope.workspaceId &&
+          lease.projectId === scope.projectId &&
+          lease.editSessionId === scope.editSessionId &&
+          lease.jobId === input.jobId &&
+          lease.approvedPlanSnapshotId ===
+            scope.approvedPlanSnapshotId &&
+          lease.executionFence.state === 'completed') ?? false
+        if (!completedExecutionExists) {
+          return {
+            disposition: 'attempts_exhausted',
+            requiredGate:
+              'canonical_package_work_queue_approved_attempts_exhausted',
+          }
+        }
+        try {
+          const outcome = await input.operation()
+          if (outcome.status !== 'completed_private_test') {
+            return {
+              disposition: 'attempts_exhausted',
+              requiredGate:
+                'canonical_completed_execution_reconciliation_recovery',
+            }
+          }
+          await completePrivateCanonicalPackageWorkQueueRecovery({
+            scope,
+            definition,
+            jobId: input.jobId,
+            outcome: completedOutcome(outcome),
+            now: now().toISOString(),
+          })
+          claimCompletionCount += 1
+          return { disposition: 'executed', outcome }
+        } catch (error) {
+          if (isPostCommitReconciliationPending(error)) {
+            return {
+              disposition: 'attempts_exhausted',
+              requiredGate:
+                'canonical_completed_execution_reconciliation_recovery',
+            }
+          }
+          throw error
+        }
+      }
       if (claim.disposition !== 'claimed') {
         const jobDefinition = definition.jobs.find((job) => job.jobId === input.jobId)
         return {
           disposition: claim.disposition,
           ...(claim.disposition === 'capability_blocked' && jobDefinition?.requiredGate
             ? { requiredGate: jobDefinition.requiredGate }
-            : claim.disposition === 'attempts_exhausted'
-              ? { requiredGate: 'canonical_package_work_queue_approved_attempts_exhausted' }
             : claim.disposition === 'user_review_required'
               ? { requiredGate: 'canonical_package_work_queue_user_review_required' }
             : {}),
@@ -289,6 +340,21 @@ function completedOutcome(
     adapterReplayed: outcome.adapterReplayed,
     blockedDependencyJobIds: [],
   }
+}
+
+function isPostCommitReconciliationPending(error: unknown): boolean {
+  if (!(error instanceof ApiError) || !error.details ||
+    typeof error.details !== 'object' || Array.isArray(error.details)) {
+    return false
+  }
+  const executionFailure = (error.details as Record<string, unknown>).executionFailure
+  return Boolean(
+    executionFailure &&
+    typeof executionFailure === 'object' &&
+    !Array.isArray(executionFailure) &&
+    (executionFailure as Record<string, unknown>).category ===
+      'post_commit_reconciliation',
+  )
 }
 
 function boundedLeaseDurationMs(value: number): number {

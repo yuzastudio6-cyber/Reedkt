@@ -62,7 +62,10 @@ const capabilityProfileIds = new Set(
 )
 
 check(profiles.length === 50, 'Production registry must contain exactly 50 canonical private E2E tools.')
-check(capabilityProfiles.length === 23, 'Non-E2E capability catalog must contain exactly 23 historical/future identities.')
+check(capabilityProfiles.length === 25, 'Non-E2E capability catalog must contain exactly 25 historical/future identities.')
+check(requireCapabilityProfile('sam2').productionStatus === 'blocked', 'SAM 2 must remain historical-only and blocked for new work.')
+check(requireCapabilityProfile('sam3_1').productionStatus === 'needs_license_review', 'SAM 3.1 must remain non-E2E until its exact gated checkpoint and GPU routes qualify.')
+check(requireCapabilityProfile('sam3_1').cpuAllowed === false, 'SAM 3.1 must not gain a CPU heavy-execution lane.')
 
 for (const toolId of PRODUCTION_TOOL_IDS) {
   check(profileIds.has(toolId), `Every required tool must have a profile: missing ${toolId}`)
@@ -176,6 +179,18 @@ check(comfyui.qaResponsibilities.includes('render_asset_integrity'), 'ComfyUI mu
 check(comfyui.modelWeightPolicy.required, 'ComfyUI must require exact model-weight review.')
 expectThrows(() => assertToolAllowedForProduction('comfyui'), 'ComfyUI must remain blocked from production execution.')
 
+const stableAudio = requireCapabilityProfile('stable_audio_3_small_sfx')
+check(stableAudio.category === 'audio_generation', 'Stable Audio 3 Small-SFX must remain an audio-generation candidate.')
+check(stableAudio.workerType === 'gpu_ai_worker', 'Stable Audio 3 Small-SFX must use the GPU-worker boundary.')
+check(stableAudio.qaResponsibilities.includes('audio_naturalness'), 'Stable Audio 3 Small-SFX must require naturalness QA.')
+check(stableAudio.qaResponsibilities.includes('audio_loudness'), 'Stable Audio 3 Small-SFX must require loudness QA.')
+check(stableAudio.qaResponsibilities.includes('audio_sync'), 'Stable Audio 3 Small-SFX must require timing QA.')
+check(stableAudio.modelWeightPolicy.required, 'Stable Audio 3 Small-SFX must require exact gated-weight review.')
+expectThrows(
+  () => assertToolAllowedForProduction('stable_audio_3_small_sfx'),
+  'Stable Audio 3 Small-SFX must remain blocked until its real GPU E2E evidence exists.',
+)
+
 check(requireCapabilityProfile('faster_whisper').qaResponsibilities.includes('transcript_alignment'), 'faster-whisper must include transcript alignment QA.')
 check(requireProfile('deepfilternet').qaResponsibilities.includes('audio_naturalness'), 'DeepFilterNet must include audio naturalness QA.')
 check(requireProfile('deepfilternet').qaResponsibilities.includes('audio_loudness'), 'DeepFilterNet must include audio loudness QA.')
@@ -194,6 +209,7 @@ const expectedCapabilityModelWeightTools: NonE2EToolCapabilityId[] = [
   'mediapipe',
   'birefnet',
   'sam2',
+  'stable_audio_3_small_sfx',
   'transparent_background',
   'torch_torchvision',
   'transformers',
@@ -235,7 +251,7 @@ check(
   !(summary.toolsNeedingLicenseReview as readonly string[]).includes('birefnet'),
   'BiRefNet must not leak into production registry summaries.',
 )
-check(capabilitySummary.totalCapabilities === 23, 'Capability summary must retain exactly 23 non-E2E identities.')
+check(capabilitySummary.totalCapabilities === 25, 'Capability summary must retain exactly 25 non-E2E identities.')
 check(
   capabilitySummary.runnerOnlyFoundations.join('|') ===
     RUNNER_ONLY_FOUNDATION_IDS.join('|'),

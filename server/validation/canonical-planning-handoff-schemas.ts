@@ -127,7 +127,10 @@ export const canonicalPlanningHandoffResponseSchema = z.object({
 
 export const publishCanonicalEditPlanFromHandoffSchema = publishCanonicalEditPlanSchema
   .omit({ planningInputAuthority: true, sourceMediaAuthority: true })
-  .extend({ expectedHandoffHash: sha })
+  .extend({
+    expectedHandoffHash: sha,
+    professionalLongFormSeedDraft: z.unknown().optional(),
+  })
   .strict()
 
 export const publishCanonicalPlanPublicationRequestSchema = z.object({

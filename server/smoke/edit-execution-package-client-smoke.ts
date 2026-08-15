@@ -104,13 +104,13 @@ const approvedSnapshot = {
         ],
       },
       {
-        intentId: 'intent.client_smoke.qwen_visual_understanding',
+        intentId: 'intent.client_smoke.visual_intelligence',
         intentKind: 'model_role',
         userFacingActivity: 'Prepare source visual understanding notes for the edit plan.',
         executionBoundary: 'backend_approved_after_snapshot',
-        providerRoute: 'qwen2_5_vl_7b_instruct_provider_boundary',
-        providerModel: 'Qwen2.5-VL-7B-Instruct',
-        modelRoleId: 'qwen2_5_vl_visual_understanding',
+        providerRoute: 'vertex_gemini_pro_visual_intelligence_boundary',
+        providerModel: 'gemini-3.1-pro-preview',
+        modelRoleId: 'visual_intelligence_gemini_pro_high',
         requestedModelUse: 'visual_understanding',
         hiddenAdapterToolNames: [],
         requiredApprovalGates: [
@@ -181,11 +181,11 @@ const approvedSnapshot = {
           remotionDraftAllowed: true,
         },
         {
-          modelRoleId: 'qwen2_5_vl_visual_understanding',
-          providerBoundary: 'qwen2_5_vl_7b_instruct_provider_boundary',
-          canonicalProviderModel: 'qwen2.5-vl-7b-instruct',
+          modelRoleId: 'visual_intelligence_gemini_pro_high',
+          providerBoundary: 'vertex_gemini_pro_visual_intelligence_boundary',
+          canonicalProviderModel: 'gemini-3.1-pro-preview',
           requestedUses: ['visual_understanding'],
-          intentIds: ['intent.client_smoke.qwen_visual_understanding'],
+          intentIds: ['intent.client_smoke.visual_intelligence'],
           reasoningRouteRole: 'specialist',
           reasoningRoutePriority: null,
           fallbackOnly: false,
@@ -318,9 +318,9 @@ const created = await createApprovedEditExecutionPackageClient({
   approvedPlanSnapshotId: approvedSnapshot.id,
   approvedSnapshot,
   creditReservationId: 'credit-reservation-client-smoke',
-  requestedAdapterToolNames: ['d3', 'three', 'sam2'],
-  packageReadyToolIds: ['d3', 'three', 'sam2'],
-  modelWeightApprovedToolIds: ['sam2'],
+  requestedAdapterToolNames: ['d3', 'three', 'sam3_1'],
+  packageReadyToolIds: ['d3', 'three', 'sam3_1'],
+  modelWeightApprovedToolIds: ['sam3_1'],
 })
 
 assert.equal(created.ok, true, 'Client should create a mock-safe approved execution package.')
@@ -363,7 +363,7 @@ assert.ok(
     intent.modelRoleId === 'gpt_5_6_terra_fallback_edit_agent' &&
     intent.requestedModelUse === 'edit_planning',
   ),
-  'Client package skill trace must preserve the Qwen 3.7 first-fallback backend intent.',
+  'Client package skill trace must preserve the GPT-5.6 Terra fallback backend intent.',
 )
 assert.ok(
   executionPackage.professionalSkillTrace?.backendIntents.some((intent) =>
@@ -375,8 +375,8 @@ assert.ok(
 )
 assert.ok(
   executionPackage.professionalSkillTrace?.backendIntents.some((intent) =>
-    intent.providerRoute === 'qwen2_5_vl_7b_instruct_provider_boundary' &&
-    intent.modelRoleId === 'qwen2_5_vl_visual_understanding' &&
+    intent.providerRoute === 'vertex_gemini_pro_visual_intelligence_boundary' &&
+    intent.modelRoleId === 'visual_intelligence_gemini_pro_high' &&
     intent.requestedModelUse === 'visual_understanding',
   ),
   'Client package skill trace must preserve the visual-understanding backend intent.',
@@ -405,11 +405,11 @@ assert.ok(
 )
 assert.ok(
   executionPackage.professionalSkillTrace?.modelRoleTrace.roles.some((role) =>
-    role.modelRoleId === 'qwen2_5_vl_visual_understanding' &&
-    role.canonicalProviderModel === 'qwen2.5-vl-7b-instruct' &&
+    role.modelRoleId === 'visual_intelligence_gemini_pro_high' &&
+    role.canonicalProviderModel === 'gemini-3.1-pro-preview' &&
     role.requestedUses.includes('visual_understanding'),
   ),
-  'Client package skill trace must preserve the canonical Qwen2.5-VL model-role trace.',
+  'Client package skill trace must preserve the canonical Visual Intelligence model-role trace.',
 )
 assert.ok(Array.isArray(executionPackage.professionalSkillTrace?.warnings))
 assert.ok(!/librosa|pydub|d3/i.test(JSON.stringify(executionPackage.professionalSkillTrace ?? {})), 'Client package skill trace must not expose internal tool names.')
@@ -1464,7 +1464,7 @@ const privateInternalTestRunWithMixedActivities = await createApprovedEditExecut
     'librosa',
     'd3',
     'three',
-    'sam2',
+    'sam3_1',
     'gpac_mp4box_packaging_validation',
   ],
   sourceMediaAssets: [
@@ -1493,7 +1493,7 @@ assert.deepEqual(
   'Mock private internal test-run status should group mixed adapter work into human-facing edit areas.',
 )
 assert.equal(
-  /librosa|d3|three|sam2|gpac|mp4box/i.test(JSON.stringify(mixedActivityGroups)),
+  /librosa|d3|three|sam3_1|gpac|mp4box/i.test(JSON.stringify(mixedActivityGroups)),
   false,
   'Mixed private internal test-run activity groups must not expose exact package names.',
 )

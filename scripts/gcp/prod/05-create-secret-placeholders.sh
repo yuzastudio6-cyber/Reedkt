@@ -15,6 +15,6 @@ while IFS= read -r secret_name; do
     run_gcloud secrets create "${secret_name}" \
       --project="${GCP_PROJECT_ID}" \
       --replication-policy=automatic \
-      --labels="app=reeditpro,env=${REEDITPRO_ENV}"
+      --labels="app=weeditpro,env=${REEDITPRO_ENV}"
   fi
 done < <(secret_placeholders)

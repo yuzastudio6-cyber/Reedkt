@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 dist-server
+dist-sam31-official-artifact-ingest
 dist-release-tools
 dist-remotion-worker
 .reeditpro-local-storage*

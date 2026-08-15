@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto'
+
 import { ApiError } from '../errors/api-error'
 import type { ServiceContext } from '../types'
 import {
@@ -21,6 +23,9 @@ import { createCanonicalPlanningHandoffService } from './canonical-planning-hand
 import {
   compileCanonicalSourceLedPlan,
 } from './canonical-source-led-plan-compiler'
+import {
+  buildCanonicalSourceLedProfessionalLongFormSeedDraft,
+} from './canonical-source-led-professional-long-form-publication'
 import { createProjectService } from './project-service'
 import {
   readPlanningExactEditPreferenceAuthority,
@@ -36,6 +41,10 @@ import {
 import {
   readPrivateUploadMediaAuthorityAggregate,
 } from './private-upload-media-authority-store'
+import {
+  readOrReconcileCanonicalSourceCleanupAuthority,
+  type CanonicalSourceAnalysisPlanningScope,
+} from './canonical-source-led-orchestra-planning-reconciliation'
 import { createSourceMediaAuthorityService } from './source-media-authority-service'
 import { getRequiredAuthUserId } from './service-helpers'
 import { authorizeWorkspaceAccess } from './workspace-access-service'
@@ -234,6 +243,58 @@ export function createCanonicalSourceLedPlanPresentationService(
         editBriefAggregate,
         chatInstructionHistory: chatDirections.instructionHistory,
       })
+      const cleanupScope = {
+        ownerUserId: actorUserId,
+        workspaceId: access.workspaceId,
+        projectId,
+        editSessionId,
+        planningDirectionDigestSha256:
+          sha256(plannerInput.customInstructions),
+        userInstructionDigestSha256:
+          chatDirections.authorityDigestSha256,
+        sources: selectedSources.map(({ mediaAsset }, index) => ({
+          sourceSequenceItemId: mediaAsset.id,
+          mediaAssetId: mediaAsset.id,
+          uploadedOrder: index + 1,
+          checksumSha256: mediaAsset.checksumSha256,
+        })),
+      }
+      const sourceCleanupAuthorityRead =
+        context.canonicalSourceCleanupAuthorityReadPort
+          ? context.canonicalSourceLedOrchestraPlanningReconciliationPort
+            ? await readOrReconcileCanonicalSourceCleanupAuthority({
+                readPort: context.canonicalSourceCleanupAuthorityReadPort,
+                reconciliationPort:
+                  context
+                    .canonicalSourceLedOrchestraPlanningReconciliationPort,
+                cleanupScope,
+                planningScope: buildCanonicalSourceAnalysisPlanningScope({
+                  ownerUserId: actorUserId,
+                  workspaceId: access.workspaceId,
+                  projectId,
+                  editSessionId,
+                  planningDirection: plannerInput.customInstructions,
+                  planningDirectionDigestSha256:
+                    cleanupScope.planningDirectionDigestSha256,
+                  userInstructionDigestSha256:
+                    cleanupScope.userInstructionDigestSha256,
+                  selectedSources,
+                }),
+              })
+            : await context.canonicalSourceCleanupAuthorityReadPort
+                .readForPlanning(cleanupScope)
+          : undefined
+      if (sourceCleanupAuthorityRead?.status === 'not_found') {
+        throw new ApiError(
+          'JOB_DEPENDENCY_NOT_READY',
+          'Whole-video Visual Intelligence cleanup evidence is not ready for these exact sources and instructions.',
+          409,
+          {
+            requiredGate:
+              'canonical_whole_video_visual_intelligence_cleanup_authority',
+          },
+        )
+      }
 
       let compiled: ReturnType<typeof compileCanonicalSourceLedPlan>
       try {
@@ -244,6 +305,9 @@ export function createCanonicalSourceLedPlanPresentationService(
           confirmedCaptionMarkers: confirmedMarkers.filter(
             (marker) => marker.markerType === 'caption',
           ),
+          ...(sourceCleanupAuthorityRead?.status === 'ready'
+            ? { sourceCleanupAuthority: sourceCleanupAuthorityRead.authority }
+            : {}),
         })
       } catch (error) {
         throw new ApiError(
@@ -256,7 +320,9 @@ export function createCanonicalSourceLedPlanPresentationService(
           { cause: error },
         )
       }
-      const publication = compiled.canonicalDraft.publication
+      const publication =
+        compiled.canonicalDraft.publication ??
+        compiled.professionalLongFormPublication
       if (!publication) {
         throw new ApiError(
           'JOB_DEPENDENCY_NOT_READY',
@@ -281,13 +347,14 @@ export function createCanonicalSourceLedPlanPresentationService(
       publication.canonicalPlan.components.compiledIntent =
         structuredClone(compiledIntentWithChatAuthority)
 
+      const canonicalPlanComponents = canonicalPlanComponentsSchema.parse(
+        compiled.canonicalDraft.components,
+      )
       const handoff = await createCanonicalPlanningHandoffService(context).prepare({
         workspaceId: access.workspaceId,
         purpose: 'prepare_canonical_planning_handoff',
         orderedSourceItems: compiled.canonicalDraft.orderedSourceItems,
-        canonicalPlanComponents: canonicalPlanComponentsSchema.parse(
-          compiled.canonicalDraft.components,
-        ),
+        canonicalPlanComponents,
         projectId,
         editSessionId,
       })
@@ -295,6 +362,27 @@ export function createCanonicalSourceLedPlanPresentationService(
         publishCanonicalEditPlanSchema.shape.canonicalPlan.parse(
           publication.canonicalPlan,
         )
+      const professionalLongFormSeedDraft =
+        compiled.professionalLongFormPublication
+          ? buildCanonicalSourceLedProfessionalLongFormSeedDraft({
+              workspaceId: access.workspaceId,
+              projectId,
+              editSessionId,
+              planningRequestId: publication.planningRequestIdSeed,
+              components: canonicalPlanComponents,
+              sourceObjects: selectedSources.map(
+                ({ mediaAsset, storageObject }) => ({
+                  sourceSequenceItemId: mediaAsset.id,
+                  mediaAssetId: mediaAsset.id,
+                  storageProvider: storageObject.storageProvider,
+                  generation: storageObject.generation,
+                  region: storageObject.region,
+                  sizeBytes: storageObject.sizeBytes,
+                  checksumSha256: storageObject.checksumSha256,
+                }),
+              ),
+            })
+          : undefined
       const presentation =
         await createCanonicalPlanPresentationCoordinatorService(context).present({
           workspaceId: access.workspaceId,
@@ -304,6 +392,9 @@ export function createCanonicalSourceLedPlanPresentationService(
           projectId,
           editSessionId,
           handoffId: handoff.handoffId,
+          ...(professionalLongFormSeedDraft
+            ? { professionalLongFormSeedDraft }
+            : {}),
         })
 
       return {
@@ -349,7 +440,12 @@ export function createCanonicalSourceLedPlanPresentationService(
         warnings: [
           ...compiled.canonicalDraft.warnings,
           ...presentation.warnings,
-          'This bounded server planner preserves every verified source frame and supports only exact confirmed captions.',
+          compiled.evidence.sourceRangePolicy ===
+            'head_intelligence_verified_visual_intelligence_cleanup'
+            ? 'This source-led plan uses only exact Head Intelligence keep/remove decisions bound to complete transcript and whole-video Visual Intelligence evidence.'
+            : compiled.professionalLongFormPublication
+              ? 'This professional long-form source-led plan preserves every verified source frame and delegates chunk derivation, QA, and merge authority to the existing post-approval controller.'
+              : 'This bounded server planner preserves every verified source frame and supports only exact confirmed captions.',
         ],
         testOnly: true as const,
       }
@@ -416,6 +512,9 @@ export function resolveExactFinalizedSource(input: {
     mediaAsset.mimeType !== storageObject.mimeType ||
     mediaAsset.sizeBytes !== storageObject.sizeBytes ||
     mediaAsset.checksumSha256 !== storageObject.checksumSha256 ||
+    mediaAsset.storageGeneration !== storageObject.generation ||
+    mediaAsset.storageEtag !== storageObject.etag ||
+    mediaAsset.storageMetageneration !== storageObject.metageneration ||
     (uploadIntent.checksumSha256 !== undefined &&
       uploadIntent.checksumSha256 !== mediaAsset.checksumSha256) ||
     (uploadIntent.expectedSizeBytes !== undefined &&
@@ -429,6 +528,87 @@ export function resolveExactFinalizedSource(input: {
     )
   }
   return { mediaAsset, uploadIntent, storageObject }
+}
+
+function buildCanonicalSourceAnalysisPlanningScope(input: {
+  ownerUserId: string
+  workspaceId: string
+  projectId: string
+  editSessionId: string
+  planningDirection: string
+  planningDirectionDigestSha256: string
+  userInstructionDigestSha256: string
+  selectedSources: readonly {
+    mediaAsset: {
+      id: string
+      storageProvider: 'local_private' | 'google_cloud_storage'
+      storageBucket: string
+      storagePath: string
+      mimeType: string
+      sizeBytes: number
+      checksumSha256: string
+      storageGeneration?: string
+      storageEtag?: string
+    }
+    storageObject: {
+      storageProvider: 'local_private' | 'google_cloud_storage'
+      bucketName: string
+      objectPath: string
+      mimeType: string
+      sizeBytes: number
+      checksumSha256: string
+      generation?: string
+      etag?: string
+    }
+  }[]
+}): CanonicalSourceAnalysisPlanningScope {
+  const sources = input.selectedSources.map(
+    ({ mediaAsset, storageObject }, index) => {
+      if (
+        mediaAsset.storageProvider !== 'google_cloud_storage'
+        || storageObject.storageProvider !== 'google_cloud_storage'
+        || mediaAsset.mimeType !== 'video/mp4'
+        || storageObject.mimeType !== 'video/mp4'
+        || !mediaAsset.storageGeneration
+        || !mediaAsset.storageEtag
+        || !storageObject.generation
+        || !storageObject.etag
+      ) throw new ApiError(
+        'JOB_DEPENDENCY_NOT_READY',
+        'Whole-video Visual Intelligence requires an exact finalized Google Cloud source identity before Orchestra preparation.',
+        409,
+        {
+          requiredGate:
+            'canonical_source_analysis_gcs_generation_etag_authority',
+          mediaAssetId: mediaAsset.id,
+        },
+      )
+      return {
+        sourceSequenceItemId: mediaAsset.id,
+        mediaAssetId: mediaAsset.id,
+        uploadedOrder: index + 1,
+        storageProvider: 'google_cloud_storage' as const,
+        storageBucket: storageObject.bucketName,
+        storagePath: storageObject.objectPath,
+        contentType: 'video/mp4' as const,
+        checksumSha256: storageObject.checksumSha256,
+        byteLength: storageObject.sizeBytes,
+        storageGeneration: storageObject.generation,
+        storageEtag: storageObject.etag,
+      }
+    },
+  )
+  return {
+    ownerUserId: input.ownerUserId,
+    workspaceId: input.workspaceId,
+    projectId: input.projectId,
+    editSessionId: input.editSessionId,
+    planningDirection: input.planningDirection,
+    planningDirectionDigestSha256:
+      input.planningDirectionDigestSha256,
+    userInstructionDigestSha256: input.userInstructionDigestSha256,
+    sources,
+  }
 }
 
 function resolveOptionalReadySourceLedEditBrief(
@@ -564,6 +744,10 @@ function frameTemplateForAspectRatio(
 function safeIdentity(value: string): boolean {
   return /^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/.test(value)
     && !value.includes('..')
+}
+
+function sha256(value: string): string {
+  return createHash('sha256').update(value).digest('hex')
 }
 
 export type SourceLedBRollPreferenceDisposition =

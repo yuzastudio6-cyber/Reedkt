@@ -2,7 +2,7 @@
 
 RP-EDITLEVEL-08 adds mock/local level-aware QA gate policy for `normal | premium | ultra_premium`.
 
-This milestone defines QA gate policy only. It does not execute QA tools, call Qwen 3.7, call Qwen2.5-VL, call DeepSeek, call providers, run planners, create edit plans, start media workers, render, export, use Supabase, read uploaded file bytes, fetch external URLs, reserve credits, or spend credits.
+This milestone defines QA gate policy only. It does not execute QA tools, call Qwen 3.7, call Visual Intelligence, call DeepSeek, call providers, run planners, create edit plans, start media workers, render, export, use Supabase, read uploaded file bytes, fetch external URLs, reserve credits, or spend credits.
 
 ## Product Levels
 
@@ -14,4 +14,4 @@ Runtime `basic | pro | premium` behavior remains unchanged. Canonical product le
 
 ## Policy Boundary
 
-Every package exposes `mockOnly: true` and false flags for provider, Qwen, Qwen2.5-VL, DeepSeek, planner, edit plan, media worker, render, credit, file-byte, and external-fetch side effects.
+Every package exposes `mockOnly: true` and false flags for provider, Qwen, Visual Intelligence, DeepSeek, planner, edit plan, media worker, render, credit, file-byte, and external-fetch side effects.

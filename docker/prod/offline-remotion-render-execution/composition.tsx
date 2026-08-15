@@ -136,6 +136,9 @@ export interface ApprovedCompositionProps {
   voiceTrackInternalUrls?: Array<{
     sourceSequenceItemId: string
     outputKey: string
+    durationFrames: number
+    sourceStartFrame?: number
+    sourceEndFrameExclusive?: number
     voiceTrackInternalUrl: string
   }>
   supplementalAudioTracks?: Array<{
@@ -763,7 +766,13 @@ const ApprovedSourceCaptionComposition: React.FC<ApprovedCompositionProps> = (pr
         style={{ width: '100%', height: '100%', objectFit: 'contain' }}
         volume={replaceVoice ? 0 : 1}
       />
-      {replaceVoice && <Audio src={props.voiceTrackInternalUrls![0]!.voiceTrackInternalUrl} />}
+      {replaceVoice && (
+        <Audio
+          src={props.voiceTrackInternalUrls![0]!.voiceTrackInternalUrl}
+          startFrom={props.voiceTrackInternalUrls![0]!.sourceStartFrame}
+          endAt={props.voiceTrackInternalUrls![0]!.sourceEndFrameExclusive}
+        />
+      )}
       <ApprovedSupplementalAudioTracks {...props} />
       <ApprovedLivingFrameOverlays {...props} />
       <ApprovedControlledVisualOverlays {...props} />
@@ -829,10 +838,10 @@ const ApprovedSourceSequenceCaptionComposition: React.FC<ApprovedCompositionProp
   const sourceUrlById = new Map(
     props.sourceInternalUrls!.map((source) => [source.sourceSequenceItemId, source.sourceInternalUrl]),
   )
-  const voiceUrlBySourceId = new Map(
+  const voiceTrackBySourceId = new Map(
     (props.voiceTrackInternalUrls ?? []).map((track) => [
       track.sourceSequenceItemId,
-      track.voiceTrackInternalUrl,
+      track,
     ]),
   )
   const replaceVoice = props.audioPolicy === 'replace_with_approved_voice_tracks'
@@ -852,7 +861,16 @@ const ApprovedSourceSequenceCaptionComposition: React.FC<ApprovedCompositionProp
             sourceInternalUrl={sourceUrlById.get(segment.sourceSequenceItemId)!}
             replaceVoice={replaceVoice}
           />
-          {replaceVoice && <Audio src={voiceUrlBySourceId.get(segment.sourceSequenceItemId)!} />}
+          {replaceVoice && (() => {
+            const voiceTrack = voiceTrackBySourceId.get(segment.sourceSequenceItemId)!
+            return (
+              <Audio
+                src={voiceTrack.voiceTrackInternalUrl}
+                startFrom={voiceTrack.sourceStartFrame}
+                endAt={voiceTrack.sourceEndFrameExclusive}
+              />
+            )
+          })()}
         </Sequence>
       ))}
       <ApprovedSupplementalAudioTracks {...props} />
@@ -1095,6 +1113,38 @@ function hasApprovedAudioInput(props: ApprovedCompositionProps, sourceCount: num
   const sourceIds = new Set(props.voiceTrackInternalUrls.map((track) => track.sourceSequenceItemId))
   const outputKeys = new Set(props.voiceTrackInternalUrls.map((track) => track.outputKey))
   if (sourceIds.size !== sourceCount || outputKeys.size !== sourceCount) return false
+  const expectedDurationBySourceId = new Map(
+    props.sourceSegments
+      ? props.sourceSegments.map((segment) => [
+          segment.sourceSequenceItemId,
+          segment.timelineEndFrameExclusive - segment.timelineStartFrame,
+        ] as const)
+      : [[props.voiceTrackInternalUrls[0]!.sourceSequenceItemId, props.durationFrames] as const],
+  )
+  if (!props.voiceTrackInternalUrls.every((track) => {
+    const sourceSliceProvided =
+      track.sourceStartFrame !== undefined ||
+      track.sourceEndFrameExclusive !== undefined
+    const expectedDuration = expectedDurationBySourceId.get(track.sourceSequenceItemId)
+    return (
+      Number.isSafeInteger(track.durationFrames) &&
+      track.durationFrames > 0 &&
+      expectedDuration !== undefined &&
+      (
+        sourceSliceProvided
+          ? (
+              Number.isSafeInteger(track.sourceStartFrame) &&
+              Number.isSafeInteger(track.sourceEndFrameExclusive) &&
+              track.sourceStartFrame! >= 0 &&
+              track.sourceEndFrameExclusive! > track.sourceStartFrame! &&
+              track.sourceEndFrameExclusive! <= track.durationFrames &&
+              track.sourceEndFrameExclusive! - track.sourceStartFrame! ===
+                expectedDuration
+            )
+          : track.durationFrames === expectedDuration
+      )
+    )
+  })) return false
   if (!props.sourceSegments) return sourceCount === 1
   return props.sourceSegments.every((segment) => sourceIds.has(segment.sourceSequenceItemId))
 }

@@ -10,11 +10,13 @@ import {
   invalidateProjectPersistenceScope,
   type ProjectPersistenceScope,
 } from './project-persistence-scope'
+import {
+  REEDITPRO_CANONICAL_PRIVATE_REVIEW_MAX_BYTES,
+} from '../types/large-media'
 
 const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]*$/
 const SHA256 = /^[a-f0-9]{64}$/
 const OFFSET_DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/
-const MAX_PRIVATE_REVIEW_BYTES = 32 * 1024 * 1024
 const PRIVATE_REVIEW_REQUEST_TIMEOUT_MS = 30_000
 
 export type CanonicalPrivateReviewMedia = {
@@ -242,7 +244,7 @@ async function performMediaRequest(
       !contentLength ||
       !Number.isSafeInteger(headerLength) ||
       headerLength < 1 ||
-      headerLength > MAX_PRIVATE_REVIEW_BYTES
+      headerLength > REEDITPRO_CANONICAL_PRIVATE_REVIEW_MAX_BYTES
     ) {
       return mediaFailure(
         'invalid_response',
@@ -255,7 +257,7 @@ async function performMediaRequest(
     const blob = await response.blob()
     if (
       blob.size < 1 ||
-      blob.size > MAX_PRIVATE_REVIEW_BYTES ||
+      blob.size > REEDITPRO_CANONICAL_PRIVATE_REVIEW_MAX_BYTES ||
       headerLength !== blob.size ||
       await sha256Blob(blob) !== authority.expectedFinalArtifactSha256
     ) {

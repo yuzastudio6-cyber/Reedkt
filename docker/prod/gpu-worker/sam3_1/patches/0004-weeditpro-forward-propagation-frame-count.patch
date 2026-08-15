@@ -1,0 +1,13 @@
+diff --git a/sam3/model/sam3_multiplex_tracking.py b/sam3/model/sam3_multiplex_tracking.py
+index 8eccb53..dc52ac9 100644
+--- a/sam3/model/sam3_multiplex_tracking.py
++++ b/sam3/model/sam3_multiplex_tracking.py
+@@ -292,7 +292,7 @@ class Sam3MultiplexTracking(Sam3MultiplexBase):
+             end_frame_idx = max(end_frame_idx, 0)
+             processing_order = range(start_frame_idx - 1, end_frame_idx - 1, -1)
+         else:
+-            end_frame_idx = start_frame_idx + max_frame_num_to_track
++            end_frame_idx = start_frame_idx + max_frame_num_to_track - 1
+             end_frame_idx = min(end_frame_idx, num_frames - 1)
+             processing_order = range(start_frame_idx, end_frame_idx + 1)
+         return processing_order, end_frame_idx

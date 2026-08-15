@@ -36,7 +36,7 @@ export function createEditLevelQwenToolRoutingSummary(
 ): string {
   const routingPackage = createEditLevelToolRoutingPackage(level)
   const qwen = routeFor(routingPackage, 'qwen_3_reasoning')
-  const visual = routeFor(routingPackage, 'qwen25vl_visual_understanding')
+  const visual = routeFor(routingPackage, 'visual_intelligence')
   const deepseek = routeFor(routingPackage, 'deepseek_tool_code')
 
   return hideInternalToolNamesInCopy(`${qwen.displayName}: ${qwen.userFacingSummary} ${visual.displayName}: ${visual.userFacingSummary} ${deepseek.displayName}: ${deepseek.userFacingSummary}`)

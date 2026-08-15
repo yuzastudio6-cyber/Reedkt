@@ -45,6 +45,14 @@ issuance, an envelope-encrypted multi-replica credential escrow with
 expiry/deletion evidence, and released hosted deployment/RLS evidence. Hosted
 upload creation therefore continues to fail closed.
 
+The local-only authority also supports a bounded authenticated
+`resumable_content_range_v1` target for source files above 16 MiB. Each request
+remains at or below the original raw-body cap, carries an exact byte range and
+chunk SHA-256, and may resume only from the status route's server-verified
+offset. Target and status routes are encrypted in the existing escrow and
+digest-bound in canonical issuance metadata; they are not stored as plaintext
+canonical state.
+
 Verification:
 
 ```text
@@ -52,6 +60,7 @@ npm run smoke:canonical-durable-upload-target-authority
 npm run smoke:canonical-durable-upload-target-local-postgres
 npm run smoke:upload-boundary-security
 npm run smoke:upload
+npm run smoke:local-resumable-source-upload
 npm run typecheck:server
 ```
 

@@ -35,7 +35,12 @@ import { createPreferenceIntelligenceRoutes } from './routes/preference-intellig
 import { createProviderGatewayRoutes } from './routes/provider-gateway-routes'
 import { createRenderRoutes } from './routes/render-routes'
 import { createToolCostRoutes } from './routes/tool-cost-routes'
+import { createTrackAllSam31Routes } from './routes/track-all-sam3_1-routes'
 import { createUploadRoutes } from './routes/upload-routes'
+import { createVisualIntelligenceRoutes } from
+  './routes/visual-intelligence-routes'
+import { createVisualIntelligenceOrchestraRoutes } from
+  './routes/visual-intelligence-orchestra-routes'
 import { createWorkerRoutes } from './routes/worker-routes'
 import type { EditReferenceStudyChatRuntimePort } from './services/edit-reference-study-chat-runtime-port'
 import type { CanonicalMotionStudioStorytellingProductionAuthorityReaderPort } from './services/canonical-motion-studio-storytelling-production-authority-service'
@@ -77,6 +82,14 @@ export interface ReeditProApiAppOptions {
     RuntimeState['canonicalVisualCalibrationReferenceFrameReaderPort']
   canonicalProviderAttemptRuntimeRecordSourcePort?:
     RuntimeState['canonicalProviderAttemptRuntimeRecordSourcePort']
+  visualIntelligenceReportRepository?:
+    RuntimeState['visualIntelligenceReportRepository']
+  visualIntelligenceOrchestraJobRuntimePort?:
+    RuntimeState['visualIntelligenceOrchestraJobRuntimePort']
+  editReferenceVisualIntelligenceBindingStore?:
+    RuntimeState['editReferenceVisualIntelligenceBindingStore']
+  editReferenceVisualIntelligenceReadPort?:
+    RuntimeState['editReferenceVisualIntelligenceReadPort']
   motionStudioCommandRepositoryRuntimePort?:
     RuntimeState['motionStudioCommandRepositoryRuntimePort']
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
@@ -92,6 +105,30 @@ export interface ReeditProApiAppOptions {
     RuntimeState['editBriefPrivateWorkspaceRuntimePort']
   kimiK3SourceLedChatAssistantPort?:
     RuntimeState['kimiK3SourceLedChatAssistantPort']
+  canonicalSourceCleanupAuthorityReadPort?:
+    RuntimeState['canonicalSourceCleanupAuthorityReadPort']
+  canonicalSourceVisualIntelligenceOrchestraReadPort?:
+    RuntimeState['canonicalSourceVisualIntelligenceOrchestraReadPort']
+  canonicalSourceLedOrchestraPlanningReconciliationPort?:
+    RuntimeState['canonicalSourceLedOrchestraPlanningReconciliationPort']
+  trackAllSam31AuthenticatedGpuStartRuntimePort?:
+    RuntimeState['trackAllSam31AuthenticatedGpuStartRuntimePort']
+  trackAllSam31AuthenticatedGpuInvocationRuntimePort?:
+    RuntimeState['trackAllSam31AuthenticatedGpuInvocationRuntimePort']
+  trackAllSam31QueuedGpuStartRuntimePort?:
+    RuntimeState['trackAllSam31QueuedGpuStartRuntimePort']
+  professionalGpuCloudTaskScheduler?:
+    RuntimeState['professionalGpuCloudTaskScheduler']
+  professionalGpuCloudTaskConsumer?:
+    RuntimeState['professionalGpuCloudTaskConsumer']
+  trackAllSam31L4TaskQaAuthenticatedStartRuntimePort?:
+    RuntimeState['trackAllSam31L4TaskQaAuthenticatedStartRuntimePort']
+  trackAllSam31L4TaskQaQueuedStartRuntimePort?:
+    RuntimeState['trackAllSam31L4TaskQaQueuedStartRuntimePort']
+  trackAllSam31CaptionEvidenceFinalizationRuntimePort?:
+    RuntimeState['trackAllSam31CaptionEvidenceFinalizationRuntimePort']
+  trackAllSam31TaskQaEvidenceFinalizationRuntimePort?:
+    RuntimeState['trackAllSam31TaskQaEvidenceFinalizationRuntimePort']
   canonicalCloudDispatchHttpReceiverPort?:
     CanonicalCloudDispatchHttpReceiverPort
 }
@@ -179,6 +216,30 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
             options.canonicalProviderAttemptRuntimeRecordSourcePort,
         }
       : {}),
+    ...(options.visualIntelligenceReportRepository
+      ? {
+          visualIntelligenceReportRepository:
+            options.visualIntelligenceReportRepository,
+        }
+      : {}),
+    ...(options.visualIntelligenceOrchestraJobRuntimePort
+      ? {
+          visualIntelligenceOrchestraJobRuntimePort:
+            options.visualIntelligenceOrchestraJobRuntimePort,
+        }
+      : {}),
+    ...(options.editReferenceVisualIntelligenceBindingStore
+      ? {
+          editReferenceVisualIntelligenceBindingStore:
+            options.editReferenceVisualIntelligenceBindingStore,
+        }
+      : {}),
+    ...(options.editReferenceVisualIntelligenceReadPort
+      ? {
+          editReferenceVisualIntelligenceReadPort:
+            options.editReferenceVisualIntelligenceReadPort,
+        }
+      : {}),
     ...(options.motionStudioCommandRepositoryRuntimePort
       ? {
           motionStudioCommandRepositoryRuntimePort:
@@ -233,6 +294,78 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
             configuredSourceLedChatAssistantPort,
         }
       : {}),
+    ...(options.canonicalSourceCleanupAuthorityReadPort
+      ? {
+          canonicalSourceCleanupAuthorityReadPort:
+            options.canonicalSourceCleanupAuthorityReadPort,
+        }
+      : {}),
+    ...(options.canonicalSourceVisualIntelligenceOrchestraReadPort
+      ? {
+          canonicalSourceVisualIntelligenceOrchestraReadPort:
+            options.canonicalSourceVisualIntelligenceOrchestraReadPort,
+        }
+      : {}),
+    ...(options.canonicalSourceLedOrchestraPlanningReconciliationPort
+      ? {
+          canonicalSourceLedOrchestraPlanningReconciliationPort:
+            options.canonicalSourceLedOrchestraPlanningReconciliationPort,
+        }
+      : {}),
+    ...(options.trackAllSam31AuthenticatedGpuStartRuntimePort
+      ? {
+          trackAllSam31AuthenticatedGpuStartRuntimePort:
+            options.trackAllSam31AuthenticatedGpuStartRuntimePort,
+        }
+      : {}),
+    ...(options.trackAllSam31AuthenticatedGpuInvocationRuntimePort
+      ? {
+          trackAllSam31AuthenticatedGpuInvocationRuntimePort:
+            options.trackAllSam31AuthenticatedGpuInvocationRuntimePort,
+        }
+      : {}),
+    ...(options.trackAllSam31QueuedGpuStartRuntimePort
+      ? {
+          trackAllSam31QueuedGpuStartRuntimePort:
+            options.trackAllSam31QueuedGpuStartRuntimePort,
+        }
+      : {}),
+    ...(options.professionalGpuCloudTaskScheduler
+      ? {
+          professionalGpuCloudTaskScheduler:
+            options.professionalGpuCloudTaskScheduler,
+        }
+      : {}),
+    ...(options.professionalGpuCloudTaskConsumer
+      ? {
+          professionalGpuCloudTaskConsumer:
+            options.professionalGpuCloudTaskConsumer,
+        }
+      : {}),
+    ...(options.trackAllSam31L4TaskQaAuthenticatedStartRuntimePort
+      ? {
+          trackAllSam31L4TaskQaAuthenticatedStartRuntimePort:
+            options.trackAllSam31L4TaskQaAuthenticatedStartRuntimePort,
+        }
+      : {}),
+    ...(options.trackAllSam31L4TaskQaQueuedStartRuntimePort
+      ? {
+          trackAllSam31L4TaskQaQueuedStartRuntimePort:
+            options.trackAllSam31L4TaskQaQueuedStartRuntimePort,
+        }
+      : {}),
+    ...(options.trackAllSam31CaptionEvidenceFinalizationRuntimePort
+      ? {
+          trackAllSam31CaptionEvidenceFinalizationRuntimePort:
+            options.trackAllSam31CaptionEvidenceFinalizationRuntimePort,
+        }
+      : {}),
+    ...(options.trackAllSam31TaskQaEvidenceFinalizationRuntimePort
+      ? {
+          trackAllSam31TaskQaEvidenceFinalizationRuntimePort:
+            options.trackAllSam31TaskQaEvidenceFinalizationRuntimePort,
+        }
+      : {}),
     clients,
   }
 
@@ -244,10 +377,12 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
     allowedHeaders: [
       'accept',
       'authorization',
+      'content-range',
       'content-type',
       'idempotency-key',
       'range',
       'x-request-id',
+      'x-reeditpro-chunk-sha256',
       REEDITPRO_USER_AUTHORIZATION_HEADER,
     ],
     exposedHeaders: [
@@ -320,6 +455,9 @@ export function createReeditProApiApp(env: RuntimeEnv, options: ReeditProApiAppO
   app.use(createJobRoutes())
   app.use(createWorkerRoutes())
   app.use(createRenderRoutes())
+  app.use(createVisualIntelligenceOrchestraRoutes())
+  app.use(createVisualIntelligenceRoutes())
+  app.use(createTrackAllSam31Routes())
   app.use(createProviderGatewayRoutes())
 
   app.use(errorHandlerMiddleware)

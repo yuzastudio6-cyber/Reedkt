@@ -102,11 +102,11 @@ export function compileCanonicalLivingFrameControlledIllustrationEstimateBasis(
     ) {
       costComponents.push(compileCostComponent({
         componentId:
-          'auraface_cpu_continuity_measurement',
+          'auraface_l4_gpu_continuity_measurement',
         label:
           'Living Frame identity continuity measurement',
-        executionPlacement: 'private_cpu_worker',
-        cpuFallbackAllowed: true,
+        executionPlacement: 'google_cloud_run_gpu',
+        cpuFallbackAllowed: false,
         activeCapabilityIds: [
           'auraface_identity_measurement',
         ],
@@ -118,9 +118,9 @@ export function compileCanonicalLivingFrameControlledIllustrationEstimateBasis(
         wallTimeMilliseconds:
           plannedGpuAttemptCount
           * AURAFACE_COMPARISON_DURATION_MILLISECONDS,
-        allocatedVcpuCount: 2,
-        allocatedMemoryGib: 4,
-        gpuCount: 0,
+        allocatedVcpuCount: 4,
+        allocatedMemoryGib: 16,
+        gpuCount: 1,
         tempStorageGibHours: 0,
         outputStorageGibHours: 0,
       }))
@@ -175,7 +175,7 @@ function compileCostComponent(input: {
     CanonicalLivingFrameControlledIllustrationCostComponent[
       'executionPlacement'
     ]
-  readonly cpuFallbackAllowed: boolean
+  readonly cpuFallbackAllowed: false
   readonly activeCapabilityIds:
     readonly CanonicalLivingFrameControlledIllustrationCapabilityId[]
   readonly generatedAssetIntentIds: readonly string[]
@@ -184,7 +184,7 @@ function compileCostComponent(input: {
   readonly wallTimeMilliseconds: number
   readonly allocatedVcpuCount: number
   readonly allocatedMemoryGib: number
-  readonly gpuCount: 0 | 1
+  readonly gpuCount: 1
   readonly tempStorageGibHours: number
   readonly outputStorageGibHours: number
 }): CanonicalLivingFrameControlledIllustrationCostComponent {

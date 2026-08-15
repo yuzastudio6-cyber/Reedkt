@@ -296,6 +296,19 @@ export function createCanonicalSourceLedRevisionPlanPresentationService(
         editBriefAggregate,
         chatInstructionHistory: chatDirections.instructionHistory,
       })
+      const sourceCleanupAuthorityRead =
+        context.canonicalSourceCleanupAuthorityReadPort
+          ? await readRevisionSourceCleanupAuthority({
+              context,
+              actorUserId,
+              workspaceId: access.workspaceId,
+              projectId,
+              editSessionId,
+              sourceMediaAssets,
+              priorCompiledIntent:
+                priorAuthority.components.compiledIntent,
+            })
+          : undefined
       const compiled = compileCanonicalSourceLedPlan({
         plannerInput,
         sourceMediaAssets,
@@ -304,6 +317,9 @@ export function createCanonicalSourceLedRevisionPlanPresentationService(
           ...captionMarkers[0]!,
           note: revisionIntent.captionReplacementText!,
         }],
+        ...(sourceCleanupAuthorityRead?.status === 'ready'
+          ? { sourceCleanupAuthority: sourceCleanupAuthorityRead.authority }
+          : {}),
       })
       const publication = compiled.canonicalDraft.publication
       if (!publication) {
@@ -469,6 +485,92 @@ function assertImmutableSourceLedRevision(input: {
       )
     }
   }
+}
+
+async function readRevisionSourceCleanupAuthority(input: {
+  context: ServiceContext
+  actorUserId: string
+  workspaceId: string
+  projectId: string
+  editSessionId: string
+  sourceMediaAssets:
+    ApprovedEditExecutionUploadedMediaSourceAssetClientInput[]
+  priorCompiledIntent: unknown
+}) {
+  const priorAuthorityDigests = readPriorSourceCleanupAuthorityDigests(
+    input.priorCompiledIntent,
+  )
+  if (!priorAuthorityDigests) {
+    throw blocked(
+      'The prior approved plan has no exact source-analysis instruction authority; prepare a fresh whole-video plan before revision.',
+    )
+  }
+  const sources = input.sourceMediaAssets.map((asset) => {
+    if (!asset.sourceSequenceItemId || !asset.checksumSha256) {
+      throw blocked(
+        'The prior approved source sequence lost exact immutable identity.',
+      )
+    }
+    return {
+      sourceSequenceItemId: asset.sourceSequenceItemId,
+      mediaAssetId: asset.mediaAssetId,
+      uploadedOrder: asset.uploadedOrder,
+      checksumSha256: asset.checksumSha256,
+    }
+  })
+  const result = await input.context
+    .canonicalSourceCleanupAuthorityReadPort!.readForPlanning({
+      ownerUserId: input.actorUserId,
+      workspaceId: input.workspaceId,
+      projectId: input.projectId,
+      editSessionId: input.editSessionId,
+      planningDirectionDigestSha256:
+        priorAuthorityDigests.planningDirectionDigestSha256,
+      userInstructionDigestSha256:
+        priorAuthorityDigests.userInstructionDigestSha256,
+      sources,
+    })
+  if (result.status === 'not_found') {
+    throw blocked(
+      'The exact whole-video Visual Intelligence cleanup authority used by the prior plan is no longer available.',
+    )
+  }
+  return result
+}
+
+function readPriorSourceCleanupAuthorityDigests(compiledIntent: unknown):
+  | {
+      readonly planningDirectionDigestSha256: string
+      readonly userInstructionDigestSha256: string
+    }
+  | undefined {
+  if (!plainRecord(compiledIntent)) return undefined
+  const cleanupAuthority =
+    compiledIntent.canonicalSourceCleanupAuthority
+  if (plainRecord(cleanupAuthority)) {
+    const planningDirectionDigestSha256 =
+      cleanupAuthority.planningDirectionDigestSha256
+    const userInstructionDigestSha256 =
+      cleanupAuthority.userInstructionDigestSha256
+    if (
+      typeof planningDirectionDigestSha256 === 'string'
+      && /^[a-f0-9]{64}$/u.test(planningDirectionDigestSha256)
+      && typeof userInstructionDigestSha256 === 'string'
+      && /^[a-f0-9]{64}$/u.test(userInstructionDigestSha256)
+    ) {
+      return {
+        planningDirectionDigestSha256,
+        userInstructionDigestSha256,
+      }
+    }
+  }
+  return undefined
+}
+
+function plainRecord(value: unknown): value is Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  const prototype = Object.getPrototypeOf(value)
+  return prototype === Object.prototype || prototype === null
 }
 
 function blocked(message: string): ApiError {

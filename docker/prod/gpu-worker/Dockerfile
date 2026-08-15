@@ -4,8 +4,10 @@
 # The image remains an unqualified build candidate and must not be pushed,
 # deployed, or used with customer media until the production evidence gates pass.
 #
-# First Cloud Run GPU target: NVIDIA L4 (`nvidia-l4`), one GPU per instance, at least
-# 4 CPU and 16Gi memory, with --no-gpu-zonal-redundancy.
+# Shared normal-media target: NVIDIA L4 (`nvidia-l4`), one GPU per user
+# attempt, 8 vCPU and 32Gi memory, with --no-gpu-zonal-redundancy and zero idle
+# instances. Heavy SAM 3.1/A100 work uses the separately immutable
+# `sam3_1/Dockerfile.candidate`; this shared image is not a heavy-model fallback.
 
 FROM node:24-bookworm AS server_build
 WORKDIR /app
@@ -75,7 +77,7 @@ RUN python3 -m venv \
 RUN mkdir -p \
     /opt/reeditpro/model-weights/faster-whisper \
     /opt/reeditpro/model-weights/birefnet \
-    /opt/reeditpro/model-weights/sam2 \
+    /opt/reeditpro/model-weights/sam3_1 \
     /opt/reeditpro/model-weights/deepfilternet \
     /opt/reeditpro/model-weights/demucs \
     /opt/reeditpro/model-weights/real-esrgan \
@@ -192,6 +194,8 @@ RUN npm ci --omit=dev
 COPY --from=server_build /app/dist-server ./dist-server
 RUN test -f dist-server/server.js \
   && test -f dist-server/container-readiness-receipt.js \
+  && test -f \
+    dist-server/weeditpro-source-analysis-l4-visual-evidence-worker.js \
   && test -x \
     /opt/reeditpro/gpu-operations/faster-whisper/runner.py \
   && test -x \
@@ -201,4 +205,4 @@ RUN test -f dist-server/server.js \
   && test -x \
     /opt/reeditpro/gpu-operations/rembg/venv/bin/python
 
-CMD ["node", "dist-server/server.js"]
+CMD ["node", "dist-server/weeditpro-source-analysis-l4-visual-evidence-worker.js"]

@@ -5,7 +5,7 @@ RP-EDITLEVEL-05 makes Edit Level selection meaningful by resolving a mock/local 
 | Capability area | Normal | Premium | Ultra Premium |
 | --- | --- | --- | --- |
 | Qwen 3.7 | Standard reasoning profile; deterministic fallback. | Deep reasoning profile for story, marker, style, and source-summary decisions. | Multi-pass reasoning profile for studio-level direction and QA explanation. |
-| Qwen2.5-VL | Targeted and optional when visual ambiguity matters. | Key moments and marker windows. | Scene-level/deep visual policy. |
+| Visual Intelligence | Targeted and optional when visual ambiguity matters. | Key moments and marker windows. | Scene-level/deep visual policy. |
 | Transcript | Optional or targeted. | Recommended when speech exists. | Required when speech exists. |
 | Media extraction | Basic metadata only; worker future-gated. | Metadata plus key moments/keyframe plan. | Deeper keyframe/waveform plan. |
 | Audio/SoundSync | Basic voice-first audio guidance. | Music, SFX, ducking, and SoundSync recommendations. | Sound design planning and stricter voice-first audio direction. |

@@ -128,6 +128,7 @@ export function hideInternalToolNamesInCopy(value: string): string {
     .replace(/\bPySceneDetect\b|\bpyscenedetect\b/g, 'scene detection')
     .replace(/\bPyTorch \+ TorchVision\b|\btorch_torchvision\b/g, 'vision runtime support')
     .replace(/\bTransformers\b|\btransformers\b/g, 'model runtime support')
+    .replace(/\bSAM(?:\s*|[-_.])?3(?:\.|[-_])?1\b|\bsam3_1\b/gi, 'subject segmentation support')
     .replace(/\bSAM 2\b|\bsam2\b/g, 'subject segmentation support')
     .replace(/\bBiRefNet\b|\bbirefnet\b/g, 'subject cutout support')
     .replace(/\brembg\b/g, 'background removal support')

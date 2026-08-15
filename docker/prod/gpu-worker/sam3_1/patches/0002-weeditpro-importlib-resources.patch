@@ -1,0 +1,23 @@
+diff --git a/sam3/model_builder.py b/sam3/model_builder.py
+index b75d20a..c571306 100644
+--- a/sam3/model_builder.py
++++ b/sam3/model_builder.py
+@@ -5,0 +6 @@ import os
++from importlib.resources import files
+@@ -8 +8,0 @@ from typing import Optional
+-import pkg_resources
+@@ -599,3 +599 @@ def build_sam3_image_model(
+-        bpe_path = pkg_resources.resource_filename(
+-            "sam3", "assets/bpe_simple_vocab_16e6.txt.gz"
+-        )
++        bpe_path = str(files("sam3").joinpath("assets/bpe_simple_vocab_16e6.txt.gz"))
+@@ -698,3 +696 @@ def build_sam3_video_model(
+-        bpe_path = pkg_resources.resource_filename(
+-            "sam3", "assets/bpe_simple_vocab_16e6.txt.gz"
+-        )
++        bpe_path = str(files("sam3").joinpath("assets/bpe_simple_vocab_16e6.txt.gz"))
+@@ -1114,3 +1110 @@ def build_sam3_multiplex_video_predictor(
+-        bpe_path = pkg_resources.resource_filename(
+-            "sam3", "assets/bpe_simple_vocab_16e6.txt.gz"
+-        )
++        bpe_path = str(files("sam3").joinpath("assets/bpe_simple_vocab_16e6.txt.gz"))

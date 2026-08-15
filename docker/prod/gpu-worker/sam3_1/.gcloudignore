@@ -1,0 +1,19 @@
+# Submit only the reviewed SAM 3.1 qualification-capsule source slice.
+**
+!.gcloudignore
+!Dockerfile.qualification-capsule-builder
+!Dockerfile.qualification.candidate
+!build-qualification-capsule.sh
+!prepare-qualification-source.sh
+!prepare-qualification-security-closure.py
+!cloudbuild.qualification-capsule.yaml
+!cloudbuild.qualification-einops-ingest.yaml
+!cloudbuild.qualification-pycocotools-ingest.yaml
+!qualification_entrypoint.sh
+!qualification_runner.py
+!source-provenance.lock
+!patches/
+!patches/0001-reeditpro-gpu-decode.patch
+!patches/0002-weeditpro-importlib-resources.patch
+!patches/0003-weeditpro-multiplex-session-gpu-forwarding.patch
+!patches/0004-weeditpro-forward-propagation-frame-count.patch

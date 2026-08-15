@@ -18,7 +18,11 @@ import {
   releaseWorkerLease,
 } from './production-worker-lease-manager'
 import { collectGateWarnings, createProductionWorkerResult } from './production-worker-result-writer'
-import { routeProductionWorkerJob } from './production-worker-router'
+import {
+  hasRetiredLegacyMaskRouteRequest,
+  LEGACY_MASK_WORKER_ROUTE_RETIRED_ERROR,
+  routeProductionWorkerJob,
+} from './production-worker-router'
 import type {
   ProductionWorkerExecutionResult,
   ProductionWorkerJobPayload,
@@ -80,6 +84,36 @@ export async function dispatchProductionWorkerJob(input: {
 
   events.push(pushEvent(state, payload, 'gates_passed', 'Production worker gates passed.', 15))
 
+  if (hasRetiredLegacyMaskRouteRequest(payload)) {
+    events.push(pushEvent(
+      state,
+      payload,
+      'job_blocked',
+      'The legacy mask worker route is retired; exact Orchestra and Track All authority is required before canonical SAM 3.1 dispatch.',
+      100,
+      {
+        requiredGate: 'canonical_track_all_orchestra_sam3_1_dispatch',
+        cpuOnlySubstantiveExecutionAllowed: false,
+      },
+    ))
+    return createProductionWorkerResult({
+      payload,
+      status: 'blocked',
+      gateChecks,
+      events,
+      warnings: [
+        ...collectGateWarnings(gateChecks),
+        'No legacy CPU, generic GPU, render, or QA mask lease was created.',
+      ],
+      error: {
+        code: 'LEGACY_MASK_WORKER_ROUTE_RETIRED',
+        message: LEGACY_MASK_WORKER_ROUTE_RETIRED_ERROR,
+        failureCategory: 'policy_blocked',
+      },
+      startedAt,
+    })
+  }
+
   const duplicate = detectDuplicateToolRun(payload, state.idempotencyKeys)
   if (duplicate.duplicate && duplicate.existingJobId && duplicate.existingJobId !== payload.jobId) {
     events.push(pushEvent(state, payload, 'job_blocked', duplicate.message, 100, {
@@ -118,6 +152,39 @@ export async function dispatchProductionWorkerJob(input: {
         code: 'PRODUCTION_WORKER_TOOL_COST_PREREQUISITES_FAILED',
         message: 'Production-ready worker jobs require approved plan, approved credit estimate, active credit reservation, and idempotency before work starts.',
         failureCategory: 'credit_blocked',
+      },
+      startedAt,
+    })
+  }
+
+  if (payload.executionMode === 'production_ready') {
+    events.push(pushEvent(
+      state,
+      payload,
+      'job_blocked',
+      'The legacy mock worker cannot execute production work. Approved work must use the canonical funded A100/L4 GPU continuation.',
+      100,
+      {
+        requiredGate:
+          'canonical_professional_gpu_approved_plan_continuation',
+        cpuOnlySubstantiveExecutionAllowed: false,
+      },
+    ))
+    return createProductionWorkerResult({
+      payload,
+      status: 'blocked',
+      gateChecks,
+      events,
+      toolCostMetadata: preWorkToolCostMetadata,
+      warnings: [
+        ...collectGateWarnings(gateChecks),
+        'Legacy mock production routing is historical test support only; it cannot spend, execute media, or stand in for WeEditPro cloud GPU work.',
+      ],
+      error: {
+        code: 'LEGACY_MOCK_WORKER_PRODUCTION_RETIRED',
+        message:
+          'Production-ready work requires the canonical funded A100/L4 GPU continuation and cannot run through the legacy mock worker.',
+        failureCategory: 'policy_blocked',
       },
       startedAt,
     })

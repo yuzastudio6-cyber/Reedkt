@@ -179,9 +179,35 @@ const mediaInputAuthoritySchema = z.discriminatedUnion('inputKind', [
       .min(2).max(16),
     chunkDependencyReadEvidenceHash: sha,
   }).strict(),
+  toolCommon.extend({
+    inputKind: z.literal('approved_voice_and_chunk_dependencies'),
+    sourceObjectRead: z.literal(false),
+    dependencyArtifactRead: z.literal(true),
+    dependencyInputMode: z.literal('server_injected_private_stream_v1'),
+    dependencyArtifactStreamed: z.literal(true),
+    sourceSequenceItemId: identity,
+    approvedVoiceOutputKey: identity,
+    approvedVoiceArtifactId: identity,
+    approvedVoiceDependencyJobId: identity,
+    approvedVoiceReadEvidenceHash: sha,
+    sourceTrimDependencyArtifactId: identity,
+    sourceTrimDependencyJobId: identity,
+    sourceTrimDependencyReadEvidenceHash: sha,
+    chunkInputCount: z.number().int().min(2).max(16),
+    chunkInputArtifactIds: z.array(identity).min(2).max(16),
+    chunkInputDependencyJobIds: z.array(identity).min(2).max(16),
+    chunkInputSha256s: z.array(sha).min(2).max(16),
+    chunkInputByteLengths: z.array(z.number().int().min(1_024)
+      .max(OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_MAXIMUM_CHUNK_BYTES))
+      .min(2).max(16),
+    chunkDependencyReadEvidenceHash: sha,
+  }).strict(),
 ]).superRefine((value, context) => {
   if (
-    value.inputKind === 'approved_source_and_chunk_dependencies' && (
+    (
+      value.inputKind === 'approved_source_and_chunk_dependencies' ||
+      value.inputKind === 'approved_voice_and_chunk_dependencies'
+    ) && (
       value.chunkInputArtifactIds.length !== value.chunkInputCount ||
       value.chunkInputDependencyJobIds.length !== value.chunkInputCount ||
       value.chunkInputSha256s.length !== value.chunkInputCount ||
@@ -287,7 +313,8 @@ export const canonicalPrivateMediaBinaryResponseSchema = z.object({
   testOnly: z.literal(true),
 }).strict().superRefine((value, context) => {
   const costRequired = value.tool.inputKind ===
-    'approved_source_and_chunk_dependencies'
+      'approved_source_and_chunk_dependencies' ||
+    value.tool.inputKind === 'approved_voice_and_chunk_dependencies'
   const cost = value.attemptCost?.evidence
   if (
     costRequired !== Boolean(cost) ||

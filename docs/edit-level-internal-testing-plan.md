@@ -11,7 +11,7 @@ This document defines future tests for runtime milestones. RP-EDITLEVEL-01 adds 
 - Legacy `basic | pro | premium` values normalize to public profiles.
 - Level changes tool budget metadata.
 - Level changes Qwen 3.7 reasoning profile.
-- Level changes Qwen2.5-VL visual depth.
+- Level changes provider-neutral Visual Intelligence depth.
 - Level changes source understanding policy.
 - Level changes QA profile.
 - Level changes credit estimate only metadata.

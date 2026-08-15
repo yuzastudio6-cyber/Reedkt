@@ -657,14 +657,14 @@ await expectApiError(
       const sourceTrim = body.canonicalPlan.workItems.find((workItem) =>
         workItem.workItemKey === 'source-trim')
       assert.ok(sourceTrim)
-      sourceTrim.approvedToolIds = ['sam2']
+      sourceTrim.approvedToolIds = ['sam3_1']
       sourceTrim.executionInput.approvedToolOperationIds = [
-        'tool.sam2.segment_and_track_subject.v1',
+        'tool.sam3_1.segment_and_track_subject.v1',
       ]
       body.canonicalPlan.components.toolStrategyPlan = {
-        toolIds: ['sam2', 'ffprobe', 'libass', 'remotion'],
+        toolIds: ['sam3_1', 'ffprobe', 'libass', 'remotion'],
         exactOperationIds: [
-          'tool.sam2.segment_and_track_subject.v1',
+          'tool.sam3_1.segment_and_track_subject.v1',
           'tool.ffprobe.inspect_approved_media.v1',
           'tool.libass.render_approved_caption_track.v1',
           'tool.remotion.render_approved_composition.v1',
@@ -6101,7 +6101,7 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
       projectedEstimateLineItemCount: 3,
       projectedNamedWorkItemCount: 3,
       projectedExpectedAssetCount: 3,
-      projectedGpuWorkItemCount: 1,
+      projectedGpuWorkItemCount: 3,
       projectedControlledIllustrationGenerationUnitCount: 0,
       projectedControlledIllustrationCostComponentCount: 0,
       controlledIllustrationCreditRoundingAppliedOnceAcrossLivingFrameBundle:
@@ -6148,8 +6148,8 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
         costOwnerClass: 'canonical_production_tool',
         workItemType: 'process_image_asset',
         costOwnerToolId: 'sharp',
-        executionPlacement: 'private_render_worker',
-        cpuFallbackAllowed: true,
+        executionPlacement: 'google_cloud_run_gpu',
+        cpuFallbackAllowed: false,
         estimatedCredits: 1,
         serviceFeeIncluded: false,
       },
@@ -6157,8 +6157,8 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
         costOwnerClass: 'canonical_production_tool',
         workItemType: 'prepare_remotion_layer',
         costOwnerToolId: 'remotion',
-        executionPlacement: 'private_render_worker',
-        cpuFallbackAllowed: true,
+        executionPlacement: 'google_cloud_run_gpu',
+        cpuFallbackAllowed: false,
         estimatedCredits: 1,
         serviceFeeIncluded: false,
       },
@@ -6347,11 +6347,11 @@ async function proveCanonicalLivingFrameSelectedSceneAuthority(
       admittedSharpComponentWorkItemCount: 1,
       admittedRemotionLayerWorkItemCount: 1,
       pendingTemporalSourceVideoWorkItemCount: 0,
-      pendingSam2TemporalMaskWorkItemCount: 0,
+      pendingSam31TemporalMaskWorkItemCount: 0,
       finalCompositionBindingCount: 1,
       executableWorkItemCount: 3,
       requiredExpectedOutputCount: 4,
-      gpuPendingWorkItemCount: 1,
+      gpuPendingWorkItemCount: 3,
       blockedWorkItemCount: 1,
       assignedWorkItemCreditBudget: 3,
       unassignedControlledIllustrationCreditBudget: 0,

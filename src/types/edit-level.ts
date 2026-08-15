@@ -28,7 +28,7 @@ export type EditLevelQwenReasoningDepth =
   | 'deep'
   | 'multi_pass'
 
-export type EditLevelQwen25VLVisualDepth =
+export type EditLevelVisualIntelligenceDepth =
   | 'targeted'
   | 'key_moments_and_marker_windows'
   | 'scene_level'
@@ -101,7 +101,7 @@ export interface EditLevelLegacyAliasMapping {
 
 export interface EditLevelToolRoutingProfile {
   qwen3ReasoningDepth: EditLevelQwenReasoningDepth
-  qwen25vlVisualDepth: EditLevelQwen25VLVisualDepth
+  visualIntelligenceDepth: EditLevelVisualIntelligenceDepth
   transcriptPolicy: EditLevelTranscriptPolicy
   audioPolicy: EditLevelAudioPolicy
   graphicsPolicy: EditLevelGraphicsPolicy
@@ -119,7 +119,7 @@ export interface EditLevelEstimateProfile {
   timeEstimateMultiplier: number
   analysisPassBudget: number
   qwenReasoningPassBudget: number | 'multi_pass'
-  qwen25vlVisualPassBudget: 'targeted_only' | 'key_moments' | 'scene_level'
+  visualIntelligencePassBudget: 'targeted_only' | 'key_moments' | 'scene_level'
   renderPassBudgetFuture: number
   revisionBudgetFuture: number
   variantBudgetFuture: number
@@ -139,7 +139,7 @@ export interface EditLevelQAProfileDefinition {
 
 export interface EditLevelFallbackPolicy {
   qwenUnavailable: string
-  qwen25vlUnavailable: string
+  visualIntelligenceUnavailable: string
   transcriptUnavailable: string
   audioUnavailable: string
   graphicDesignUnavailable: string
@@ -253,7 +253,7 @@ export interface EditLevelProfileDebugModel {
   displayName: ReEditProEditLevelDisplayName
   legacyAliases: ReEditProLegacyEditLevel[]
   qwen3ReasoningDepth: EditLevelQwenReasoningDepth
-  qwen25vlVisualDepth: EditLevelQwen25VLVisualDepth
+  visualIntelligenceDepth: EditLevelVisualIntelligenceDepth
   editBriefPolicy: EditLevelEditBriefPolicy
   qaProfile: EditLevelQAProfile
   estimateOnly: true

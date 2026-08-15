@@ -15,5 +15,5 @@ else
     --project="${GCP_PROJECT_ID}" \
     --repository-format=docker \
     --location="${GCP_ARTIFACT_REGION}" \
-    --description="ReeditPro production runtime images"
+    --description="WeEditPro production runtime images"
 fi

@@ -21,6 +21,16 @@ import type { CanonicalMotionStudioAudioSelectionTransitionPort } from './motion
 import type { CanonicalMotionStudioStorytellingProductionAuthorityReaderPort } from './services/canonical-motion-studio-storytelling-production-authority-service'
 import type { CanonicalVisualCalibrationReferenceFrameReaderPort } from './services/canonical-visual-calibration-reference-frame-reader-port'
 import type { CanonicalProviderAttemptRuntimeRecordSourcePort } from './services/canonical-provider-attempt-runtime-record-port'
+import type {
+  VisualIntelligenceReportRepository,
+} from './visual-intelligence/visual-intelligence-lifecycle-service'
+import type {
+  VisualIntelligenceOrchestraJobRuntime,
+} from './visual-intelligence/visual-intelligence-orchestra-job-runtime'
+import type {
+  EditReferenceVisualIntelligenceBindingStore,
+  EditReferenceVisualIntelligenceOrchestraReadPort,
+} from './edit-references/edit-reference-visual-intelligence-result-bridge'
 import type { PlanningExactEditPreferenceAuthorityPort } from './services/planning-exact-edit-preference-authority-port'
 import type {
   CanonicalDurableUploadTargetTransactionAdapter,
@@ -41,6 +51,40 @@ import type {
 import type {
   SourceLedChatAssistantPort,
 } from './services/source-led-chat-assistant'
+import type {
+  CanonicalSourceCleanupAuthorityReadPort,
+} from './services/canonical-source-cleanup-authority-repository'
+import type {
+  CanonicalSourceVisualIntelligenceOrchestraReadPort,
+} from './services/canonical-source-visual-intelligence-orchestra-result-bridge'
+import type {
+  CanonicalSourceLedOrchestraPlanningReconciliationPort,
+} from './services/canonical-source-led-orchestra-planning-reconciliation'
+import type {
+  CanonicalTrackAllSam31AuthenticatedGpuInvocationRuntimePort,
+  CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort,
+} from './services/canonical-track-all-sam3_1-authenticated-gpu-start-service'
+import type {
+  CanonicalTrackAllSam31QueuedGpuStartRuntimePort,
+} from './services/canonical-track-all-sam3_1-queued-gpu-start-service'
+import type {
+  CanonicalTrackAllSam31CaptionEvidenceFinalizationRuntimePort,
+} from './services/canonical-track-all-sam3_1-caption-evidence-finalization-service'
+import type {
+  CanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntimePort,
+} from './services/canonical-track-all-sam3_1-task-qa-evidence-finalization-service'
+import type {
+  CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort,
+} from './services/canonical-track-all-sam3_1-l4-task-qa-authenticated-start-service'
+import type {
+  CanonicalTrackAllSam31L4TaskQaQueuedStartRuntimePort,
+} from './services/canonical-track-all-sam3_1-l4-task-qa-queued-start-service'
+import type {
+  CanonicalProfessionalGpuCloudTaskScheduler,
+} from './services/canonical-professional-gpu-cloud-task-scheduler-service'
+import type {
+  CanonicalProfessionalGpuCloudTaskConsumer,
+} from './services/canonical-professional-gpu-cloud-task-consumer-service'
 
 export interface AuthContext {
   userId: string
@@ -107,6 +151,13 @@ export interface RuntimeState {
     CanonicalVisualCalibrationReferenceFrameReaderPort
   canonicalProviderAttemptRuntimeRecordSourcePort?:
     CanonicalProviderAttemptRuntimeRecordSourcePort
+  visualIntelligenceReportRepository?: VisualIntelligenceReportRepository
+  visualIntelligenceOrchestraJobRuntimePort?:
+    VisualIntelligenceOrchestraJobRuntime
+  editReferenceVisualIntelligenceBindingStore?:
+    EditReferenceVisualIntelligenceBindingStore
+  editReferenceVisualIntelligenceReadPort?:
+    EditReferenceVisualIntelligenceOrchestraReadPort
   motionStudioCommandRepositoryRuntimePort?:
     MotionStudioCommandRepositoryRuntimePort
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
@@ -120,6 +171,30 @@ export interface RuntimeState {
     EditReferenceTargetUnderstandingPackageRuntimePortFactory
   editBriefPrivateWorkspaceRuntimePort?: EditBriefPrivateWorkspaceRuntimePort
   kimiK3SourceLedChatAssistantPort?: SourceLedChatAssistantPort
+  canonicalSourceCleanupAuthorityReadPort?:
+    CanonicalSourceCleanupAuthorityReadPort
+  canonicalSourceVisualIntelligenceOrchestraReadPort?:
+    CanonicalSourceVisualIntelligenceOrchestraReadPort
+  canonicalSourceLedOrchestraPlanningReconciliationPort?:
+    CanonicalSourceLedOrchestraPlanningReconciliationPort
+  trackAllSam31AuthenticatedGpuStartRuntimePort?:
+    CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
+  trackAllSam31AuthenticatedGpuInvocationRuntimePort?:
+    CanonicalTrackAllSam31AuthenticatedGpuInvocationRuntimePort
+  trackAllSam31QueuedGpuStartRuntimePort?:
+    CanonicalTrackAllSam31QueuedGpuStartRuntimePort
+  professionalGpuCloudTaskScheduler?:
+    CanonicalProfessionalGpuCloudTaskScheduler
+  professionalGpuCloudTaskConsumer?:
+    CanonicalProfessionalGpuCloudTaskConsumer
+  trackAllSam31L4TaskQaAuthenticatedStartRuntimePort?:
+    CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort
+  trackAllSam31L4TaskQaQueuedStartRuntimePort?:
+    CanonicalTrackAllSam31L4TaskQaQueuedStartRuntimePort
+  trackAllSam31CaptionEvidenceFinalizationRuntimePort?:
+    CanonicalTrackAllSam31CaptionEvidenceFinalizationRuntimePort
+  trackAllSam31TaskQaEvidenceFinalizationRuntimePort?:
+    CanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntimePort
 }
 
 export type RuntimeRequest = Request & {
@@ -160,6 +235,13 @@ export interface ServiceContext {
     CanonicalVisualCalibrationReferenceFrameReaderPort
   canonicalProviderAttemptRuntimeRecordSourcePort?:
     CanonicalProviderAttemptRuntimeRecordSourcePort
+  visualIntelligenceReportRepository?: VisualIntelligenceReportRepository
+  visualIntelligenceOrchestraJobRuntimePort?:
+    VisualIntelligenceOrchestraJobRuntime
+  editReferenceVisualIntelligenceBindingStore?:
+    EditReferenceVisualIntelligenceBindingStore
+  editReferenceVisualIntelligenceReadPort?:
+    EditReferenceVisualIntelligenceOrchestraReadPort
   motionStudioCommandRepositoryRuntimePort?:
     MotionStudioCommandRepositoryRuntimePort
   editReferenceExactEditApplyRuntimePort?: EditReferenceExactEditApplyRuntimePort
@@ -173,4 +255,28 @@ export interface ServiceContext {
     EditReferenceTargetUnderstandingPackageRuntimePortFactory
   editBriefPrivateWorkspaceRuntimePort?: EditBriefPrivateWorkspaceRuntimePort
   kimiK3SourceLedChatAssistantPort?: SourceLedChatAssistantPort
+  canonicalSourceCleanupAuthorityReadPort?:
+    CanonicalSourceCleanupAuthorityReadPort
+  canonicalSourceVisualIntelligenceOrchestraReadPort?:
+    CanonicalSourceVisualIntelligenceOrchestraReadPort
+  canonicalSourceLedOrchestraPlanningReconciliationPort?:
+    CanonicalSourceLedOrchestraPlanningReconciliationPort
+  trackAllSam31AuthenticatedGpuStartRuntimePort?:
+    CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
+  trackAllSam31AuthenticatedGpuInvocationRuntimePort?:
+    CanonicalTrackAllSam31AuthenticatedGpuInvocationRuntimePort
+  trackAllSam31QueuedGpuStartRuntimePort?:
+    CanonicalTrackAllSam31QueuedGpuStartRuntimePort
+  professionalGpuCloudTaskScheduler?:
+    CanonicalProfessionalGpuCloudTaskScheduler
+  professionalGpuCloudTaskConsumer?:
+    CanonicalProfessionalGpuCloudTaskConsumer
+  trackAllSam31L4TaskQaAuthenticatedStartRuntimePort?:
+    CanonicalTrackAllSam31L4TaskQaAuthenticatedStartRuntimePort
+  trackAllSam31L4TaskQaQueuedStartRuntimePort?:
+    CanonicalTrackAllSam31L4TaskQaQueuedStartRuntimePort
+  trackAllSam31CaptionEvidenceFinalizationRuntimePort?:
+    CanonicalTrackAllSam31CaptionEvidenceFinalizationRuntimePort
+  trackAllSam31TaskQaEvidenceFinalizationRuntimePort?:
+    CanonicalTrackAllSam31TaskQaEvidenceFinalizationRuntimePort
 }

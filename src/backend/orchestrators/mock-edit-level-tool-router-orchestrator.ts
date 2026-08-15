@@ -69,7 +69,7 @@ export function runMockEditLevelToolRouterFlow(
     ],
     warnings: [
       'Mock/local router only; no tool execution occurs.',
-      'No Qwen 3.7, Qwen2.5-VL, DeepSeek, media, worker, render, Supabase, or credit operation occurs.',
+      'No Qwen 3.7, Visual Intelligence, DeepSeek, media, worker, render, Supabase, or credit operation occurs.',
     ],
     scenarios: listMockEditLevelToolRouterScenarios(),
     nextStep,

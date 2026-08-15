@@ -2,7 +2,7 @@
 
 Status: RP-EDITLEVEL-07 complete as mock/local Qwen planning profile only.
 
-This document defines how future Qwen 3.7 planning should reason for the canonical Edit Levels `normal`, `premium`, and `ultra_premium`. It does not call Qwen, Qwen2.5-VL, DeepSeek, providers, planners, media tools, workers, render/export, Supabase, file-byte reads, external fetches, or credits.
+This document defines how future Qwen 3.7 planning should reason for the canonical Edit Levels `normal`, `premium`, and `ultra_premium`. It does not call Qwen, Visual Intelligence, DeepSeek, providers, planners, media tools, workers, render/export, Supabase, file-byte reads, external fetches, or credits.
 
 ## Profile Shape
 

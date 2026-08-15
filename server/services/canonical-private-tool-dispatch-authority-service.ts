@@ -898,7 +898,12 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
         `source-slice-${String(compositionChunkAuthority?.chunkIndex)}-of-${String(compositionChunkAuthority?.chunkCount)}`
     )) &&
     compositionChunkAuthority?.outputKey === expectedAsset.outputKey &&
-    finalCompositionCaptionCueCount >= 1 && finalCompositionCaptionCueCount <= 7 &&
+    // A globally captioned source can legitimately have chunk windows with no
+    // active cue. The approved plan still owns the complete timed caption
+    // track; this gate only verifies the exact cues intersecting this chunk.
+    isCanonicalPrivateCompositionChunkCaptionCueCount(
+      finalCompositionCaptionCueCount,
+    ) &&
     finalCompositionSupplementalAudioTrackCount === 0 &&
     exactFinalCompositionSupplementalAudioShape &&
     workItem.dependencyKeys.length ===
@@ -983,14 +988,30 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
       validateOfflineMediaBinaryMezzanineFinalizationPlanningPayload(
         workItem.executionInput.structuredPayload,
       )
+    const voiceDependencyWorkItems = finalizerPayload.approvedVoiceOutputKey
+      ? authority.workItems.filter((candidate) =>
+          candidate.expectedOutputs.length === 1 &&
+          candidate.expectedOutputs[0]?.outputKey ===
+            finalizerPayload.approvedVoiceOutputKey)
+      : []
+    const expectedDependencyKeys = [
+      'source-trim-validation',
+      ...(voiceDependencyWorkItems.length === 1
+        ? [voiceDependencyWorkItems[0]!.workItemKey]
+        : []),
+      ...finalizerPayload.chunks.map((chunk) =>
+        `composition-chunk-${chunk.chunkIndex}`),
+    ]
     exactPrivateFfmpegMezzanineFinalization =
       finalizerPayload.capacityProfileId ===
         CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_CAPACITY_PROFILE_ID &&
       finalizerPayload.chunks.length >= 2 &&
       finalizerPayload.chunks.length <=
         CANONICAL_PRIVATE_SOURCE_SLICE_MEZZANINE_MAXIMUM_CHUNKS &&
-      workItem.dependencyKeys.length === finalizerPayload.chunks.length + 1 &&
-      workItem.dependencyKeys[0] === 'source-trim-validation' &&
+      voiceDependencyWorkItems.length ===
+        (finalizerPayload.approvedVoiceOutputKey ? 1 : 0) &&
+      stableAuthorityStringify(workItem.dependencyKeys) ===
+        stableAuthorityStringify(expectedDependencyKeys) &&
       workItem.sourceSequenceItemIds.length === 1 &&
       workItem.sourceSequenceItemIds[0] ===
         finalizerPayload.sourceSequenceItemId &&
@@ -1045,6 +1066,12 @@ function resolveAndVerifyCanonicalDispatchBinding(input: {
       ? 'approved_internal_production_cost_only'
       : 'customer_credit_reservation',
   }
+}
+
+export function isCanonicalPrivateCompositionChunkCaptionCueCount(
+  value: number,
+): boolean {
+  return Number.isSafeInteger(value) && value >= 0 && value <= 7
 }
 
 function resolveAndVerifyToolContract(

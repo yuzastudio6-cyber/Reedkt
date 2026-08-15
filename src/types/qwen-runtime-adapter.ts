@@ -50,6 +50,7 @@ export type QwenProviderTransportStatus =
   | 'request_built'
   | 'completed'
   | 'timeout'
+  | 'outcome_unknown'
   | 'rate_limited'
   | 'failed'
   | 'invalid_json'

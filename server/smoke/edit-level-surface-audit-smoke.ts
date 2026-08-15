@@ -46,7 +46,7 @@ const requiredTerms = [
   'professional edit',
   'tool routing',
   'Qwen 3.7',
-  'Qwen2.5-VL',
+  'Visual Intelligence',
   'Edit Brief',
   'Edit Preference',
   'QA',

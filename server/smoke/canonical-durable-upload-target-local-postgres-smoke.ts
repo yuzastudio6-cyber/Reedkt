@@ -257,7 +257,7 @@ const first = await resolveCanonicalUploadIntentAndTarget({
   candidate: successCandidate,
   idempotencyKey: 'upload-target-success-domain-key-0001',
   authorizationEvidenceHash,
-  expectedProtocol: 'single_put',
+  expectedProtocol: 'resumable_content_range_v1',
   now: createdAt,
   createTarget: async () => {
     targetCreationCount += 1
@@ -288,12 +288,15 @@ const replay = await resolveCanonicalUploadIntentAndTarget({
   candidate: successCandidate,
   idempotencyKey: 'upload-target-success-domain-key-0001',
   authorizationEvidenceHash,
-  expectedProtocol: 'single_put',
+  expectedProtocol: 'resumable_content_range_v1',
   now: createdAt,
   createTarget,
 })
 assert.equal(replay.disposition, 'recovered_exact_target')
 assert.equal(replay.target.uploadUrl, first.target.uploadUrl)
+assert.equal(replay.target.uploadStatusUrl, first.target.uploadStatusUrl)
+assert.equal(replay.target.retryFromVerifiedOffset, true)
+assert.equal(replay.target.uploadProtocol, 'resumable_content_range_v1')
 assert.equal(replay.intent.recordHash, first.intent.recordHash)
 assert.equal(targetCreationCount, 1)
 const successEscrowIdentity = {
@@ -548,7 +551,10 @@ function localTargetFor(
   return {
     uploadMethod: 'PUT',
     uploadUrl:
-      `/v1/upload-intents/${candidate.uploadIntentId}/local-object`
+      `/v1/upload-intents/${candidate.uploadIntentId}/local-object-resumable`
+      + `?workspaceId=${candidate.workspaceId}`,
+    uploadStatusUrl:
+      `/v1/upload-intents/${candidate.uploadIntentId}/local-object-resumable/status`
       + `?workspaceId=${candidate.workspaceId}`,
     uploadHeaders: { 'content-type': candidate.mimeType },
     expiresAt: candidate.expiresAt,
@@ -556,9 +562,10 @@ function localTargetFor(
     objectPath: candidate.targetPath,
     temporary: true,
     createOnly: true,
-    uploadProtocol: 'single_put',
-    supportsResume: false,
-    recommendedChunkSizeBytes: undefined,
+    uploadProtocol: 'resumable_content_range_v1',
+    supportsResume: true,
+    recommendedChunkSizeBytes: 8 * 1024 * 1024,
+    retryFromVerifiedOffset: true,
     sessionUriIsCredential: true,
   }
 }

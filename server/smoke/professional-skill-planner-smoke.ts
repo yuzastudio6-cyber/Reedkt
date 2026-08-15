@@ -176,8 +176,8 @@ assert.ok(
   'Professional skill planning must carry the canonical DeepSeek V4 Pro final-fallback intent.',
 )
 assert.ok(
-  backendIntentIds.has('source.review_sequence_and_structure.qwen_visual_understanding'),
-  'Professional skill planning must carry the canonical Qwen2.5-VL visual-understanding intent for source review.',
+  backendIntentIds.has('source.review_sequence_and_structure.visual_intelligence'),
+  'Professional skill planning must carry provider-neutral Visual Intelligence for source review.',
 )
 assert.equal(
   plan.backendIntents.every((intent) => validateProfessionalSkillBackendIntent(intent).ok),
@@ -216,14 +216,14 @@ assert.ok(plan.modelRoleTrace.roles.some((role) =>
 ))
 assert.ok(
   plan.modelRoleTrace.roles.some((role) =>
-    role.modelRoleId === 'qwen2_5_vl_visual_understanding' &&
-    role.canonicalProviderModel === 'qwen2.5-vl-7b-instruct' &&
+    role.modelRoleId === 'visual_intelligence_gemini_pro_high' &&
+    role.canonicalProviderModel === 'gemini-3.1-pro-preview' &&
     role.requestedUses.includes('visual_understanding') &&
     role.visualUnderstandingAllowed &&
     !role.editPlanningAllowed &&
     !role.userReasoningAllowed
   ),
-  'Qwen2.5-VL must remain visual-understanding only.',
+  'Visual Intelligence must remain visual-understanding only.',
 )
 assert.equal(
   validateProfessionalSkillBackendIntent({
@@ -490,11 +490,11 @@ assert.ok(
 )
 assert.ok(
   approvedSkillExecutionPackage.professionalSkillTrace?.backendIntents.some((intent) =>
-    intent.providerRoute === 'qwen2_5_vl_7b_instruct_provider_boundary' &&
-    intent.modelRoleId === 'qwen2_5_vl_visual_understanding' &&
+    intent.providerRoute === 'vertex_gemini_pro_visual_intelligence_boundary' &&
+    intent.modelRoleId === 'visual_intelligence_gemini_pro_high' &&
     intent.requestedModelUse === 'visual_understanding'
   ),
-  'Approved execution package should preserve the Qwen2.5-VL visual-understanding backend intent.',
+  'Approved execution package should preserve the Visual Intelligence backend intent.',
 )
 assert.equal(
   approvedSkillExecutionPackage.professionalSkillTrace?.modelRoleTrace.ok,
@@ -514,14 +514,14 @@ assert.ok(
 )
 assert.ok(
   approvedSkillExecutionPackage.professionalSkillTrace?.modelRoleTrace.roles.some((role) =>
-    role.modelRoleId === 'qwen2_5_vl_visual_understanding' &&
-    role.canonicalProviderModel === 'qwen2.5-vl-7b-instruct' &&
+    role.modelRoleId === 'visual_intelligence_gemini_pro_high' &&
+    role.canonicalProviderModel === 'gemini-3.1-pro-preview' &&
     role.requestedUses.includes('visual_understanding') &&
     !role.userReasoningAllowed &&
     !role.editPlanningAllowed &&
     role.visualUnderstandingAllowed
   ),
-  'Approved execution package should preserve the Qwen2.5-VL visual-understanding role boundary.',
+  'Approved execution package should preserve the Visual Intelligence role boundary.',
 )
 assert.ok(
   approvedSkillExecutionPackage.professionalSkillTrace?.backendIntents.some((intent) =>

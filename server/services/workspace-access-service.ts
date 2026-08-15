@@ -7,11 +7,49 @@ const MAX_MEMBERSHIP_RESPONSE_BYTES = 8 * 1024
 const MAX_MEMBERSHIP_LIST_RESPONSE_BYTES = 32 * 1024
 const MAX_MEMBERSHIP_LIST_ROWS = 64
 const MEMBERSHIP_READ_TIMEOUT_MS = 10_000
+const detachedWorkspaceAccessAuthorities = new WeakMap<
+  ServiceContext,
+  AuthenticatedWorkspaceMembership
+>()
+const detachedWorkspaceAuthAuthorities = new WeakMap<
+  NonNullable<ServiceContext['auth']>,
+  AuthenticatedWorkspaceMembership
+>()
 
 export interface AuthenticatedWorkspaceMembership {
   workspaceId: string
   userId: string
   role: string
+}
+
+/**
+ * Creates a process-bound authorization context for server work that must
+ * continue after the initiating browser request and bearer token expire.
+ *
+ * The authority is issued only after a fresh write-membership check, is bound
+ * to the exact context object/user/workspace/role in a module-private WeakMap,
+ * and cannot be reconstructed by copying serializable context fields.
+ */
+export async function createDetachedWorkspaceAccessContext(
+  context: ServiceContext,
+  workspaceIdInput: string,
+): Promise<ServiceContext> {
+  const membership = await authorizeWorkspaceAccess(
+    context,
+    workspaceIdInput,
+    'write',
+  )
+  const detachedContext: ServiceContext = {
+    ...context,
+    auth: context.auth
+      ? Object.freeze({ ...context.auth })
+      : undefined,
+  }
+  detachedWorkspaceAccessAuthorities.set(detachedContext, membership)
+  if (detachedContext.auth) {
+    detachedWorkspaceAuthAuthorities.set(detachedContext.auth, membership)
+  }
+  return detachedContext
 }
 
 export async function authorizeWorkspaceAccess(
@@ -21,6 +59,29 @@ export async function authorizeWorkspaceAccess(
 ): Promise<{ userId: string; workspaceId: string; role: string }> {
   const userId = normalizeWorkspaceScopeId(getRequiredAuthUserId(context), 'authenticated user id')
   const workspaceId = normalizeWorkspaceScopeId(workspaceIdInput, 'workspace id')
+  const detachedAuthority =
+    detachedWorkspaceAccessAuthorities.get(context) ??
+    (
+      context.auth
+        ? detachedWorkspaceAuthAuthorities.get(context.auth)
+        : undefined
+    )
+
+  if (detachedAuthority) {
+    if (
+      detachedAuthority.userId !== userId
+      || detachedAuthority.workspaceId !== workspaceId
+      || (operation === 'write' && !EDITOR_ROLES.has(detachedAuthority.role))
+    ) {
+      throw new ApiError(
+        'WORKSPACE_ACCESS_DENIED',
+        'Detached workspace authority did not match the requested scope.',
+        403,
+        { requiredGate: 'detached_workspace_authority_exact_scope' },
+      )
+    }
+    return detachedAuthority
+  }
 
   if (context.auth?.isMockUser) {
     if (
@@ -33,7 +94,12 @@ export async function authorizeWorkspaceAccess(
   }
 
   if (!context.auth?.accessToken) {
-    throw new ApiError('AUTH_INVALID', 'Workspace access requires a verified bearer-authenticated user.', 401)
+    throw new ApiError(
+      'AUTH_INVALID',
+      'Workspace access requires a verified bearer-authenticated user.',
+      401,
+      { requiredGate: 'verified_bearer_workspace_membership' },
+    )
   }
 
   const legacyMembership = shouldReadLegacyInjectedMembershipFixture(context)
@@ -45,14 +111,29 @@ export async function authorizeWorkspaceAccess(
       ? undefined
       : await readAuthenticatedWorkspaceMembership(context, workspaceId, userId)
   if (!membership) {
-    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'The authenticated user is not a verified member of this workspace.', 403)
+    throw new ApiError(
+      'WORKSPACE_ACCESS_DENIED',
+      'The authenticated user is not a verified member of this workspace.',
+      403,
+      { requiredGate: 'verified_bearer_workspace_membership' },
+    )
   }
   const role = typeof membership.role === 'string' ? membership.role : ''
   if (membership.workspace_id !== workspaceId || membership.user_id !== userId) {
-    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Workspace membership evidence did not match the request scope.', 403)
+    throw new ApiError(
+      'WORKSPACE_ACCESS_DENIED',
+      'Workspace membership evidence did not match the request scope.',
+      403,
+      { requiredGate: 'verified_workspace_membership_exact_scope' },
+    )
   }
   if (operation === 'write' && !EDITOR_ROLES.has(role)) {
-    throw new ApiError('WORKSPACE_ACCESS_DENIED', 'Workspace editor access is required for this operation.', 403)
+    throw new ApiError(
+      'WORKSPACE_ACCESS_DENIED',
+      'Workspace editor access is required for this operation.',
+      403,
+      { requiredGate: 'verified_workspace_editor_role' },
+    )
   }
 
   return { userId, workspaceId, role }

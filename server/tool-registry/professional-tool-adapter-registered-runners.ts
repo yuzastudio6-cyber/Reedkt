@@ -387,7 +387,7 @@ function declaredPythonWorkerImageRoles(toolId: ProductionToolId): string[] {
   if ([
     'torch_torchvision',
     'transformers',
-    'sam2',
+    'sam3_1',
     'birefnet',
     'rembg',
     'transparent_background',

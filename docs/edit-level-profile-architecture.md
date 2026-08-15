@@ -15,7 +15,7 @@ type FutureEditLevelProfile = {
   userFacingDescription: string
   analysisDepth: 'standard' | 'deep' | 'studio'
   qwenReasoningDepth: 'standard' | 'deep' | 'multi_pass'
-  qwen25vlVisualDepth: 'targeted' | 'key_moments' | 'scene_level'
+  visualIntelligenceDepth: 'targeted' | 'key_moments' | 'scene_level'
   transcriptPolicy: 'optional_targeted' | 'recommended_when_speech_exists' | 'required_when_speech_exists'
   audioPolicy: 'basic_professional' | 'recommended_sound_polish' | 'sound_design_planning'
   graphicsPolicy: 'safe_basic' | 'styled_cards' | 'advanced_graphic_direction'
@@ -43,7 +43,7 @@ type FutureEditLevelProfile = {
 
 ## Profile Responsibilities
 
-The profile should be the source of truth for public labels, legacy basic/pro/premium compatibility, Qwen 3.7 reasoning depth, Qwen2.5-VL visual depth, source understanding, Edit Brief handling, Edit Preference/DNA use, QA profile, estimate policy, tool budget, fallback policy, and degraded capability notices.
+The profile should be the source of truth for public labels, legacy basic/pro/premium compatibility, Qwen 3.7 reasoning depth, provider-neutral Visual Intelligence depth, source understanding, Edit Brief handling, Edit Preference/DNA use, QA profile, estimate policy, tool budget, fallback policy, and degraded capability notices.
 
 ## Non-Responsibilities
 

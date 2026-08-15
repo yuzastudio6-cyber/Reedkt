@@ -12,9 +12,9 @@ import { ApiError } from '../../errors/api-error'
 import { OFFLINE_MEDIA_BINARY_OPERATIONS } from './offline-media-binary-protocol'
 
 export const OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_PROTOCOL =
-  'offline-media-binary-mezzanine-finalization-v1' as const
+  'offline-media-binary-mezzanine-finalization-v2' as const
 export const OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_MAGIC =
-  'REEDITPRO_FFMPEG_SOURCE_SLICE_FINALIZER_V1' as const
+  'REEDITPRO_FFMPEG_SOURCE_SLICE_FINALIZER_V2' as const
 export const OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_INPUT_MODE =
   'server_injected_private_multi_stream_v1' as const
 export const OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_RECIPE =
@@ -75,7 +75,10 @@ export interface OfflineMediaBinaryMezzanineFinalizationPlanningPayload {
   chunkBoundaryContinuity:
     OfflineMediaBinaryMezzanineBoundaryContinuityPlanningPayload[]
   videoFinalizationPolicy: 'compatible_h264_stream_copy_v1'
-  audioFinalizationPolicy: 'single_approved_source_audio_encode_v1'
+  audioFinalizationPolicy:
+    | 'single_approved_source_audio_encode_v1'
+    | 'single_approved_voice_delivery_audio_encode_v2'
+  approvedVoiceOutputKey?: string
   codecCompatibilityPolicy: 'exact_h264_extradata_timebase_frame_color_v1'
   timestampPolicy: 'normalize_from_zero'
   outputContainer: 'mp4'
@@ -105,9 +108,11 @@ export interface OfflineMediaBinaryMezzanineChunkCommitment {
 export interface OfflineMediaBinaryMezzanineSourceCommitment {
   inputId: string
   sourceSequenceItemId: string
-  mimeType: 'video/mp4'
+  mimeType: 'video/mp4' | 'audio/wav'
   byteLength: number
   sha256: string
+  outputKey?: string
+  durationFrames?: number
 }
 
 export interface OfflineMediaBinaryMezzanineFinalizationRequest {
@@ -125,6 +130,12 @@ export interface OfflineMediaBinaryMezzanineFinalizationRequest {
 export function validateOfflineMediaBinaryMezzanineFinalizationPlanningPayload(
   value: unknown,
 ): OfflineMediaBinaryMezzanineFinalizationPlanningPayload {
+  const hasApprovedVoiceOutputKey = Boolean(
+    value &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    Object.prototype.hasOwnProperty.call(value, 'approvedVoiceOutputKey'),
+  )
   const payload = exactRecord(value, [
     'recipeProfileId', 'capacityProfileId', 'width', 'height', 'fps',
     'durationFrames', 'sourceSequenceItemId', 'sourceCleanupDecisionId',
@@ -136,6 +147,7 @@ export function validateOfflineMediaBinaryMezzanineFinalizationPlanningPayload(
     'deliveryProfileId', 'estimateCostBasisProfileId', 'sourceQualityPolicy',
     'usesApprovedEditReservation', 'requiresSeparateExportEstimate',
     'allowsAdditionalExportCharge',
+    ...(hasApprovedVoiceOutputKey ? ['approvedVoiceOutputKey'] : []),
   ], 'mezzanine finalization planning payload')
   const width = integer(payload.width, 2160, 3840, 'width')
   const height = integer(payload.height, 2160, 3840, 'height')
@@ -166,6 +178,15 @@ export function validateOfflineMediaBinaryMezzanineFinalizationPlanningPayload(
     Number.MAX_SAFE_INTEGER,
     'sourceEndFrameExclusive',
   )
+  const approvedVoiceOutputKey = hasApprovedVoiceOutputKey
+    ? identity(payload.approvedVoiceOutputKey, 'approvedVoiceOutputKey')
+    : undefined
+  const approvedSourceAudio =
+    payload.audioFinalizationPolicy ===
+      'single_approved_source_audio_encode_v1'
+  const approvedVoiceAudio =
+    payload.audioFinalizationPolicy ===
+      'single_approved_voice_delivery_audio_encode_v2'
   if (
     payload.recipeProfileId !== OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_RECIPE ||
     payload.capacityProfileId !==
@@ -174,7 +195,9 @@ export function validateOfflineMediaBinaryMezzanineFinalizationPlanningPayload(
     ![24, 30].includes(fps) ||
     sourceEndFrameExclusive - sourceStartFrame !== durationFrames ||
     payload.videoFinalizationPolicy !== 'compatible_h264_stream_copy_v1' ||
-    payload.audioFinalizationPolicy !== 'single_approved_source_audio_encode_v1' ||
+    (!approvedSourceAudio && !approvedVoiceAudio) ||
+    (approvedSourceAudio && approvedVoiceOutputKey !== undefined) ||
+    (approvedVoiceAudio && approvedVoiceOutputKey === undefined) ||
     payload.codecCompatibilityPolicy !==
       'exact_h264_extradata_timebase_frame_color_v1' ||
     payload.timestampPolicy !== 'normalize_from_zero' ||
@@ -217,7 +240,10 @@ export function validateOfflineMediaBinaryMezzanineFinalizationPlanningPayload(
       chunks,
     ),
     videoFinalizationPolicy: 'compatible_h264_stream_copy_v1',
-    audioFinalizationPolicy: 'single_approved_source_audio_encode_v1',
+    audioFinalizationPolicy: approvedVoiceAudio
+      ? 'single_approved_voice_delivery_audio_encode_v2'
+      : 'single_approved_source_audio_encode_v1',
+    ...(approvedVoiceOutputKey ? { approvedVoiceOutputKey } : {}),
     codecCompatibilityPolicy: 'exact_h264_extradata_timebase_frame_color_v1',
     timestampPolicy: 'normalize_from_zero',
     outputContainer: 'mp4',
@@ -305,8 +331,12 @@ export function validateOfflineMediaBinaryMezzanineFinalizationRequest(
     combinedChunkBytes >
       OFFLINE_MEDIA_BINARY_MEZZANINE_FINALIZATION_MAXIMUM_COMBINED_CHUNK_BYTES
   ) throw invalid('Mezzanine chunks exceed their combined private-input ceiling.')
+  const voiceAudio =
+    payload.audioFinalizationPolicy ===
+      'single_approved_voice_delivery_audio_encode_v2'
   const sourceValue = exactRecord(inputs.source, [
     'inputId', 'sourceSequenceItemId', 'mimeType', 'byteLength', 'sha256',
+    ...(voiceAudio ? ['outputKey', 'durationFrames'] : []),
   ], 'mezzanine source commitment')
   const source: OfflineMediaBinaryMezzanineSourceCommitment = {
     inputId: identity(sourceValue.inputId, 'source inputId'),
@@ -314,7 +344,7 @@ export function validateOfflineMediaBinaryMezzanineFinalizationRequest(
       sourceValue.sourceSequenceItemId,
       'source commitment sourceSequenceItemId',
     ),
-    mimeType: sourceValue.mimeType as 'video/mp4',
+    mimeType: sourceValue.mimeType as 'video/mp4' | 'audio/wav',
     byteLength: integer(
       sourceValue.byteLength,
       1_024,
@@ -322,9 +352,26 @@ export function validateOfflineMediaBinaryMezzanineFinalizationRequest(
       'source byteLength',
     ),
     sha256: hash(sourceValue.sha256, 'source sha256'),
+    ...(voiceAudio
+      ? {
+          outputKey: identity(sourceValue.outputKey, 'voice outputKey'),
+          durationFrames: integer(
+            sourceValue.durationFrames,
+            payload.durationFrames,
+            payload.durationFrames,
+            'voice durationFrames',
+          ),
+        }
+      : {}),
   }
   if (
-    source.mimeType !== 'video/mp4' ||
+    (voiceAudio
+      ? (
+          source.mimeType !== 'audio/wav' ||
+          source.outputKey !== payload.approvedVoiceOutputKey ||
+          source.durationFrames !== payload.durationFrames
+        )
+      : source.mimeType !== 'video/mp4') ||
     source.sourceSequenceItemId !== payload.sourceSequenceItemId ||
     inputIds.has(source.inputId)
   ) throw invalid('Mezzanine source commitment diverges from approved source authority.')

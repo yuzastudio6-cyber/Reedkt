@@ -32,7 +32,6 @@ There is one Edit Preferences system with two scopes:
 
 The signed-in `/preferences` destination provides workspace-scoped defaults for:
 
-- Edit level.
 - Workflow type.
 - Cleanup preference.
 - Visual preference.
@@ -41,13 +40,18 @@ The signed-in `/preferences` destination provides workspace-scoped defaults for:
 - Preferred target platform.
 - Whether relevant defaults should begin confirmed for a new edit.
 
+Private internal end-to-end testing does not expose an Edit Level control. The
+legacy compatibility value remains inside persisted setup records only so older
+planners can receive the full internal capability policy; it is not a user
+choice, a quality tier, or a visible planning gate.
+
 The page uses the user-facing name **Edit Preferences** and an explicit **Save defaults** action. It supports the current local-test and reviewed private-internal persistence boundary, draft preservation, unsaved-change protection, retry, refresh, discard, and save feedback.
 
 Saved defaults do not mutate existing edits.
 
 ### Immutable creation baseline
 
-When a named edit is created, `createEditSetupSnapshotFromPreferences` copies the seven effective preference values into that edit and records an immutable creation baseline containing:
+When a named edit is created, `createEditSetupSnapshotFromPreferences` copies the six user-editable preference values plus the non-user-facing compatibility value into that edit and records an immutable creation baseline containing:
 
 - The copied values.
 - A preference snapshot ID.
@@ -71,13 +75,15 @@ This is query-addressable workspace state, not a new top-level route or a second
 
 The implemented current-edit fields are exactly:
 
-- Edit level.
 - Workflow type.
 - Cleanup preference.
 - Visual preference.
 - Mood/style.
 - Credit preference.
 - Target platform.
+
+The compatibility edit-level value is deliberately absent from this workspace
+during private internal testing.
 
 The workspace groups these fields into editing approach, creative direction, and delivery/cost. Each field shows whether it still uses the original creation baseline or has been changed for this edit.
 
@@ -133,7 +139,7 @@ The preference workspace replaces the chat canvas while active. It is not render
 
 ## Planning And Invalidation Rules
 
-All seven implemented current-edit fields are planning inputs. Applying any changed field requires a fresh edit plan and fresh estimate when a draft plan already exists.
+All six user-editable current-edit fields are planning inputs. Applying any changed field requires a fresh edit plan and fresh estimate when a draft plan already exists.
 
 The shared change resolver reports:
 
@@ -188,7 +194,7 @@ Target platform currently appears in the implemented Edit Preferences fields bec
 
 ### Edit Preferences owns editing behavior
 
-The seven fields above are implemented now. The broader product ontology may later add pacing, caption behavior, transition restraint, Real Motion preference, music/SFX direction, ducking, or review behavior, but those must not be presented as implemented current-edit controls until their types, persistence, planning consequences, and tests exist.
+The six user-editable fields above are implemented now. The broader product ontology may later add pacing, caption behavior, transition restraint, Real Motion preference, music/SFX direction, ducking, review behavior, or a future evidence-backed capability selector, but those must not be presented as implemented current-edit controls until their types, persistence, planning consequences, and tests exist.
 
 ### Chat owns explicit current instruction
 
@@ -226,11 +232,11 @@ If a real connection problem blocks user work, normal product UI may show one co
 
 Focused Playwright coverage verifies:
 
-- The canonical `/preferences` route renders the seven-field Saved Edit Preferences form, while `/edit-preferences` redirects to the same destination.
+- The canonical `/preferences` route renders the six-field Saved Edit Preferences form, while `/edit-preferences` redirects to the same destination.
 - Saved-default drafts survive failed writes, refresh, retry, sidebar navigation, sign-out guards, and signed-in reload recovery without crossing identity/workspace scope.
 - A new edit receives its saved creation baseline.
 - The exact-edit preference destination is query-addressable.
-- The exact-edit workspace renders three flat semantic groups and seven fields in a bounded responsive grid, with inherited/overridden treatment and a sticky action rail instead of a field-card wall.
+- The exact-edit workspace renders three flat semantic groups and six fields in a bounded responsive grid, with inherited/overridden treatment and a sticky action rail instead of a field-card wall.
 - A current-edit field can be overridden and recovered after reload.
 - Dirty navigation is guarded.
 - One field can be reset to the immutable creation baseline.

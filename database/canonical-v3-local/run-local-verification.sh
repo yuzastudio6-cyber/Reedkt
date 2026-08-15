@@ -84,6 +84,8 @@ npx --no-install tsx \
 "${PSQL_BIN}" "${DATABASE_URL}" -X -q -v ON_ERROR_STOP=1 \
   -f "${SCRIPT_DIR}/tests/015_canonical_durable_upload_target_rpc_postconditions.sql"
 "${PSQL_BIN}" "${DATABASE_URL}" -X -q -v ON_ERROR_STOP=1 \
+  -f "${SCRIPT_DIR}/tests/018_canonical_local_resumable_upload_protocol.sql"
+"${PSQL_BIN}" "${DATABASE_URL}" -X -q -v ON_ERROR_STOP=1 \
   -f "${SCRIPT_DIR}/tests/016_canonical_upload_target_credential_escrow_rpc_postconditions.sql"
 npx --no-install tsx \
   "${REPOSITORY_ROOT}/server/smoke/canonical-distributed-media-ingest-local-postgres-smoke.ts"
@@ -91,6 +93,18 @@ npx --no-install tsx \
   -f "${SCRIPT_DIR}/tests/014_canonical_distributed_media_ingest_rpc_postconditions.sql"
 npx --no-install tsx \
   "${REPOSITORY_ROOT}/server/smoke/canonical-distributed-pre-plan-study-local-postgres-smoke.ts"
+npx --no-install tsx \
+  "${REPOSITORY_ROOT}/server/smoke/canonical-professional-gpu-fair-queue-local-postgres-smoke.ts"
+"${PSQL_BIN}" "${DATABASE_URL}" -X -q -v ON_ERROR_STOP=1 \
+  -f "${SCRIPT_DIR}/tests/019_professional_gpu_fair_queue_postconditions.sql"
+npx --no-install tsx \
+  "${REPOSITORY_ROOT}/server/smoke/canonical-professional-gpu-cloud-task-outbox-local-postgres-smoke.ts"
+"${PSQL_BIN}" "${DATABASE_URL}" -X -q -v ON_ERROR_STOP=1 \
+  -f "${SCRIPT_DIR}/tests/020_professional_gpu_cloud_task_outbox_postconditions.sql"
+"${PSQL_BIN}" "${DATABASE_URL}" -X -q -v ON_ERROR_STOP=1 \
+  -f "${SCRIPT_DIR}/tests/021_professional_gpu_queue_runtime_read_postconditions.sql"
+"${PSQL_BIN}" "${DATABASE_URL}" -X -q -v ON_ERROR_STOP=1 \
+  -f "${SCRIPT_DIR}/tests/022_professional_gpu_delivery_consumption_postconditions.sql"
 npx --no-install tsx \
   "${REPOSITORY_ROOT}/server/smoke/edit-reference-canonical-v3-local-long-form-runtime-port-smoke.ts"
 npx --no-install tsx \

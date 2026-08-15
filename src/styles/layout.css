@@ -1031,6 +1031,12 @@
   font-size: 0.76rem;
 }
 
+.project-create-actions > .project-create-submit-error {
+  color: var(--rp-danger);
+  line-height: 1.45;
+  max-width: 440px;
+}
+
 .project-create-context {
   border-left: 1px solid rgba(148, 163, 184, 0.13);
   display: grid;

@@ -16,6 +16,7 @@ import {
   claimPrivateCanonicalPackageWorkQueueJob,
   clearPrivateCanonicalPackageWorkQueueProcessStateForSmoke,
   completePrivateCanonicalPackageWorkQueueClaim,
+  completePrivateCanonicalPackageWorkQueueRecovery,
   ensurePrivateCanonicalPackageWorkQueue,
   heartbeatPrivateCanonicalPackageWorkQueueClaim,
   readPrivateCanonicalPackageWorkQueue,
@@ -295,6 +296,29 @@ try {
   })
   assert.equal(attemptsExhausted.disposition, 'attempts_exhausted')
   assert.equal(requiredEntry(attemptsExhausted.aggregate, 'job-exhaustion').deliveryAttemptCount, 1)
+  await expectApiError(() => completePrivateCanonicalPackageWorkQueueRecovery({
+    scope,
+    definition,
+    jobId: 'job-scheduled',
+    outcome: completedOutcome('job-scheduled', [], 'premature-recovery-artifact'),
+    now: now(18_250),
+  }), 'IDEMPOTENCY_ATOMICITY_REQUIRED')
+  await completePrivateCanonicalPackageWorkQueueRecovery({
+    scope,
+    definition,
+    jobId: 'job-exhaustion',
+    outcome: completedOutcome('job-exhaustion', [], 'recovered-exhaustion-artifact'),
+    now: now(18_500),
+  })
+  const recoveredExhaustion = await readPrivateCanonicalPackageWorkQueue({
+    scope,
+    definition,
+  })
+  assert.equal(requiredEntry(recoveredExhaustion!, 'job-exhaustion').state, 'completed')
+  assert.equal(
+    requiredEntry(recoveredExhaustion!, 'job-exhaustion').completion?.outcome.artifactId,
+    'recovered-exhaustion-artifact',
+  )
 
   await expectApiError(() => claimPrivateCanonicalPackageWorkQueueJob({
     scope,
@@ -310,13 +334,13 @@ try {
   assert.ok(finalAggregate)
   assert.deepEqual(finalAggregate.summary, {
     totalJobCount: 5,
-    queuedJobCount: 3,
+    queuedJobCount: 2,
     leasedJobCount: 0,
-    completedJobCount: 2,
+    completedJobCount: 3,
     totalDeliveryAttemptCount: 4,
     expiredClaimRecoveryCount: 1,
     releasedClaimCount: 1,
-    eventCount: 9,
+    eventCount: 10,
   })
   assert.equal(finalAggregate.boundaries.privateLocalPersistence, true)
   assert.equal(finalAggregate.boundaries.hostRestartClaimRecovery, true)

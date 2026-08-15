@@ -32,14 +32,10 @@ type ProjectEditBriefMarkerDrawerProps = {
   onAttachmentsChanged?: (message: string) => void
   onMarkerChatApplied?: (message: string) => void
   onMarkerQARan?: (message: string) => void
-  onVisualContextUpdated?: (message: string) => void
   onChange: (draft: ProjectEditBriefMarkerDraftForUI) => void
   onClose: () => void
   onConfirm: () => void
   onSave: () => void
-  sourceVideoDurationSeconds?: number
-  sourceVideoElement?: HTMLVideoElement | null
-  sourceVideoLabel?: string
 }
 
 export function ProjectEditBriefMarkerDrawer({
@@ -52,14 +48,10 @@ export function ProjectEditBriefMarkerDrawer({
   onAttachmentsChanged,
   onMarkerChatApplied,
   onMarkerQARan,
-  onVisualContextUpdated,
   onChange,
   onClose,
   onConfirm,
   onSave,
-  sourceVideoDurationSeconds,
-  sourceVideoElement,
-  sourceVideoLabel,
 }: ProjectEditBriefMarkerDrawerProps) {
   const draft = form.draft
   const isEditMode = form.mode === 'edit'
@@ -121,12 +113,7 @@ export function ProjectEditBriefMarkerDrawer({
       {isEditMode && draft.markerId ? (
         markerRecord ? (
           <ProjectEditBriefVisualContextPanel
-            client={client}
             marker={markerRecord}
-            onContextUpdated={onVisualContextUpdated}
-            sourceVideoDurationSeconds={sourceVideoDurationSeconds}
-            sourceVideoElement={sourceVideoElement}
-            sourceVideoLabel={sourceVideoLabel}
           />
         ) : null
       ) : null}

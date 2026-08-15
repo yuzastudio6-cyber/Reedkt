@@ -5,6 +5,7 @@ import {
   type TemporaryUploadProtocol,
 } from '../types/large-media'
 import { resolveReceiverSafeFetch } from './receiver-safe-fetch'
+import { uploadFileToTemporaryTarget } from './resumable-file-upload'
 
 export interface TemporaryObjectUploadTarget {
   uploadMethod: 'PUT' | 'POST'
@@ -13,6 +14,8 @@ export interface TemporaryObjectUploadTarget {
   uploadProtocol?: TemporaryUploadProtocol
   supportsResume?: boolean
   recommendedChunkSizeBytes?: number
+  uploadStatusUrl?: string
+  retryFromVerifiedOffset?: boolean
 }
 
 export interface TemporaryObjectUploadProgress {
@@ -56,11 +59,69 @@ export async function uploadFileToTemporaryObjectTarget(
   }
 
   const protocol = input.target.uploadProtocol ?? 'single_put'
+  if (protocol === 'resumable_content_range_v1') {
+    return uploadLocalResumable(input)
+  }
   if (protocol === 'gcs_resumable') {
     return uploadResumable(input)
   }
   if (protocol === 'single_put') return uploadSingleRequest(input)
   throw new Error('The temporary upload target declared an unsupported upload protocol.')
+}
+
+async function uploadLocalResumable(
+  input: UploadFileToTemporaryObjectTargetInput,
+): Promise<TemporaryObjectUploadResult> {
+  if (
+    input.target.supportsResume !== true ||
+    input.target.retryFromVerifiedOffset !== true ||
+    !input.target.uploadStatusUrl
+  ) {
+    throw new Error(
+      'The local resumable upload target did not confirm authenticated offset recovery.',
+    )
+  }
+
+  const result = await uploadFileToTemporaryTarget({
+    file: input.file,
+    target: {
+      uploadMethod: input.target.uploadMethod,
+      uploadProtocol: 'resumable_content_range_v1',
+      uploadUrl: input.target.uploadUrl,
+      uploadHeaders: input.target.uploadHeaders,
+      uploadStatusUrl: input.target.uploadStatusUrl,
+      recommendedChunkSizeBytes: input.target.recommendedChunkSizeBytes,
+      retryFromVerifiedOffset: input.target.retryFromVerifiedOffset,
+    },
+    baseUrl: input.apiBaseUrl,
+    authorization: input.authorization,
+    reeditProUserAuthorization: input.reeditProUserAuthorization,
+    fetchImpl: resolveReceiverSafeFetch(input.fetchImpl),
+    signal: input.signal,
+    onProgress: (progress) => {
+      input.onProgress?.({
+        uploadedBytes: progress.acceptedBytes,
+        totalBytes: progress.totalBytes,
+        fraction:
+          progress.totalBytes > 0
+            ? progress.acceptedBytes / progress.totalBytes
+            : 0,
+        state:
+          progress.state === 'uploading' && progress.acceptedBytes === progress.totalBytes
+            ? 'completed'
+            : progress.state === 'uploading'
+              ? 'uploading'
+              : 'recovering',
+      })
+    },
+  })
+
+  return {
+    protocol: 'resumable_content_range_v1',
+    uploadedBytes: result.acceptedBytes,
+    requestCount: result.requestCount,
+    resumedAfterInterruption: result.resumed,
+  }
 }
 
 async function uploadSingleRequest(

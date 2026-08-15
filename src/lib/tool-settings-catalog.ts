@@ -234,7 +234,7 @@ export const modelFrameworkSettings: ToolSettingDefinition[] = [
   setting('approvedModelSnapshotId', 'Approved model snapshot ID', 'string', 'Approved local model snapshot reference.'),
   setting('approvedCheckpointId', 'Approved checkpoint ID', 'string', 'Approved checkpoint reference.'),
   setting('modelLicenseReviewId', 'Model license review ID', 'string', 'Model license review reference.'),
-  setting('devicePolicy', 'Device policy', 'select', 'Worker device policy.', false, { options: ['cpu_only', 'gpu_allowed', 'gpu_required'] }),
+  setting('devicePolicy', 'Device policy', 'select', 'GPU worker device policy.', false, { defaultValue: 'gpu_required', options: ['gpu_required'] }),
   setting('maxFrameCount', 'Max frame count', 'number', 'Maximum frames for worker analysis.'),
   setting('inputResolution', 'Input resolution', 'json', 'Bounded input resolution policy.'),
   setting('noRemoteDownload', 'No remote download', 'boolean', 'Remote model downloads must be disabled.', true, { defaultValue: true }),

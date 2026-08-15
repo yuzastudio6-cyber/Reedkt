@@ -13,6 +13,7 @@ import {
   validateOfflineFfmpegPlanningPayload,
   validateOfflineFfprobePlanningPayload,
   validateOfflineMediaBinaryMezzanineFinalizationPlanningPayload,
+  isColorMatchDeliveryProfile,
 } from '../tool-execution/media-binary-execution'
 import {
   OFFLINE_PYTHON_STRUCTURED_EXECUTION_PROTOCOL,
@@ -455,10 +456,16 @@ function validateByRunnerFamily(
         validateOfflineMediaBinaryMezzanineFinalizationPlanningPayload(
           structuredPayload,
         )
+      const approvedVoiceDependencyCount =
+        payload.audioFinalizationPolicy ===
+          'single_approved_voice_delivery_audio_encode_v2'
+          ? 1
+          : 0
       requireBinding(workItem, {
         source: 1,
         cleanup: 1,
-        dependencies: payload.chunks.length + 1,
+        dependencies:
+          payload.chunks.length + 1 + approvedVoiceDependencyCount,
       })
       if (
         payload.capacityProfileId !==
@@ -506,8 +513,7 @@ function validateByRunnerFamily(
     requireBinding(workItem, {
       source: 1,
       cleanup: 1,
-      dependencies: payload.recipeProfileId ===
-        'approved_source_color_match_delivery_matroska_v1'
+      dependencies: isColorMatchDeliveryProfile(payload.recipeProfileId)
         ? 1
         : 0,
     })

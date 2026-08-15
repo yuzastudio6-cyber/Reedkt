@@ -6,7 +6,7 @@ Higher levels must not overclaim unavailable capabilities. If an ideal tool, mod
 
 | Situation | Future behavior |
 | --- | --- |
-| Ultra Premium selected but Qwen2.5-VL unavailable | Use Premium-safe visual fallback, rely on available source summary, and show degraded capability notice. Do not claim scene-level visual analysis ran. |
+| Ultra Premium selected but Visual Intelligence unavailable | Use Premium-safe visual fallback, rely on available source summary, and show degraded capability notice. Do not claim scene-level visual analysis ran. |
 | Premium selected but transcript runtime unavailable | Use available source summary, ask for clarification when speech meaning matters, and do not claim transcript analysis ran. |
 | Qwen 3.7 unavailable | Use deterministic fallback for planning and clearly mark fallback. |
 | Audio/SoundSync unavailable | Keep voice-first audio recommendations simple and do not claim beat, waveform, or ducking analysis ran. |

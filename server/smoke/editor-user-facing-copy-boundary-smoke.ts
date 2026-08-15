@@ -59,6 +59,10 @@ const forbiddenTerms = [
   ...new Set([
     ...readyAdapterNames,
     ...hiddenAdapterNames,
+    'SAM 3.1',
+    'sam3_1',
+    'SAM 2',
+    'sam2',
     'Qwen',
     'Qwen 3.7',
     'Qwen 3.7 Max',

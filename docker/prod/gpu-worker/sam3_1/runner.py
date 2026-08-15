@@ -103,7 +103,9 @@ MAXIMUM_OBJECTS = 16
 OUTPUT_PERSISTENCE_WORKERS = 8
 MAXIMUM_PENDING_MASK_PERSISTENCE_TASKS = 16
 MAXIMUM_ASYNC_FRAME_LOAD_WAIT_SECONDS = 300
-A100_GPU_MEMORY_PROFILE = "a100_full_gpu_state_v1"
+A100_GPU_MEMORY_PROFILE = (
+    "a100_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v2"
+)
 L4_GPU_MEMORY_PROFILE = (
     "l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v6"
 )
@@ -1413,18 +1415,18 @@ def configure_gpu_memory_profile(
     """Bind the official SAM 3.1 evaluation memory policy to the GPU route.
 
     L4 keeps frames, model state, accessible temporal memories, inference, and
-    outputs on CUDA. It preserves the complete prompt-selected semantic object
-    set in one upstream propagation session. This is required because removing
-    detector-created objects before the first propagation mutates Multiplex
-    action history and is not an admissible memory optimization. L4 instead
-    reduces both upstream frame batches that otherwise retain 16 full-resolution
-    frames: grounding and postprocessing each stream one frame at a time. This
-    bounds the frame-16 reconditioning peak without changing resolution,
-    temporal coverage, model precision, object identity, or the seven-frame
-    memory policy. It also enables the upstream forward-VOS trim that removes
-    heavy non-conditioning outputs only after they fall outside the exact
-    num_maskmem window. A100 retains the upstream full-state multiplex,
-    16-frame grounding and postprocess policy.
+    outputs on CUDA. Both GPU classes preserve the complete prompt-selected
+    semantic object set in one upstream propagation session. This is required
+    because removing detector-created objects before the first propagation
+    mutates Multiplex action history and is not an admissible memory
+    optimization. Both routes instead reduce the upstream frame batches that
+    otherwise retain 16 full-resolution frames: grounding and postprocessing
+    each stream one frame at a time. This bounds full-resolution propagation
+    memory without changing resolution, temporal coverage, model precision,
+    object identity, or the seven-frame memory policy. It also enables the
+    upstream forward-VOS trim that removes heavy non-conditioning outputs only
+    after they fall outside the exact num_maskmem window. A100 and L4 retain
+    separate profile identities so each route must qualify independently.
     """
     model = getattr(predictor, "model", None)
     tracker = getattr(model, "tracker", None)
@@ -1443,9 +1445,7 @@ def configure_gpu_memory_profile(
         or getattr(tracker, "memory_temporal_stride_for_eval", None) != 1
     ):
         raise RuntimeError("SAM 3.1 upstream GPU memory policy changed")
-    if requested_accelerator == "nvidia_a100_80gb":
-        return A100_GPU_MEMORY_PROFILE, False
-    if requested_accelerator == "nvidia_l4":
+    if requested_accelerator in {"nvidia_a100_80gb", "nvidia_l4"}:
         tracker.trim_past_non_cond_mem_for_eval = True
         model.batched_grounding_batch_size = 1
         model.postprocess_batch_size = 1
@@ -1454,8 +1454,13 @@ def configure_gpu_memory_profile(
             or model.batched_grounding_batch_size != 1
             or model.postprocess_batch_size != 1
         ):
-            raise RuntimeError("SAM 3.1 L4 GPU memory trim was not applied")
-        return L4_GPU_MEMORY_PROFILE, True
+            raise RuntimeError("SAM 3.1 GPU memory trim was not applied")
+        return (
+            A100_GPU_MEMORY_PROFILE
+            if requested_accelerator == "nvidia_a100_80gb"
+            else L4_GPU_MEMORY_PROFILE,
+            True,
+        )
     raise RuntimeError("SAM 3.1 GPU memory route is invalid")
 
 
@@ -3058,8 +3063,32 @@ def failure_diagnostic_code(error: Exception) -> str:
         "SAM 3.1 L4 GPU memory trim was not applied": (
             "l4_gpu_memory_trim_not_applied"
         ),
+        "SAM 3.1 GPU memory trim was not applied": (
+            "gpu_memory_trim_not_applied"
+        ),
         "SAM 3.1 propagation object identities changed": (
             "semantic_object_identity_mismatch"
+        ),
+        "SAM 3.1 emitted an out-of-scope frame": (
+            "propagation_frame_scope_mismatch"
+        ),
+        "SAM 3.1 output arrays lost alignment": (
+            "propagation_output_alignment_mismatch"
+        ),
+        "SAM 3.1 normalized box is invalid": (
+            "propagation_normalized_box_invalid"
+        ),
+        "SAM 3.1 emitted a duplicate mask": (
+            "propagation_duplicate_mask"
+        ),
+        "SAM 3.1 did not produce complete bounded frame coverage": (
+            "propagation_frame_coverage_incomplete"
+        ),
+        "SAM 3.1 exceeded the object product cap": (
+            "propagation_object_cap_exceeded"
+        ),
+        "SAM 3.1 persisted mask is missing": (
+            "propagation_mask_persistence_missing"
         ),
         "SAM 3.1 decoded frame store is not completely CUDA-resident": (
             "gpu_frame_store_residency_mismatch"

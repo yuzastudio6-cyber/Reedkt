@@ -469,8 +469,9 @@ export const runtimeResponse = buildCanonicalSam31GpuRuntimeResponse({
     boundedCpuOutputSerializationUsed: true,
     cudaKernelExecutionMeasured: true,
     cpuOnlyInferenceUsed: false,
-    gpuMemoryProfileId: 'a100_full_gpu_state_v1',
-    pastNonConditioningMemoryTrimmedOnGpu: false,
+    gpuMemoryProfileId:
+      'a100_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v2',
+    pastNonConditioningMemoryTrimmedOnGpu: true,
     cudaDriverLibraryMode: 'host_driver',
     observedCudaDriverLibraryPathDigestSha256: sha256AuthorityValue(
       '/usr/local/nvidia/lib64/libcuda.so.570.211.01',

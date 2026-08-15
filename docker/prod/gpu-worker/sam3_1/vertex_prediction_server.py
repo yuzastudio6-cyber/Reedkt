@@ -32,6 +32,11 @@ READINESS_RESULT_VERSION = "canonical-sam3_1-vertex-readiness-result-v1"
 TASK_VERSION = "canonical-sam3_1-gpu-task-record-v1"
 RUNTIME_REQUEST_VERSION = "canonical-sam3_1-gpu-runtime-request-v1"
 RUNTIME_RESPONSE_VERSION = "canonical-sam3_1-gpu-runtime-response-v1"
+WORKER_EXIT_VERSION = "canonical-sam3_1-gpu-worker-exit-v1"
+WORKER_DIAGNOSTIC_VERSION = "canonical-sam3_1-gpu-worker-diagnostic-v1"
+FAILURE_DIAGNOSTIC_EVIDENCE_VERSION = (
+    "canonical-sam3_1-vertex-worker-diagnostic-evidence-v1"
+)
 OPERATION_ID = "tool.sam3_1.segment_and_track_subject.v1"
 MASK_BUCKET = "reeditpro-production-reeditpro-masks"
 MODEL_BUCKET = "reeditpro-production-reeditpro-model-artifacts"
@@ -64,12 +69,26 @@ MAXIMUM_RESULT_SET_BYTES = 4 * 1024 * 1024 * 1024
 MAXIMUM_RESULT_FILE_COUNT = 4_000
 MAXIMUM_RUN_SECONDS = 420
 MAXIMUM_UPLOAD_WORKERS = 8
+MAXIMUM_WORKER_STDOUT_BYTES = 2 * 1024
+MAXIMUM_WORKER_STDERR_BYTES = 4 * 1024
 EXACT_CHECKPOINT_BYTE_LENGTH = 3_502_755_717
 EXACT_CHECKPOINT_SHA256 = (
     "0567debeec80ba4ac6369540c6c248025283cb3ff2b92827509e57e2b3541cb6"
 )
 SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,239}$")
 RAW_SHA256 = re.compile(r"^[a-f0-9]{64}$")
+SAFE_DIAGNOSTIC_CODE = re.compile(r"^[a-z][a-z0-9_]{0,95}$")
+TERMINAL_STAGES = {
+    "request_validation",
+    "artifact_verification",
+    "cuda_admission",
+    "model_load",
+    "session_start",
+    "prompt",
+    "propagation",
+    "output_persistence",
+    "artifact_reread",
+}
 _execution_lock = threading.Lock()
 _checkpoint_ready = False
 _checkpoint_download_performed_at_startup = False
@@ -421,7 +440,85 @@ def stage_invocation(
     return invocation_dir, checkpoint_size, checkpoint_hash
 
 
-def run_worker(invocation_id: str) -> int:
+def parse_one_worker_json_line(
+    encoded: bytes,
+    maximum_bytes: int,
+    label: str,
+) -> dict[str, Any]:
+    if len(encoded) < 2 or len(encoded) > maximum_bytes:
+        raise RuntimeError(f"{label} byte length changed")
+    lines = [line for line in encoded.splitlines() if line]
+    if len(lines) != 1:
+        raise RuntimeError(f"{label} line count changed")
+    try:
+        value = json.loads(lines[0].decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise RuntimeError(f"{label} is malformed") from error
+    if not isinstance(value, dict):
+        raise RuntimeError(f"{label} is malformed")
+    return value
+
+
+def parse_worker_process_evidence(
+    completed: subprocess.CompletedProcess[bytes],
+) -> tuple[dict[str, Any], dict[str, Any] | None]:
+    marker = exact_keys(
+        parse_one_worker_json_line(
+            completed.stdout,
+            MAXIMUM_WORKER_STDOUT_BYTES,
+            "worker exit marker",
+        ),
+        {
+            "schemaVersion",
+            "status",
+            "responseSha256",
+            "responsePersisted",
+        },
+        "worker exit marker",
+    )
+    if (
+        marker.get("schemaVersion") != WORKER_EXIT_VERSION
+        or marker.get("status") not in {"completed", "failed"}
+        or marker.get("responsePersisted") is not True
+        or not isinstance(marker.get("responseSha256"), str)
+        or RAW_SHA256.fullmatch(marker["responseSha256"]) is None
+        or (completed.returncode == 0) != (marker["status"] == "completed")
+    ):
+        raise RuntimeError("worker exit marker changed")
+    if completed.returncode == 0:
+        if completed.stderr:
+            raise RuntimeError("successful worker emitted stderr")
+        return marker, None
+    if completed.returncode != 1:
+        raise RuntimeError("worker failure exit code changed")
+    diagnostic = exact_keys(
+        parse_one_worker_json_line(
+            completed.stderr,
+            MAXIMUM_WORKER_STDERR_BYTES,
+            "worker diagnostic",
+        ),
+        {
+            "schemaVersion",
+            "terminalStage",
+            "diagnosticCode",
+            "rawExceptionTextPersisted",
+        },
+        "worker diagnostic",
+    )
+    if (
+        diagnostic.get("schemaVersion") != WORKER_DIAGNOSTIC_VERSION
+        or diagnostic.get("terminalStage") not in TERMINAL_STAGES
+        or not isinstance(diagnostic.get("diagnosticCode"), str)
+        or SAFE_DIAGNOSTIC_CODE.fullmatch(diagnostic["diagnosticCode"]) is None
+        or diagnostic.get("rawExceptionTextPersisted") is not False
+    ):
+        raise RuntimeError("worker diagnostic changed")
+    return marker, diagnostic
+
+
+def run_worker(
+    invocation_id: str,
+) -> tuple[int, dict[str, Any], dict[str, Any] | None]:
     environment = {
         **os.environ,
         "REEDITPRO_GPU_INVOCATION_ID": invocation_id,
@@ -437,13 +534,61 @@ def run_worker(invocation_id: str) -> int:
         timeout=MAXIMUM_RUN_SECONDS,
         check=False,
     )
-    return completed.returncode
+    marker, diagnostic = parse_worker_process_evidence(completed)
+    return completed.returncode, marker, diagnostic
+
+
+def persist_failure_diagnostic(
+    invocation_id: str,
+    invocation_dir: Path,
+    response_hash: str,
+    worker_return_code: int,
+    worker_diagnostic: dict[str, Any],
+) -> None:
+    payload = {
+        "schemaVersion": FAILURE_DIAGNOSTIC_EVIDENCE_VERSION,
+        "invocationId": invocation_id,
+        "operationId": OPERATION_ID,
+        "workerDiagnosticVersion": worker_diagnostic["schemaVersion"],
+        "terminalStage": worker_diagnostic["terminalStage"],
+        "diagnosticCode": worker_diagnostic["diagnosticCode"],
+        "runtimeResponseSha256": response_hash,
+        "workerReturnCode": worker_return_code,
+        "rawExceptionTextPersisted": False,
+        "customerCreditsMutated": False,
+        "qaApproved": False,
+        "productionAuthorityGranted": False,
+    }
+    evidence = {
+        **payload,
+        "diagnosticBindingSha256": hashlib.sha256(
+            stable_json_bytes(payload)
+        ).hexdigest(),
+    }
+    encoded = stable_json_bytes(evidence)
+    if len(encoded) > MAXIMUM_WORKER_STDERR_BYTES:
+        raise RuntimeError("bounded failure diagnostic exceeds its ceiling")
+    path = invocation_dir / "diagnostic.json"
+    descriptor = os.open(
+        path,
+        os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0),
+        0o600,
+    )
+    try:
+        with os.fdopen(descriptor, "wb", closefd=False) as handle:
+            handle.write(encoded)
+            handle.flush()
+            os.fsync(handle.fileno())
+    finally:
+        os.close(descriptor)
 
 
 def persist_results(
     invocation_id: str,
     invocation_dir: Path,
     worker_return_code: int,
+    worker_exit_marker: dict[str, Any],
+    worker_diagnostic: dict[str, Any] | None,
 ) -> dict[str, Any]:
     response_path = invocation_dir / "response.json"
     response_bytes = response_path.read_bytes()
@@ -451,14 +596,30 @@ def persist_results(
         raise ValueError("runtime response exceeds its byte ceiling")
     response_value = json.loads(response_bytes)
     status = response_value.get("status") if isinstance(response_value, dict) else None
+    response_hash = hashlib.sha256(response_bytes).hexdigest()
     if (
         not isinstance(response_value, dict)
         or response_value.get("schemaVersion") != RUNTIME_RESPONSE_VERSION
         or response_value.get("operationId") != OPERATION_ID
         or status not in {"completed", "failed"}
         or (worker_return_code == 0) != (status == "completed")
+        or worker_exit_marker["status"] != status
+        or worker_exit_marker["responseSha256"] != response_hash
+        or (status == "failed") != (worker_diagnostic is not None)
     ):
         raise RuntimeError("runtime response and worker outcome disagree")
+    if worker_diagnostic is not None:
+        if worker_diagnostic["terminalStage"] != response_value.get(
+            "terminalStage"
+        ):
+            raise RuntimeError("runtime response and diagnostic stage disagree")
+        persist_failure_diagnostic(
+            invocation_id,
+            invocation_dir,
+            response_hash,
+            worker_return_code,
+            worker_diagnostic,
+        )
     files = sorted(
         path for path in invocation_dir.rglob("*")
         if path.is_file() and path.name not in {"task.json", "mask-proxy.mp4"}
@@ -483,7 +644,6 @@ def persist_results(
     ) as executor:
         uploaded = list(executor.map(upload, evidence_files))
     uploaded.append(upload(response_path))
-    response_hash = hashlib.sha256(response_bytes).hexdigest()
     return {
         "schemaVersion": RESULT_VERSION,
         "invocationId": invocation_id,
@@ -519,11 +679,15 @@ def execute_invocation(invocation_id: str, dispatch_digest: str) -> dict[str, An
             token,
         )
         ensure_checkpoint(token, checkpoint_size, checkpoint_hash)
-        worker_return_code = run_worker(invocation_id)
+        worker_return_code, worker_exit_marker, worker_diagnostic = run_worker(
+            invocation_id
+        )
         return persist_results(
             invocation_id,
             invocation_dir,
             worker_return_code,
+            worker_exit_marker,
+            worker_diagnostic,
         )
     finally:
         if invocation_dir is not None and invocation_dir.is_dir():

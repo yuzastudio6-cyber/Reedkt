@@ -420,7 +420,8 @@ const request = buildCanonicalSam31GpuRuntimeRequest({
     boundedCpuOutputSerializationOnly: true,
     offloadVideoToCpu: false,
     offloadStateToCpu: false,
-    gpuMemoryProfileId: 'a100_full_gpu_state_v1',
+    gpuMemoryProfileId:
+      'a100_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v2',
     propagationDirection: 'forward',
     outputFormat: 'lossless_grayscale_png_mask_sequence_v1',
     sourceResolutionPreserved: true,
@@ -655,15 +656,18 @@ a100_predictor = FakePredictor()
 a100_profile = runner.configure_gpu_memory_profile(
     a100_predictor, "nvidia_a100_80gb"
 )
-if a100_profile != (runner.A100_GPU_MEMORY_PROFILE, False):
-    raise AssertionError("A100 full GPU-state profile changed")
-if a100_predictor.model.tracker.trim_past_non_cond_mem_for_eval:
-    raise AssertionError("A100 unexpectedly enabled temporal-memory trim")
-if a100_predictor.model.postprocess_batch_size != 16:
-    raise AssertionError("A100 postprocess batch changed")
-if a100_predictor.model.batched_grounding_batch_size != 16:
-    raise AssertionError("A100 grounding batch changed")
+if a100_profile != (runner.A100_GPU_MEMORY_PROFILE, True):
+    raise AssertionError("A100 bounded GPU-memory profile changed")
+if not a100_predictor.model.tracker.trim_past_non_cond_mem_for_eval:
+    raise AssertionError("A100 temporal-memory trim was not enabled")
+if a100_predictor.model.postprocess_batch_size != 1:
+    raise AssertionError("A100 postprocess was not streamed one frame at a time")
+if a100_predictor.model.batched_grounding_batch_size != 1:
+    raise AssertionError("A100 grounding was not streamed one frame at a time")
 l4_predictor = FakePredictor()
+l4_predictor.model.tracker.trim_past_non_cond_mem_for_eval = False
+l4_predictor.model.batched_grounding_batch_size = 16
+l4_predictor.model.postprocess_batch_size = 16
 l4_profile = runner.configure_gpu_memory_profile(l4_predictor, "nvidia_l4")
 if l4_profile != (runner.L4_GPU_MEMORY_PROFILE, True):
     raise AssertionError("L4 GPU-only bounded-memory profile changed")
@@ -983,8 +987,9 @@ const response = buildCanonicalSam31GpuRuntimeResponse({
     boundedCpuOutputSerializationUsed: true,
     cudaKernelExecutionMeasured: true,
     cpuOnlyInferenceUsed: false,
-    gpuMemoryProfileId: 'a100_full_gpu_state_v1',
-    pastNonConditioningMemoryTrimmedOnGpu: false,
+    gpuMemoryProfileId:
+      'a100_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v2',
+    pastNonConditioningMemoryTrimmedOnGpu: true,
     cudaDriverLibraryMode: 'host_driver',
     observedCudaDriverLibraryPathDigestSha256: sha256AuthorityValue(
       '/usr/local/nvidia/lib64/libcuda.so.570.211.01',
@@ -1248,9 +1253,36 @@ assert.throws(() => assertCanonicalSam31GpuRuntimeResponse({
   response: wrongMemoryProfileResponse,
 }))
 
+const { requestBindingSha256: _currentRequestHash, ...legacyRequestPayload } =
+  request
+void _currentRequestHash
+const legacyA100Request = buildCanonicalSam31GpuRuntimeRequest({
+  ...legacyRequestPayload,
+  settings: {
+    ...legacyRequestPayload.settings,
+    gpuMemoryProfileId: 'a100_full_gpu_state_v1',
+  },
+})
+const { responseBindingSha256: _currentResponseHash, ...legacyResponsePayload } =
+  response
+void _currentResponseHash
+const legacyA100Response = buildCanonicalSam31GpuRuntimeResponse({
+  ...legacyResponsePayload,
+  requestBindingSha256: legacyA100Request.requestBindingSha256,
+  gpuEvidence: {
+    ...legacyResponsePayload.gpuEvidence!,
+    gpuMemoryProfileId: 'a100_full_gpu_state_v1',
+    pastNonConditioningMemoryTrimmedOnGpu: false,
+  },
+})
+assert.deepEqual(assertCanonicalSam31GpuRuntimeResponse({
+  request: legacyA100Request,
+  response: legacyA100Response,
+}), legacyA100Response)
+
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-gpu-runtime-contract',
-  checks: 70,
+  checks: 71,
   primaryProfile: request.dispatch.gpuProfileId,
   fallbackProfile: fallback.dispatch.gpuProfileId,
   fixedBuilder: request.settings.builder,
@@ -1258,6 +1290,7 @@ console.log(JSON.stringify({
   cpuOnlyInferenceAllowed: request.dispatch.cpuOnlyInferenceAllowed,
   runtimeNetworkAllowed: request.modelArtifacts.runtimeDownloadAllowed,
   vertexV2QualificationAcceptedWithoutRelabel: true,
+  historicalA100MemoryProfileStillReadable: true,
   adversarialCases: adversarial.length + 5,
   requestBindingSha256: request.requestBindingSha256,
   responseBindingSha256: response.responseBindingSha256,

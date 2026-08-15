@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 
 const server = readFileSync(
@@ -56,6 +57,12 @@ assert.match(server, /checkpointSha256/u)
 assert.match(server, /private checkpoint bytes changed/u)
 assert.match(server, /status not in \{"completed", "failed"\}/u)
 assert.match(server, /worker_return_code == 0/u)
+assert.match(server, /canonical-sam3_1-vertex-worker-diagnostic-evidence-v1/u)
+assert.match(server, /parse_worker_process_evidence/u)
+assert.match(server, /runtime response and diagnostic stage disagree/u)
+assert.match(server, /rawExceptionTextPersisted.*False/su)
+assert.match(server, /diagnosticBindingSha256/u)
+assert.match(server, /diagnostic\.json/u)
 assert.match(server, /MAXIMUM_RESULT_FILE_COUNT = 4_000/u)
 assert.match(server, /MAXIMUM_RESULT_SET_BYTES = 4 \* 1024 \* 1024 \* 1024/u)
 assert.match(server, /customerCreditsMutated.*False/su)
@@ -74,9 +81,115 @@ assert.match(dockerfile, /COPY .*vertex_prediction_server\.py/su)
 assert.match(dockerfile, /py_compile[\s\S]*vertex_prediction_server\.py/u)
 assert.match(dockerfile, /chmod 0555 .*vertex_prediction_server\.py/u)
 
+const dynamicEvidence = JSON.parse(execFileSync('python3', [
+  '-I',
+  '-B',
+  '-c',
+  String.raw`
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+import subprocess
+import tempfile
+
+path = Path("docker/prod/gpu-worker/sam3_1/vertex_prediction_server.py")
+spec = importlib.util.spec_from_file_location("sam31_vertex_server", path)
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+
+def encoded(value):
+    return module.stable_json_bytes(value) + b"\n"
+
+success = subprocess.CompletedProcess(
+    args=[],
+    returncode=0,
+    stdout=encoded({
+        "schemaVersion": module.WORKER_EXIT_VERSION,
+        "status": "completed",
+        "responseSha256": "a" * 64,
+        "responsePersisted": True,
+    }),
+    stderr=b"",
+)
+success_marker, success_diagnostic = module.parse_worker_process_evidence(success)
+if success_marker["status"] != "completed" or success_diagnostic is not None:
+    raise AssertionError("successful worker evidence was not exact")
+
+failure = subprocess.CompletedProcess(
+    args=[],
+    returncode=1,
+    stdout=encoded({
+        "schemaVersion": module.WORKER_EXIT_VERSION,
+        "status": "failed",
+        "responseSha256": "b" * 64,
+        "responsePersisted": True,
+    }),
+    stderr=encoded({
+        "schemaVersion": module.WORKER_DIAGNOSTIC_VERSION,
+        "terminalStage": "propagation",
+        "diagnosticCode": "cuda_out_of_memory",
+        "rawExceptionTextPersisted": False,
+    }),
+)
+failure_marker, failure_diagnostic = module.parse_worker_process_evidence(failure)
+if failure_marker["status"] != "failed" or failure_diagnostic is None:
+    raise AssertionError("failed worker evidence was not exact")
+
+with tempfile.TemporaryDirectory() as directory:
+    root = Path(directory)
+    module.persist_failure_diagnostic(
+        "sam31-diagnostic-smoke",
+        root,
+        "b" * 64,
+        1,
+        failure_diagnostic,
+    )
+    body = (root / "diagnostic.json").read_bytes()
+    value = json.loads(body)
+    digest = value.pop("diagnosticBindingSha256")
+    if digest != hashlib.sha256(module.stable_json_bytes(value)).hexdigest():
+        raise AssertionError("failure diagnostic digest changed")
+    if value["diagnosticCode"] != "cuda_out_of_memory":
+        raise AssertionError("failure diagnostic code changed")
+    if value["rawExceptionTextPersisted"] is not False:
+        raise AssertionError("raw worker diagnostic was persisted")
+
+unsafe = subprocess.CompletedProcess(
+    args=[],
+    returncode=1,
+    stdout=failure.stdout,
+    stderr=b"private exception text\n" + failure.stderr,
+)
+try:
+    module.parse_worker_process_evidence(unsafe)
+except RuntimeError:
+    pass
+else:
+    raise AssertionError("unbounded worker diagnostic was accepted")
+
+print(json.dumps({
+    "successMarkerAccepted": True,
+    "failureDiagnosticAccepted": True,
+    "diagnosticDigestVerified": True,
+    "rawDiagnosticRejected": True,
+}))
+`,
+], { encoding: 'utf8' })) as {
+  readonly successMarkerAccepted: true
+  readonly failureDiagnosticAccepted: true
+  readonly diagnosticDigestVerified: true
+  readonly rawDiagnosticRejected: true
+}
+
+assert.equal(dynamicEvidence.successMarkerAccepted, true)
+assert.equal(dynamicEvidence.failureDiagnosticAccepted, true)
+assert.equal(dynamicEvidence.diagnosticDigestVerified, true)
+assert.equal(dynamicEvidence.rawDiagnosticRejected, true)
+
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-prediction-server-boundary',
-  checks: 50,
+  checks: 60,
   requestIsByteFree: true,
   callerStorageOrModelControlAccepted: false,
   oneConcurrentA100Attempt: true,
@@ -87,6 +200,8 @@ console.log(JSON.stringify({
   healthServerStartsBeforeBoundedCheckpointInitialization: true,
   healthRemainsUnavailableUntilExactCheckpointReady: true,
   completedAndFailedTerminalResultsPersisted: true,
+  boundedFailureDiagnosticPersisted: true,
+  rawFailureDiagnosticPersisted: false,
   customerCreditsMutated: false,
   productionReady: false,
 }, null, 2))

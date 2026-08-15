@@ -220,6 +220,7 @@ const settingsSchema = z.object({
   offloadStateToCpu: z.literal(false),
   gpuMemoryProfileId: z.enum([
     'a100_full_gpu_state_v1',
+    'a100_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v2',
     'l4_gpu_only_trimmed_past_non_conditioning_memory_v1',
     'l4_gpu_only_full_multiplex_streamed_postprocess_trimmed_memory_v2',
     'l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v3',
@@ -255,13 +256,19 @@ const requestWithoutHashSchema = z.object({
     code: 'custom',
     message: 'SAM 3.1 prompt frame is outside the approved source interval.',
   })
-  const expectedMemoryProfile = request.dispatch.accelerator ===
+  const acceptedMemoryProfiles = request.dispatch.accelerator ===
     'nvidia_a100_80gb'
-    ? 'a100_full_gpu_state_v1'
-    : 'l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v6'
+    ? [
+      'a100_full_gpu_state_v1',
+      'a100_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v2',
+    ] as const
+    : [
+      'l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v6',
+    ] as const
   if (
     request.settings.gpuMemoryProfileId !== undefined
-    && request.settings.gpuMemoryProfileId !== expectedMemoryProfile
+    && !(acceptedMemoryProfiles as readonly string[])
+      .includes(request.settings.gpuMemoryProfileId)
   ) context.addIssue({
     code: 'custom',
     message: 'SAM 3.1 GPU memory profile does not match the admitted route.',
@@ -323,6 +330,7 @@ const gpuEvidenceSchema = z.object({
   cpuOnlyInferenceUsed: z.literal(false),
   gpuMemoryProfileId: z.enum([
     'a100_full_gpu_state_v1',
+    'a100_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v2',
     'l4_gpu_only_trimmed_past_non_conditioning_memory_v1',
     'l4_gpu_only_full_multiplex_streamed_postprocess_trimmed_memory_v2',
     'l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v3',
@@ -358,14 +366,16 @@ const gpuEvidenceSchema = z.object({
   })
   const profileFieldsPresent = evidence.gpuMemoryProfileId !== undefined
     || evidence.pastNonConditioningMemoryTrimmedOnGpu !== undefined
-  const expectedProfile = evidence.requestedAccelerator === 'nvidia_a100_80gb'
-    ? 'a100_full_gpu_state_v1'
-    : 'l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v6'
-  const expectedTrim = evidence.requestedAccelerator === 'nvidia_l4'
-  if (profileFieldsPresent && (
-    evidence.gpuMemoryProfileId !== expectedProfile
-    || evidence.pastNonConditioningMemoryTrimmedOnGpu !== expectedTrim
-  )) context.addIssue({
+  const exactProfile = evidence.requestedAccelerator === 'nvidia_a100_80gb'
+    ? (evidence.gpuMemoryProfileId === 'a100_full_gpu_state_v1'
+        && evidence.pastNonConditioningMemoryTrimmedOnGpu === false)
+      || (evidence.gpuMemoryProfileId ===
+          'a100_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v2'
+        && evidence.pastNonConditioningMemoryTrimmedOnGpu === true)
+    : evidence.gpuMemoryProfileId ===
+        'l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v6'
+      && evidence.pastNonConditioningMemoryTrimmedOnGpu === true
+  if (profileFieldsPresent && !exactProfile) context.addIssue({
     code: 'custom',
     message: 'SAM 3.1 GPU memory-profile evidence is incompatible.',
   })
@@ -524,14 +534,15 @@ export function assertCanonicalSam31GpuRuntimeResponse(input: {
       && gpu.observedComputeCapabilityMinor === (primary ? 0 : 9)
       && gpu.observedTotalDeviceMemoryBytes >=
         (primary ? 75 : 20) * 1024 ** 3
-    const expectedMemoryProfile = primary
-      ? 'a100_full_gpu_state_v1'
-      : 'l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v6'
+    const expectedMemoryProfile = request.settings.gpuMemoryProfileId
+    const expectedMemoryTrim = expectedMemoryProfile === 'a100_full_gpu_state_v1'
+      ? false
+      : true
     const exactMemoryProfile = request.settings.gpuMemoryProfileId === undefined
       ? gpu?.gpuMemoryProfileId === undefined
         && gpu?.pastNonConditioningMemoryTrimmedOnGpu === undefined
       : gpu?.gpuMemoryProfileId === expectedMemoryProfile
-        && gpu.pastNonConditioningMemoryTrimmedOnGpu === !primary
+        && gpu?.pastNonConditioningMemoryTrimmedOnGpu === expectedMemoryTrim
     const exactOutput = output !== null
       && output.firstFrameIndex ===
         request.sourceMedia.selectedStartFrameInclusive

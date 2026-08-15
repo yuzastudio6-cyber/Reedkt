@@ -48,9 +48,18 @@ import type {
 import type {
   CanonicalSam31PrivateInternalDispatchReadinessReadPort,
 } from './canonical-sam3_1-private-internal-dispatch-readiness-owner'
-import type {
-  CanonicalProfessionalGpuPrivateInternalPrelaunchBindingRepository,
+import {
+  assertCanonicalProfessionalGpuPrivateInternalPrelaunchBinding,
+  type CanonicalProfessionalGpuPrivateInternalPrelaunchBindingRepository,
 } from './canonical-professional-gpu-private-internal-funded-job-lifecycle-service'
+import {
+  assertCanonicalSam31PrivateInternalInvocationReadiness,
+  type CanonicalSam31PrivateInternalInvocationReadPort,
+} from './canonical-sam3_1-private-internal-invocation-readiness-owner'
+import {
+  assertCanonicalSam31VertexServingInvocationResult,
+  type CanonicalSam31VertexServingInvocationPort,
+} from './canonical-sam3_1-vertex-serving-invocation-service'
 import type {
   CanonicalSam31CurrentVertexCustomerInvocationPort,
 } from './canonical-sam3_1-current-vertex-serving-invocation-service'
@@ -70,6 +79,10 @@ export const CANONICAL_TRACK_ALL_SAM3_1_PRIVATE_INTERNAL_GPU_START_RUNTIME_VERSI
   'canonical-track-all-sam3_1-private-internal-gpu-start-runtime-v1' as const
 export const CANONICAL_TRACK_ALL_SAM3_1_PRIVATE_INTERNAL_GPU_START_RESULT_VERSION =
   'canonical-track-all-sam3_1-private-internal-gpu-start-result-v1' as const
+export const CANONICAL_TRACK_ALL_SAM3_1_PRIVATE_INTERNAL_GPU_INVOCATION_RUNTIME_VERSION =
+  'canonical-track-all-sam3_1-private-internal-gpu-invocation-runtime-v1' as const
+export const CANONICAL_TRACK_ALL_SAM3_1_PRIVATE_INTERNAL_GPU_INVOCATION_RESULT_VERSION =
+  'canonical-track-all-sam3_1-private-internal-gpu-invocation-result-v1' as const
 
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -224,6 +237,52 @@ export interface CanonicalTrackAllSam31PrivateInternalGpuStartRuntimePort {
     readonly idempotencyKey: string
     readonly request: unknown
   }): Promise<CanonicalTrackAllSam31PrivateInternalGpuStartResult>
+}
+
+export interface CanonicalTrackAllSam31PrivateInternalGpuInvocationResult {
+  readonly schemaVersion:
+    typeof CANONICAL_TRACK_ALL_SAM3_1_PRIVATE_INTERNAL_GPU_INVOCATION_RESULT_VERSION
+  readonly requestRef: z.infer<typeof evidenceRefSchema>
+  readonly workspaceId: string
+  readonly approvedSnapshotId: string
+  readonly workItemKey: string
+  readonly privateInternalPrelaunchBindingRef: z.infer<typeof evidenceRefSchema>
+  readonly privateInternalInvocationReadinessRef: z.infer<
+    typeof evidenceRefSchema
+  >
+  readonly endpointDeploymentRef: z.infer<typeof evidenceRefSchema>
+  readonly vertexInvocationResultRef: z.infer<typeof evidenceRefSchema>
+  readonly invocationDisposition:
+    'completed' | 'failed' | 'outcome_unknown_requires_reconciliation'
+  readonly providerOutcome: 'executed' | 'unknown'
+  readonly privateInternalQualificationOnly: true
+  readonly userTriggeredScaleFromZero: true
+  readonly canonicalUsageCostAndCreditSettlementPending: true
+  readonly automaticRetryAllowed: false
+  readonly unresolvedOutcomeBlocksRetry: boolean
+  readonly customerOrPublicDispatchAuthorized: false
+  readonly callerEndpointModelImageCommandOrPriceAccepted: false
+  readonly customerCreditsMutated: false
+  readonly qaApproved: false
+  readonly publicDeliveryAuthorized: false
+  readonly productionAuthorityGranted: false
+  readonly resultDigestSha256: string
+}
+
+export interface CanonicalTrackAllSam31PrivateInternalGpuInvocationRuntimePort {
+  readonly schemaVersion:
+    typeof CANONICAL_TRACK_ALL_SAM3_1_PRIVATE_INTERNAL_GPU_INVOCATION_RUNTIME_VERSION
+  readonly privateInternalOnly: true
+  readonly customerOrPublicDispatchAuthorized: false
+  readonly privateInternalInvocationReadinessRereadRequired: true
+  readonly directCustomerHttpRouteMounted: false
+  readonly rawProviderInvocationPortExposed: false
+  invokeApprovedTrackAllWork(input: {
+    readonly authenticatedOwnerUserId: string
+    readonly workspaceId: string
+    readonly idempotencyKey: string
+    readonly request: unknown
+  }): Promise<CanonicalTrackAllSam31PrivateInternalGpuInvocationResult>
 }
 
 export interface CanonicalTrackAllSam31AuthenticatedGpuInvocationRuntimePort {
@@ -687,6 +746,225 @@ export function createCanonicalTrackAllSam31PrivateInternalGpuStartRuntime(
         qaApproved: false as const,
         publicDeliveryAuthorized: false as const,
         productionAuthorityGranted: false as const,
+      })
+    },
+  })
+}
+
+/**
+ * Internal-only dedicated-endpoint invocation. It reuses the existing neutral
+ * private Vertex invocation owner after exact private start, endpoint,
+ * release, rate and immutable-image readiness have all been reread. The port
+ * is intentionally not compatible with the customer HTTP route.
+ */
+export function createCanonicalTrackAllSam31PrivateInternalGpuInvocationRuntime(
+  input: {
+    readonly fundedPreparationRuntime:
+      CanonicalTrackAllSam31PrivateInternalGpuStartRuntimePort
+    readonly fundedLifecycleReadPort: Pick<
+      CanonicalProfessionalGpuFundedJobLifecycleStore,
+      'rereadPrelaunchAuthorization' | 'rereadLaunchBinding'
+    >
+    readonly privateInternalBindingReadPort: Pick<
+      CanonicalProfessionalGpuPrivateInternalPrelaunchBindingRepository,
+      'reread'
+    >
+    readonly attemptStartReadPort:
+      CanonicalProfessionalGpuAttemptStartAuthorityReadPort
+    readonly privateInternalInvocationReadinessReadPort:
+      CanonicalSam31PrivateInternalInvocationReadPort
+    readonly privateVertexInvocationPort:
+      CanonicalSam31VertexServingInvocationPort
+    readonly now?: () => string
+  },
+): CanonicalTrackAllSam31PrivateInternalGpuInvocationRuntimePort {
+  const now = input.now ?? (() => new Date().toISOString())
+  return Object.freeze({
+    schemaVersion:
+      CANONICAL_TRACK_ALL_SAM3_1_PRIVATE_INTERNAL_GPU_INVOCATION_RUNTIME_VERSION,
+    privateInternalOnly: true as const,
+    customerOrPublicDispatchAuthorized: false as const,
+    privateInternalInvocationReadinessRereadRequired: true as const,
+    directCustomerHttpRouteMounted: false as const,
+    rawProviderInvocationPortExposed: false as const,
+    async invokeApprovedTrackAllWork(
+      untrusted: AuthenticatedInvocationInput,
+    ) {
+      assertPlainSerializedData(untrusted,
+        'track_all_sam31_private_internal_invocation_input')
+      const trusted = authenticatedStartInputSchema.parse(untrusted)
+      const request = parseTrackAllSam31AuthenticatedGpuInvocationRequest(
+        trusted.request,
+      )
+      if (request.requestId !== trusted.idempotencyKey) {
+        throw new TypeError(
+          'Private Track All invocation differs from its idempotency key.',
+        )
+      }
+      const at = z.string().datetime({ offset: true }).parse(now())
+      const attempt = assertCanonicalProfessionalGpuAttemptStartAuthority(
+        await input.attemptStartReadPort.rereadCreateOnlyAttemptStart({
+          workspaceId: trusted.workspaceId,
+          snapshotId: request.approvedSnapshotId,
+          workItemKey: request.workItemKey,
+          at,
+        }),
+        at,
+      )
+      if (attempt.scope.ownerUserId !== trusted.authenticatedOwnerUserId
+        || attempt.scope.workspaceId !== trusted.workspaceId
+        || attempt.approvedSnapshotRef.id !== request.approvedSnapshotId
+        || attempt.idempotencyKey !== trusted.idempotencyKey
+        || attempt.routeId !== 'a100_80gb_heavy_primary'
+        || attempt.attemptOrdinal !== 1) {
+        throw new TypeError(
+          'Private Track All invocation is not the authenticated A100 attempt.',
+        )
+      }
+      const identity = createCanonicalProfessionalGpuFundedLifecycleIdentity({
+        attemptStartAuthority: attempt,
+      })
+      const privateBindingId =
+        `${identity.prelaunchAuthorizationId}.private-internal`
+      const existingPrelaunch = await input.fundedLifecycleReadPort
+        .rereadPrelaunchAuthorization({
+          prelaunchAuthorizationId: identity.prelaunchAuthorizationId,
+        })
+      const prepared = existingPrelaunch === null
+        ? await input.fundedPreparationRuntime.startApprovedTrackAllWork({
+          authenticatedOwnerUserId: trusted.authenticatedOwnerUserId,
+          workspaceId: trusted.workspaceId,
+          idempotencyKey: trusted.idempotencyKey,
+          request: buildTrackAllSam31AuthenticatedGpuStartRequest({
+            requestId: request.requestId,
+            approvedSnapshotId: request.approvedSnapshotId,
+            workItemKey: request.workItemKey,
+          }),
+        })
+        : null
+      const prelaunch = assertCanonicalProfessionalGpuFundedPrelaunch(
+        await input.fundedLifecycleReadPort.rereadPrelaunchAuthorization({
+          prelaunchAuthorizationId: identity.prelaunchAuthorizationId,
+        }),
+      )
+      const launchBinding =
+        assertCanonicalProfessionalGpuFundedLaunchBinding(
+          await input.fundedLifecycleReadPort.rereadLaunchBinding({
+            launchBindingId: identity.launchBindingId,
+          }),
+        )
+      const privateBinding =
+        assertCanonicalProfessionalGpuPrivateInternalPrelaunchBinding(
+          await input.privateInternalBindingReadPort.reread({
+            bindingId: privateBindingId,
+          }),
+        )
+      const toolAdmission = prelaunch.fundedDispatchAdmission
+        .toolDispatchAdmission
+      if (privateBinding.prelaunchAuthorizationId !==
+          prelaunch.prelaunchAuthorizationId
+        || privateBinding.fundedDispatchAdmissionRef.id !==
+          prelaunch.fundedDispatchAdmissionRef.id
+        || privateBinding.fundedDispatchAdmissionRef.contentHash !==
+          prelaunch.fundedDispatchAdmissionRef.contentHash
+        || privateBinding.toolDispatchAdmissionRef.id !==
+          toolAdmission.admissionId
+        || privateBinding.toolDispatchAdmissionRef.contentHash !==
+          `sha256:${toolAdmission.admissionHash}`
+        || launchBinding.prelaunchAuthorizationRef.id !==
+          prelaunch.prelaunchAuthorizationId
+        || launchBinding.prelaunchAuthorizationRef.contentHash !==
+          `sha256:${prelaunch.prelaunchAuthorizationHash}`
+        || launchBinding.routeId !== 'a100_80gb_heavy_primary'
+        || launchBinding.accelerator !== 'nvidia_a100_80gb'
+        || launchBinding.launchDisposition !==
+          'job_rejected_before_creation'
+        || launchBinding.providerInferenceOrSubstantiveWorkKnownExecuted !==
+          'not_executed'
+        || (prepared !== null && (
+          prepared.privateInternalPrelaunchBindingRef.contentHash !==
+            `sha256:${privateBinding.bindingHash}`
+          || prepared.authenticatedStartResult.prelaunchAuthorizationRef
+            .contentHash !==
+            `sha256:${prelaunch.prelaunchAuthorizationHash}`
+        ))) {
+        throw new TypeError(
+          'Private Track All fixed-task preparation exact reread changed.',
+        )
+      }
+      const invocationReadiness =
+        assertCanonicalSam31PrivateInternalInvocationReadiness(
+          await input.privateInternalInvocationReadinessReadPort
+            .rereadCurrent({
+              runtimeReleaseRef: toolAdmission.runtimeReleaseRef,
+              rateAuthorityRef: toolAdmission.currentRateAuthorityRef,
+              at,
+            }),
+          at,
+        )
+      if (invocationReadiness.privateInternalDispatchReadinessRef.id !==
+          privateBinding.privateInternalDispatchReadinessRef.id
+        || invocationReadiness.privateInternalDispatchReadinessRef
+          .contentHash !==
+          privateBinding.privateInternalDispatchReadinessRef.contentHash
+        || invocationReadiness.runtimeReleaseRef.id !==
+          toolAdmission.runtimeReleaseRef.id
+        || invocationReadiness.runtimeReleaseRef.contentHash !==
+          toolAdmission.runtimeReleaseRef.contentHash
+        || invocationReadiness.currentRateAuthorityRef.id !==
+          toolAdmission.currentRateAuthorityRef.id
+        || invocationReadiness.currentRateAuthorityRef.contentHash !==
+          toolAdmission.currentRateAuthorityRef.contentHash) {
+        throw new TypeError(
+          'Private Track All invocation readiness crossed funded authority.',
+        )
+      }
+      const invocationId = `${toolAdmission.admissionId}.execution-envelope`
+      const invoked = assertCanonicalSam31VertexServingInvocationResult(
+        await input.privateVertexInvocationPort.invokeOne({
+          invocationId,
+          dispatchAdmissionDigestSha256: toolAdmission.admissionHash,
+          endpointDeploymentRef: invocationReadiness.endpointDeploymentRef,
+        }),
+      )
+      const payload = {
+        schemaVersion:
+          CANONICAL_TRACK_ALL_SAM3_1_PRIVATE_INTERNAL_GPU_INVOCATION_RESULT_VERSION,
+        requestRef: ref(request.requestId, request.requestDigestSha256),
+        workspaceId: trusted.workspaceId,
+        approvedSnapshotId: request.approvedSnapshotId,
+        workItemKey: request.workItemKey,
+        privateInternalPrelaunchBindingRef: ref(
+          privateBinding.bindingId,
+          privateBinding.bindingHash,
+        ),
+        privateInternalInvocationReadinessRef: ref(
+          invocationReadiness.readinessId,
+          invocationReadiness.readinessHash,
+        ),
+        endpointDeploymentRef: invocationReadiness.endpointDeploymentRef,
+        vertexInvocationResultRef: ref(
+          invoked.invocationId,
+          invoked.resultHash,
+        ),
+        invocationDisposition: invoked.disposition,
+        providerOutcome: invoked.providerOutcome,
+        privateInternalQualificationOnly: true as const,
+        userTriggeredScaleFromZero: true as const,
+        canonicalUsageCostAndCreditSettlementPending: true as const,
+        automaticRetryAllowed: false as const,
+        unresolvedOutcomeBlocksRetry:
+          invoked.disposition === 'outcome_unknown_requires_reconciliation',
+        customerOrPublicDispatchAuthorized: false as const,
+        callerEndpointModelImageCommandOrPriceAccepted: false as const,
+        customerCreditsMutated: false as const,
+        qaApproved: false as const,
+        publicDeliveryAuthorized: false as const,
+        productionAuthorityGranted: false as const,
+      }
+      return Object.freeze({
+        ...payload,
+        resultDigestSha256: sha256AuthorityValue(payload),
       })
     },
   })

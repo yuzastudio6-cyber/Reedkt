@@ -21,6 +21,19 @@ import {
   sha256AuthorityValue,
 } from '../services/private-edit-authority-store'
 import {
+  canonicalSam31VertexServingDeploymentReadySchema,
+} from '../services/canonical-sam3_1-vertex-serving-invocation-service'
+import {
+  assertCanonicalSam31PrivateInternalInvocationReadiness,
+  createCanonicalSam31PrivateInternalInvocationReadinessOwner,
+  createCanonicalSam31PrivateInternalInvocationReadinessRepository,
+  createCanonicalSam31PrivateInternalInvocationReadPort,
+} from '../services/canonical-sam3_1-private-internal-invocation-readiness-owner'
+import {
+  CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+  CANONICAL_SAM3_1_VERTEX_CURRENT_ENDPOINT_RESOURCE,
+} from '../edit-architecture/canonical-sam3_1-vertex-current-serving-release'
+import {
   a100,
   l4Fallback,
 } from './canonical-professional-tool-gpu-cost-authority-smoke'
@@ -126,6 +139,97 @@ assert.equal(await readPort.rereadCurrent({
   at: observedAt,
 }), null)
 
+const endpointReadyPayload = {
+  schemaVersion:
+    'canonical-sam3_1-vertex-serving-deployment-ready-v1' as const,
+  source:
+    'canonical_server_vertex_scale_zero_deployment_readiness_owner' as const,
+  deploymentProfileRef: ref('sam31-a100-deployment-profile', 'a'),
+  endpointDeploymentRef: ref('sam31-a100-private-endpoint-ready', 'b'),
+  exactDeploymentObservationRef: ref('sam31-a100-exact-deployment', 'c'),
+  runtimeReleaseRef: a100ReleaseRef,
+  readinessProbeRef: ref('sam31-a100-readiness-probe', 'd'),
+  modelUploadObservationRef: ref('sam31-a100-model-upload', 'e'),
+  endpointCreateObservationRef: ref('sam31-a100-endpoint-create', 'f'),
+  modelDeployObservationRef: ref('sam31-a100-model-deploy', '1'),
+  endpointResourceName: CANONICAL_SAM3_1_VERTEX_CURRENT_ENDPOINT_RESOURCE,
+  deployedModelId: CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYED_MODEL_ID,
+  immutableImageDigest: a100Release.immutableImageDigest,
+  routeId: 'a100_80gb_heavy_primary' as const,
+  machineType: 'a2-ultragpu-1g' as const,
+  accelerator: 'nvidia_a100_80gb' as const,
+  minimumReplicaCount: 0 as const,
+  maximumReplicaCount: 1 as const,
+  maximumConcurrentInvocations: 1 as const,
+  exactModelEndpointDeploymentAndTrafficReread: true as const,
+  exactNonCustomerGpuReadinessProbeReread: true as const,
+  readyForPrivateInvocation: true as const,
+  customerInvocationStarted: false as const,
+  walletOrCreditMutationAuthorityGranted: false as const,
+  qaApproved: false as const,
+  publicDeliveryAuthorized: false as const,
+  productionAuthorityGranted: false as const,
+  observedAt,
+  expiresAt,
+}
+const endpointReady = canonicalSam31VertexServingDeploymentReadySchema.parse({
+  ...endpointReadyPayload,
+  readinessHash: sha256AuthorityValue(endpointReadyPayload),
+})
+const invocationOwner =
+  createCanonicalSam31PrivateInternalInvocationReadinessOwner()
+const invocationReadiness = invocationOwner.observe({
+  readinessId: 'sam31-private-internal-invocation-ready',
+  privateInternalDispatchReadiness: dispatchReadiness,
+  vertexServingDeploymentReadiness: endpointReady,
+  observedAt,
+  expiresAt,
+})
+assert.equal(invocationReadiness.status,
+  'ready_for_private_internal_dedicated_endpoint_invocation')
+assert.equal(invocationReadiness.maximumConcurrentPrivateInvocations, 1)
+assert.equal(invocationReadiness.minimumIdleGpuInstances, 0)
+assert.equal(invocationReadiness.customerOrPublicDispatchAuthorized, false)
+assert.deepEqual(assertCanonicalSam31PrivateInternalInvocationReadiness(
+  invocationReadiness,
+  observedAt,
+), invocationReadiness)
+const invocationRepository =
+  createCanonicalSam31PrivateInternalInvocationReadinessRepository({
+    objectPort,
+    prefix: 'private/smoke/sam31-private-invocation-readiness',
+  })
+assert.equal(await invocationRepository.persistCreateOnly({
+  readiness: invocationReadiness,
+}), 'created')
+const invocationReadPort =
+  createCanonicalSam31PrivateInternalInvocationReadPort(invocationRepository)
+assert.deepEqual(await invocationReadPort.rereadCurrent({
+  runtimeReleaseRef: a100ReleaseRef,
+  rateAuthorityRef: a100RateRef,
+  at: observedAt,
+}), invocationReadiness)
+assert.equal(await invocationReadPort.rereadCurrent({
+  runtimeReleaseRef: a100ReleaseRef,
+  rateAuthorityRef: rateRef(l4Fallback),
+  at: observedAt,
+}), null)
+const crossedEndpointPayload = {
+  ...endpointReadyPayload,
+  immutableImageDigest: `sha256:${'0'.repeat(64)}`,
+}
+assert.throws(() => invocationOwner.observe({
+  readinessId: 'sam31-private-internal-crossed-invocation-image',
+  privateInternalDispatchReadiness: dispatchReadiness,
+  vertexServingDeploymentReadiness:
+    canonicalSam31VertexServingDeploymentReadySchema.parse({
+      ...crossedEndpointPayload,
+      readinessHash: sha256AuthorityValue(crossedEndpointPayload),
+    }),
+  observedAt,
+  expiresAt,
+}))
+
 assert.throws(() => owner.observe({
   readinessId: 'sam31-private-internal-crossed-release',
   privateInternalReleaseReadiness: ready,
@@ -187,10 +291,11 @@ assert.throws(() => assertCanonicalSam31PrivateInternalDispatchReadiness({
 
 console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-private-internal-dispatch-readiness-owner',
-  checks: 41,
+  checks: 53,
   oneA100AndQualifiedL4CanAuthorizePrivateSequentialDispatch: true,
   sixteenA100OrL4RequiredForPrivateInternal: false,
   exactReleaseRateCapacityAndFourComponentLineageRequired: true,
+  privateDedicatedEndpointReadinessCrossBound: true,
   customerOrPublicDispatchAuthorized: false,
   gpuJobDispatched: dispatchReadiness.gpuJobDispatched,
   customerCreditsMutated: dispatchReadiness.customerCreditsMutated,

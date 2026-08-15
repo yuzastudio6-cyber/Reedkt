@@ -30,7 +30,7 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v31')
+  'canonical-track-all-sam3_1-production-runtime-v32')
 assert.equal(typeof runtime.a100VertexCustomJobTerminalReadPort.reread,
   'function')
 assert.equal(
@@ -60,7 +60,7 @@ assert.equal(runtime.historicalVertexCustomJobCustomerDispatchAllowed, false)
 assert.equal(runtime.currentA100DedicatedEndpointInvocationMounted, true)
 assert.equal(runtime.privateInternalFundedStartLifecycleMounted, true)
 assert.equal(runtime.privateInternalStartExposedAsCustomerHttpRoute, false)
-assert.equal(runtime.privateInternalDedicatedEndpointInvocationMounted, false)
+assert.equal(runtime.privateInternalDedicatedEndpointInvocationMounted, true)
 assert.equal(runtime.completeSourceSequentialChunkCoordinatorMounted, true)
 assert.equal(runtime.exactPrivateOutputRereadBeforeNextChunkMounted, true)
 assert.equal(
@@ -206,6 +206,25 @@ assert.equal(
   runtime.trackAllSam31PrivateInternalGpuStartRuntimePort
     .privateInternalDispatchReadinessRereadRequired,
   true,
+)
+assert.equal(
+  runtime.trackAllSam31PrivateInternalGpuInvocationRuntimePort.schemaVersion,
+  'canonical-track-all-sam3_1-private-internal-gpu-invocation-runtime-v1',
+)
+assert.equal(
+  runtime.trackAllSam31PrivateInternalGpuInvocationRuntimePort
+    .privateInternalOnly,
+  true,
+)
+assert.equal(
+  runtime.trackAllSam31PrivateInternalGpuInvocationRuntimePort
+    .customerOrPublicDispatchAuthorized,
+  false,
+)
+assert.equal(
+  runtime.trackAllSam31PrivateInternalGpuInvocationRuntimePort
+    .directCustomerHttpRouteMounted,
+  false,
 )
 assert.equal(
   runtime.trackAllSam31AuthenticatedGpuInvocationRuntimePort.schemaVersion,
@@ -358,6 +377,10 @@ const privateInternalLifecycleSource = readFileSync(
   'server/services/canonical-professional-gpu-private-internal-funded-job-lifecycle-service.ts',
   'utf8',
 )
+const privateInternalInvocationReadinessSource = readFileSync(
+  'server/services/canonical-sam3_1-private-internal-invocation-readiness-owner.ts',
+  'utf8',
+)
 assert.doesNotMatch(productionRuntimeSource,
   /createCanonicalA100VertexCustomJobLaunchPort/u)
 assert.doesNotMatch(productionRuntimeSource,
@@ -404,6 +427,12 @@ assert.match(productionRuntimeSource,
   /createCanonicalSam31PrivateInternalDispatchReadPort/u)
 assert.match(productionRuntimeSource,
   /createCanonicalProfessionalGpuPrivateInternalPrelaunchBindingRepository/u)
+assert.match(productionRuntimeSource,
+  /createCanonicalTrackAllSam31PrivateInternalGpuInvocationRuntime/u)
+assert.match(productionRuntimeSource,
+  /createCanonicalSam31VertexServingInvocationService/u)
+assert.match(productionRuntimeSource,
+  /createCanonicalSam31VertexServingDeploymentReadyRepository/u)
 assert.match(privateInternalLifecycleSource,
   /admitCanonicalProfessionalGpuPlanFundedPrivateInternalDispatch/u)
 assert.match(privateInternalLifecycleSource,
@@ -416,6 +445,12 @@ assert.ok(
     'const started = await launchCanonicalProfessionalGpuPreparedPlanFundedJob',
   ),
 )
+assert.match(privateInternalInvocationReadinessSource,
+  /privateInternalDispatchReadinessRef/u)
+assert.match(privateInternalInvocationReadinessSource,
+  /vertexServingDeploymentReadinessRef/u)
+assert.match(privateInternalInvocationReadinessSource,
+  /customerOrPublicDispatchAuthorized:\s*z\.literal\(false\)/u)
 assert.doesNotMatch(productionRuntimeSource,
   /google_cloud_vertex_custom_job_a2_ultra/u)
 assert.match(productionRuntimeSource,
@@ -454,11 +489,15 @@ assert.doesNotMatch(
   entrypoint,
   /trackAllSam31PrivateInternalGpuStartRuntimePort/u,
 )
+assert.doesNotMatch(
+  entrypoint,
+  /trackAllSam31PrivateInternalGpuInvocationRuntimePort/u,
+)
 assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 144,
+  checks: 152,
   localAndMockRuntimeMounted: false,
   vertexA100AndCloudRunL4GcsCompositionMounted: true,
   historicalVertexA100DurableRereadMounted: true,

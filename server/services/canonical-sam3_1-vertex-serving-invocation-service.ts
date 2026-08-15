@@ -257,6 +257,14 @@ export interface CanonicalSam31VertexServingInvocationRepository {
   rereadTerminal(input: { readonly invocationId: string }): Promise<unknown>
 }
 
+export interface CanonicalSam31VertexServingInvocationPort {
+  invokeOne(input: {
+    readonly invocationId: string
+    readonly dispatchAdmissionDigestSha256: string
+    readonly endpointDeploymentRef: Ref
+  }): Promise<CanonicalSam31VertexServingInvocationResult>
+}
+
 export function createCanonicalSam31VertexServingInvocationService(input: {
   readonly taskStore: CanonicalSam31GpuTaskStore
   readonly deploymentReadPort:
@@ -265,7 +273,7 @@ export function createCanonicalSam31VertexServingInvocationService(input: {
   readonly auth?: Pick<GoogleAuth, 'request'>
   readonly now?: () => string
   readonly timeoutMilliseconds?: number
-}) {
+}): CanonicalSam31VertexServingInvocationPort {
   const auth = input.auth ?? new GoogleAuth({
     scopes: ['https://www.googleapis.com/auth/cloud-platform'],
   })

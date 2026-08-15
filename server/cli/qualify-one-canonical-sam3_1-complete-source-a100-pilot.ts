@@ -97,7 +97,6 @@ const CONFIRMATION =
   'qualify-one-weeditpro-sam31-complete-source-a100-pilot-v1' as const
 const CONTROL_BUCKET =
   'reeditpro-production-reeditpro-control-plane-state' as const
-const QUALIFICATION_ID = 'sam31-complete-source-a100-4k-20260814-v2' as const
 const SOURCE_PLAN_ID = 'sam31-eight-minute-qualification-source-v2' as const
 const SOURCE_PREPARATION_ID =
   'sam31-eight-minute-qualification-source-v2:preparation:sam31-source-prep-canonical-20260814T180041Z' as const
@@ -121,18 +120,10 @@ const DEPLOYMENT_PROFILE_REF = {
   version: 1,
   contentHash: CANONICAL_SAM3_1_VERTEX_CURRENT_DEPLOYMENT_PROFILE_HASH,
 } as const
-const DRIVER_COMPONENT_REF = {
-  id: `${QUALIFICATION_ID}:vertex-serving-driver-and-cuda`,
-  version: 1,
-  contentHash:
-    'sha256:e6c18d66f75be00186876b81fb7acc93e9c459c7d43f5ce1b01a174e747b6d1c',
-} as const
-const DETERMINISTIC_COMPONENT_REF = {
-  id: `${QUALIFICATION_ID}:vertex-serving-deterministic-run-set`,
-  version: 1,
-  contentHash:
-    'sha256:83a28e189491aa22d879a2309921622bfaa772baeb756a4311d15217bc1249b3',
-} as const
+const safeId = z.string().trim().min(1).max(240)
+  .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
+  .refine((value) => !value.includes('..') && !value.includes('://'))
+const sha256 = z.string().regex(/^[a-f0-9]{64}$/u)
 
 const environment = z.object({
   WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_PILOT_CONFIRMATION:
@@ -142,9 +133,11 @@ const environment = z.object({
   WEEDITPRO_GOOGLE_CLOUD_BILLING_ACCOUNT_RESOURCE_NAME:
     z.string().regex(/^billingAccounts\/[A-Za-z0-9-]+$/u),
   WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_PILOT_RUN_ID:
-    z.string().trim().min(1).max(70)
-      .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
-      .refine((value) => !value.includes('..')),
+    safeId.max(70),
+  WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_QUALIFICATION_ID: safeId,
+  WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_DRIVER_COMPONENT_SHA256: sha256,
+  WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_DETERMINISTIC_COMPONENT_SHA256:
+    sha256,
 }).strict().parse({
   WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_PILOT_CONFIRMATION:
     process.env.WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_PILOT_CONFIRMATION,
@@ -154,9 +147,30 @@ const environment = z.object({
     process.env.WEEDITPRO_GOOGLE_CLOUD_BILLING_ACCOUNT_RESOURCE_NAME,
   WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_PILOT_RUN_ID:
     process.env.WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_PILOT_RUN_ID,
+  WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_QUALIFICATION_ID:
+    process.env.WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_QUALIFICATION_ID,
+  WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_DRIVER_COMPONENT_SHA256:
+    process.env.WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_DRIVER_COMPONENT_SHA256,
+  WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_DETERMINISTIC_COMPONENT_SHA256:
+    process.env
+      .WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_DETERMINISTIC_COMPONENT_SHA256,
 })
 
 const runId = environment.WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_PILOT_RUN_ID
+const qualificationId =
+  environment.WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_QUALIFICATION_ID
+const driverComponentRef = {
+  id: `${qualificationId}:vertex-serving-driver-and-cuda`,
+  version: 1,
+  contentHash: `sha256:${environment
+    .WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_DRIVER_COMPONENT_SHA256}`,
+} as const
+const deterministicComponentRef = {
+  id: `${qualificationId}:vertex-serving-deterministic-run-set`,
+  version: 1,
+  contentHash: `sha256:${environment
+    .WEEDITPRO_SAM31_COMPLETE_SOURCE_A100_DETERMINISTIC_COMPONENT_SHA256}`,
+} as const
 const { authClient, storage } = createWeEditProGcpLocalOperatorAuth({
   confirmation: environment.WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH,
 })
@@ -199,7 +213,7 @@ const readinessTriggerPayload = {
     'canonical-sam3_1-complete-source-a100-pilot-readiness-trigger-v1',
   source: 'canonical_server_sam3_1_complete_source_a100_pilot_operator',
   runId,
-  qualificationId: QUALIFICATION_ID,
+  qualificationId,
   runOrdinal: 1,
   deploymentProfileRef: DEPLOYMENT_PROFILE_REF,
   endpointDeploymentRef: modelVersionRolloutRef,
@@ -342,8 +356,8 @@ const [plan, sourcePreparation, terminal, driver, deterministic, image] =
       preparationId: SOURCE_PREPARATION_ID,
     }),
     terminalRepository.reread({ invocationId: SOURCE_TERMINAL_ID }),
-    componentRepository.reread({ componentRef: DRIVER_COMPONENT_REF }),
-    componentRepository.reread({ componentRef: DETERMINISTIC_COMPONENT_REF }),
+    componentRepository.reread({ componentRef: driverComponentRef }),
+    componentRepository.reread({ componentRef: deterministicComponentRef }),
     imageRepository.rereadQualifiedRelease({
       releaseRef: IMAGE_RELEASE_REF,
     }),
@@ -353,9 +367,9 @@ if (!plan || !sourcePreparation || !terminal || !driver || !deterministic
   throw new Error('Exact source, image, or current component evidence is absent.')
 }
 if (canonicalSam31VertexServingRuntimeComponentRef(driver).contentHash !==
-    DRIVER_COMPONENT_REF.contentHash
+    driverComponentRef.contentHash
   || canonicalSam31VertexServingRuntimeComponentRef(deterministic)
-    .contentHash !== DETERMINISTIC_COMPONENT_REF.contentHash) {
+    .contentHash !== deterministicComponentRef.contentHash) {
   throw new Error('Current A100 component evidence changed.')
 }
 
@@ -369,7 +383,7 @@ const expiresAt = new Date(Math.min(
 const parent =
   createCanonicalSam31PrivateCompleteSourceQualificationAdmissionOwner().admit({
     admissionId: `${runId}-parent`,
-    qualificationId: QUALIFICATION_ID,
+    qualificationId,
     runOrdinal: 1,
     routeId: 'a100_80gb_heavy_primary',
     qualificationSourcePlan: plan,
@@ -420,7 +434,7 @@ process.stdout.write(`${JSON.stringify({
   schemaVersion:
     'weeditpro-sam3_1-complete-source-a100-pilot-receipt-v1',
   runId,
-  qualificationId: QUALIFICATION_ID,
+  qualificationId,
   sourcePlanRef: parent.qualificationSourcePlanRef,
   sourcePreparationRef: parent.sourcePreparationRef,
   sourcePreparationTerminalRef: parent.sourcePreparationTerminalRef,

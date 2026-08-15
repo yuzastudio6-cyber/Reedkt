@@ -153,6 +153,14 @@ assert.match(
 )
 assert.match(
   l4Qualifier,
+  /WEEDITPRO_SAM31_A100_SERVING_QUALIFICATION_SET_ID/u,
+)
+assert.match(
+  l4Qualifier,
+  /WEEDITPRO_SAM31_A100_SERVING_QUALIFICATION_RECEIPT_SHA256/u,
+)
+assert.doesNotMatch(
+  l4Qualifier,
   /const A100_SERVING_QUALIFICATION_RECEIPT_HASH =/u,
 )
 assert.doesNotMatch(

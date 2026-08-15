@@ -82,11 +82,6 @@ const INVOCATION_PREFIX =
   'private/canonical-professional-gpu/sam3_1/v1/invocations' as const
 const QUALIFICATION_PREFIX =
   'private/sam3_1/l4-runtime-qualification/v3' as const
-const A100_SERVING_QUALIFICATION_SET_ID =
-  'sam31-a100-serving-memory-safe-thirty-run-release-candidate-20260812-v1' as const
-const A100_SERVING_QUALIFICATION_RECEIPT_HASH = (
-  '19c341f5cd536d6851e2f2d87a5f1c610ecca846bf449a3576e65f01ae1e882c'
-) as const
 const RUNTIME_CHECKPOINT_OBJECT =
   'model-artifacts/sam3_1/sam3.1_multiplex.pt' as const
 const CHECKPOINT_SIZE = 3_502_755_717 as const
@@ -122,6 +117,12 @@ async function main() {
   )
   const runOrdinal = runOrdinalSchema.parse(
     process.env.WEEDITPRO_SAM31_L4_RUN_ORDINAL,
+  )
+  const a100ServingQualificationSetId = safeId.parse(
+    process.env.WEEDITPRO_SAM31_A100_SERVING_QUALIFICATION_SET_ID,
+  )
+  const a100ServingQualificationReceiptHash = sha256.parse(
+    process.env.WEEDITPRO_SAM31_A100_SERVING_QUALIFICATION_RECEIPT_SHA256,
   )
   const l4ImageReleaseRef = evidenceRefSchema.parse({
     id: process.env.WEEDITPRO_SAM31_L4_IMAGE_SUPPLY_CHAIN_RELEASE_ID,
@@ -160,8 +161,10 @@ async function main() {
   const a100ServingQualification =
     assertExactA100ServingQualification(
       await a100ReceiptRepository.reread({
-        qualificationSetId: A100_SERVING_QUALIFICATION_SET_ID,
+        qualificationSetId: a100ServingQualificationSetId,
       }),
+      a100ServingQualificationSetId,
+      a100ServingQualificationReceiptHash,
     )
   const a100ImageDigest =
     a100ServingQualification.immutableImageDigest as `sha256:${string}`
@@ -663,11 +666,15 @@ async function rereadBaselineTask(objectPort: ReturnType<
   return task
 }
 
-function assertExactA100ServingQualification(value: unknown) {
+function assertExactA100ServingQualification(
+  value: unknown,
+  qualificationSetId: string,
+  receiptHash: string,
+) {
   const receipt =
     assertCanonicalSam31VertexServingThirtyRunQualification(value)
-  if (receipt.qualificationSetId !== A100_SERVING_QUALIFICATION_SET_ID
-    || receipt.receiptHash !== A100_SERVING_QUALIFICATION_RECEIPT_HASH
+  if (receipt.qualificationSetId !== safeId.parse(qualificationSetId)
+    || receipt.receiptHash !== sha256.parse(receiptHash)
     || receipt.schemaVersion !==
       'canonical-sam3_1-vertex-serving-thirty-run-qualification-v2'
     || receipt.evidenceClass !==

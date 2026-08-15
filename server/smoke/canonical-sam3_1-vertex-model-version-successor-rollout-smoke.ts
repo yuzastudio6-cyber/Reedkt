@@ -101,17 +101,17 @@ const auth = {
         response: {},
       } }
     }
-    if (url.endsWith('@singleton-identity-continuity-candidate')) {
+    if (url.endsWith('@multi-instance-identity-continuity-candidate')) {
       if (!candidateCreated) {
         throw Object.assign(new Error('candidate absent'), { code: 404 })
       }
       return { data: modelVersion(
-        'singleton-identity-continuity-candidate', '7',
+        'multi-instance-identity-continuity-candidate', '8',
         imageUri, true) }
     }
-    if (url.endsWith('@6')) return { data: modelVersion(
-      '6', '6',
-      'us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@sha256:953a883366f51350933bf4b7911b34e652e4edc30e4e81fdf57e661c675c055f',
+    if (url.endsWith('@7')) return { data: modelVersion(
+      '7', '7',
+      'us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@sha256:9e7bb0b8aaf719843dee0c60cae52d2f4e7a7e1c8edf47a341dc75e25f797ca9',
       false,
     ) }
     if (url.endsWith('/endpoints/weeditpro-sam31-a100-scale-zero-v1')) {
@@ -138,8 +138,8 @@ const owner = createCanonicalSam31VertexModelVersionSuccessorRolloutOwner({
 const first = await owner.rolloutOne(profile)
 assert.equal(first.disposition, 'rolled_out')
 assert.equal(first.modelVersionResourceName,
-  'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@7')
-assert.equal(first.deployedModelId, '3101000016')
+  'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@8')
+assert.equal(first.deployedModelId, '3101000018')
 assert.equal(first.previousDeployedModelRemovedBeforeSuccessorDeployment, true)
 assert.equal(first.capacityOneReplacementSequence, true)
 assert.equal(
@@ -190,12 +190,12 @@ const unknownOwner =
           rejectedPostCount += 1
           throw new Error('network outcome unknown')
         }
-        if (url.endsWith('@singleton-identity-continuity-candidate')) {
+        if (url.endsWith('@multi-instance-identity-continuity-candidate')) {
           throw Object.assign(new Error('candidate absent'), { code: 404 })
         }
-        if (url.endsWith('@6')) return { data: modelVersion(
-          '6', '6',
-          'us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@sha256:953a883366f51350933bf4b7911b34e652e4edc30e4e81fdf57e661c675c055f',
+        if (url.endsWith('@7')) return { data: modelVersion(
+          '7', '7',
+          'us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@sha256:9e7bb0b8aaf719843dee0c60cae52d2f4e7a7e1c8edf47a341dc75e25f797ca9',
           false,
         ) }
         if (url.endsWith(
@@ -238,12 +238,12 @@ const providerRejectedOwner =
             },
           }
         }
-        if (url.endsWith('@singleton-identity-continuity-candidate')) {
+        if (url.endsWith('@multi-instance-identity-continuity-candidate')) {
           throw Object.assign(new Error('candidate absent'), { code: 404 })
         }
-        if (url.endsWith('@6')) return { data: modelVersion(
-          '6', '6',
-          'us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@sha256:953a883366f51350933bf4b7911b34e652e4edc30e4e81fdf57e661c675c055f',
+        if (url.endsWith('@7')) return { data: modelVersion(
+          '7', '7',
+          'us-central1-docker.pkg.dev/reeditpro/reeditpro-workers/reeditpro-sam31-gpu@sha256:9e7bb0b8aaf719843dee0c60cae52d2f4e7a7e1c8edf47a341dc75e25f797ca9',
           false,
         ) }
         if (url.endsWith(
@@ -338,19 +338,19 @@ function modelVersion(
 
 function endpoint() {
   const previous = {
-    id: '3101000014',
+    id: '3101000016',
     model:
       'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1',
-    modelVersionId: '6',
+    modelVersionId: '7',
     serviceAccount:
       'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com',
     dedicatedResources: resources(),
   }
   const successor = {
-    id: '3101000016',
+    id: '3101000018',
     model:
       'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1',
-    modelVersionId: '7',
+    modelVersionId: '8',
     serviceAccount:
       'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com',
     enableAccessLogging: false,
@@ -366,8 +366,8 @@ function endpoint() {
       'projects/390722338345/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1',
     deployedModels: successorDeployed ? [successor] : [previous],
     trafficSplit: successorDeployed
-      ? { '3101000016': 100 }
-      : { '3101000014': 100 },
+      ? { '3101000018': 100 }
+      : { '3101000016': 100 },
   }
 }
 
@@ -405,15 +405,15 @@ function oldEndpoint() {
     name:
       'projects/390722338345/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1',
     deployedModels: [{
-      id: '3101000014',
+      id: '3101000016',
       model:
         'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1',
-      modelVersionId: '6',
+      modelVersionId: '7',
       serviceAccount:
         'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com',
       dedicatedResources: resources(),
     }],
-    trafficSplit: { '3101000014': 100 },
+    trafficSplit: { '3101000016': 100 },
   }
 }
 

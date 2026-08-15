@@ -18,11 +18,11 @@ export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_MODEL_RESOURCE =
 export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_ENDPOINT_RESOURCE =
   `${CANONICAL_SAM3_1_VERTEX_SUCCESSOR_PARENT}/endpoints/weeditpro-sam31-a100-scale-zero-v1` as const
 export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_ALIAS =
-  'occlusion-continuity-candidate' as const
+  'singleton-identity-continuity-candidate' as const
 export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_DEPLOYED_MODEL_ID =
-  '3101000014' as const
+  '3101000016' as const
 export const CANONICAL_SAM3_1_VERTEX_PREVIOUS_DEPLOYED_MODEL_ID =
-  '3101000012' as const
+  '3101000014' as const
 export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_SERVICE_ACCOUNT =
   'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com' as const
 
@@ -87,15 +87,15 @@ export function createCanonicalSam31VertexModelVersionSuccessorUploadRequest(
       model: {
         displayName: profile.endpoint.displayName,
         description:
-          'WeEditPro private SAM 3.1 A100 80GB occlusion-continuity successor.',
+          'WeEditPro private SAM 3.1 A100 80GB singleton-identity-continuity successor.',
         labels: {
           'weeditpro-component': 'sam31',
           'weeditpro-route': 'a100-heavy-primary',
-          'weeditpro-release': 'occlusion-continuity',
+          'weeditpro-release': 'singleton-identity-continuity',
         },
         versionAliases: [CANONICAL_SAM3_1_VERTEX_SUCCESSOR_ALIAS],
         versionDescription:
-          'Source-bound successor with GPU-only quality-preserving propagation and bounded worker-log parsing.',
+          'Source-bound successor with GPU-only quality-preserving propagation, bounded worker-log parsing, and fail-closed semantic singleton identity continuity.',
         containerSpec: containerSpec(profile),
       },
       serviceAccount: CANONICAL_SAM3_1_VERTEX_SUCCESSOR_SERVICE_ACCOUNT,

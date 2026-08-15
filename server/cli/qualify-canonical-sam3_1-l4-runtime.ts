@@ -899,7 +899,7 @@ function buildL4QualificationTask(input: {
     settings: {
       ...baseRequest.settings,
       gpuMemoryProfileId:
-        'l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v6',
+        'l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v7',
     },
     byteFreeRequest: true,
     callerCodePathUrlCommandOrEnvironmentAccepted: false,

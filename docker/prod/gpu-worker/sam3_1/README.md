@@ -73,8 +73,10 @@ Runtime rules once qualified:
   fixed five-minute deadline while the NVDEC sampler remains active; its
   exception state, exact loaded-frame count, and complete CUDA-resident frame
   store are verified before prompting or propagation;
-- A100 80 GB uses `a100_full_gpu_state_v1`. L4 uses the separately qualified
-  `l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v6`,
+- A100 80 GB uses
+  `a100_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v3`.
+  L4 uses the separately qualified
+  `l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v7`,
   which preserves the complete prompt-selected semantic object set in one
   upstream propagation session and enables Meta's forward-evaluation trim only
   after non-conditioning state falls outside the exact seven-frame temporal-
@@ -82,8 +84,11 @@ Runtime rules once qualified:
   at a time instead of batching 16 full-resolution frames, but never removes a
   detector-created object from Multiplex action history. This bounds the L4
   frame-16 reconditioning peak without changing source resolution, temporal
-  coverage, model precision, or the required object set. Frames, active memory,
-  model inference, and outputs remain on CUDA; CPU
+  coverage, model precision, or the required object set. When the upstream
+  probability gate omits a prompt identity during occlusion or off-canvas
+  absence, the runner preserves that identity with an explicit empty mask and
+  zero box; new, duplicated, or reordered identities remain a hard failure.
+  Frames, active memory, model inference, and outputs remain on CUDA; CPU
   video/state/output offload, downscaling, quantization, and reduced temporal
   coverage remain forbidden. Release still requires exact mask parity with the
   A100 full-state baseline;

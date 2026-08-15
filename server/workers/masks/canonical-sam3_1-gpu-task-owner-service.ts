@@ -749,8 +749,8 @@ export function buildCanonicalSam31GpuTaskRecord(input: {
       offloadVideoToCpu: false,
       offloadStateToCpu: false,
       gpuMemoryProfileId: primary
-        ? 'a100_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v2'
-        : 'l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v6',
+        ? 'a100_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v3'
+        : 'l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v7',
       propagationDirection: 'forward',
       outputFormat: 'lossless_grayscale_png_mask_sequence_v1',
       sourceResolutionPreserved: true,

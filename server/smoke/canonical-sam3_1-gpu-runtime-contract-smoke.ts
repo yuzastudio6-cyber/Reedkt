@@ -169,7 +169,7 @@ assert.doesNotMatch(
 )
 assert.match(
   l4Qualifier,
-  /gpuMemoryProfileId:\s*'l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v6'/u,
+  /gpuMemoryProfileId:\s*'l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v7'/u,
 )
 
 const exactL4Job = assertCanonicalSam31L4QualificationJob({

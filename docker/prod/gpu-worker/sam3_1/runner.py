@@ -104,10 +104,10 @@ OUTPUT_PERSISTENCE_WORKERS = 8
 MAXIMUM_PENDING_MASK_PERSISTENCE_TASKS = 16
 MAXIMUM_ASYNC_FRAME_LOAD_WAIT_SECONDS = 300
 A100_GPU_MEMORY_PROFILE = (
-    "a100_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v2"
+    "a100_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v3"
 )
 L4_GPU_MEMORY_PROFILE = (
-    "l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v6"
+    "l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v7"
 )
 EXPECTED_TORCH_VERSION = "2.10.0+cu128"
 EXPECTED_TORCHVISION_VERSION = "0.25.0+cu128"
@@ -2461,6 +2461,30 @@ def copy_mask_for_persistence(
     return value
 
 
+def missing_prompt_object_identities(
+    prompt_object_ids: list[int],
+    emitted_object_ids: list[int],
+) -> list[int]:
+    """Return prompt identities that are not visible in one propagated frame.
+
+    SAM 3.1 legitimately omits a prompt-created object from a frame when its
+    probability falls below the admitted output threshold, for example while
+    the subject is fully occluded or outside the canvas.  That is an absence,
+    not an identity change.  The immutable output contract still requires one
+    stable mask slot per prompt identity and frame, so callers materialize an
+    empty mask for these missing identities.  New, duplicated, or reordered
+    identities remain a hard failure.
+    """
+    if (
+        emitted_object_ids != sorted(emitted_object_ids)
+        or len(set(emitted_object_ids)) != len(emitted_object_ids)
+        or any(object_id not in prompt_object_ids for object_id in emitted_object_ids)
+    ):
+        raise RuntimeError("SAM 3.1 propagation object identities changed")
+    emitted = set(emitted_object_ids)
+    return [object_id for object_id in prompt_object_ids if object_id not in emitted]
+
+
 def persist_mask(
     value: Any,
     frame_index: int,
@@ -2686,6 +2710,14 @@ def execute_inside_bfloat16_autocast(
     frame_object_records: dict[int, list[dict[str, Any]]] = {}
     mask_records_by_key: dict[tuple[int, int], dict[str, Any]] = {}
     distinct_object_ids: set[int] = set()
+    empty_absent_mask = torch.zeros(
+        (
+            request["sourceMedia"]["height"],
+            request["sourceMedia"]["width"],
+        ),
+        dtype=torch.bool,
+        device="cuda",
+    )
     propagation_elapsed_ns = 0
     persistence_ns = 0
     stage = "propagation"
@@ -2725,17 +2757,26 @@ def execute_inside_bfloat16_autocast(
                     exact_int(int(value), 0, 2**31 - 1, "object id")
                     for value in outputs["out_obj_ids"].tolist()
                 ]
-                if object_ids != prompt_object_ids:
-                    raise RuntimeError(
-                        "SAM 3.1 propagation object identities changed"
-                    )
                 boxes = outputs["out_boxes_xywh"].tolist()
                 masks = outputs["out_binary_masks"]
                 if not (len(object_ids) == len(boxes) == len(masks)):
                     raise RuntimeError("SAM 3.1 output arrays lost alignment")
+                missing_object_ids = missing_prompt_object_identities(
+                    prompt_object_ids,
+                    object_ids,
+                )
+                observed_by_id = {
+                    object_id: (box, mask)
+                    for object_id, box, mask in zip(object_ids, boxes, masks)
+                }
                 object_records = frame_object_records.setdefault(frame_index, [])
                 persist_started = time.monotonic_ns()
-                for object_id, box, mask in zip(object_ids, boxes, masks):
+                for object_id in prompt_object_ids:
+                    if object_id in missing_object_ids:
+                        box = [0.0, 0.0, 0.0, 0.0]
+                        mask = empty_absent_mask
+                    else:
+                        box, mask = observed_by_id[object_id]
                     if len(box) != 4 or any(
                         isinstance(component, bool)
                         or not isinstance(component, (int, float))

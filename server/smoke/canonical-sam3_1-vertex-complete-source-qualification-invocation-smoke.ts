@@ -317,7 +317,7 @@ function runtimeResponse() {
       cudaKernelExecutionMeasured: true,
       cpuOnlyInferenceUsed: false,
       gpuMemoryProfileId:
-        'a100_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v2',
+        'a100_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v3',
       pastNonConditioningMemoryTrimmedOnGpu: true,
       cudaDriverLibraryMode: 'host_driver',
       observedCudaDriverLibraryPathDigestSha256: sha256AuthorityValue(

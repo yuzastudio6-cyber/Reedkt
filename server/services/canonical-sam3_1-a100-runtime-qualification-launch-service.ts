@@ -931,7 +931,7 @@ function buildQualificationTask(input: {
       offloadVideoToCpu: false,
       offloadStateToCpu: false,
       gpuMemoryProfileId:
-        'a100_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v2',
+        'a100_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v3',
       propagationDirection: 'forward',
       outputFormat: 'lossless_grayscale_png_mask_sequence_v1',
       sourceResolutionPreserved: true,

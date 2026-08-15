@@ -372,6 +372,7 @@
     "qualify:sam3_1-complete-source-a100-pilot": "tsx server/cli/qualify-one-canonical-sam3_1-complete-source-a100-pilot.ts",
     "smoke:sam3_1-vertex-serving-runtime-components": "tsx server/smoke/canonical-sam3_1-vertex-serving-runtime-component-qualification-owner-smoke.ts",
     "smoke:sam3_1-gpu-runtime-contract": "tsx server/smoke/canonical-sam3_1-gpu-runtime-contract-smoke.ts",
+    "smoke:sam3_1-propagation-identity-continuity": "tsx server/smoke/canonical-sam3_1-propagation-identity-continuity-smoke.ts",
     "smoke:sam3_1-gpu-temporal-measurement-compiler": "tsx server/smoke/canonical-sam3_1-gpu-temporal-measurement-compiler-smoke.ts",
     "smoke:sam3_1-gpu-temporal-evidence-assembler": "tsx server/smoke/canonical-sam3_1-gpu-temporal-evidence-assembler-smoke.ts",
     "smoke:sam3_1-cross-accelerator-mask-comparison": "tsx server/smoke/canonical-sam3_1-cross-accelerator-mask-comparison-smoke.ts",

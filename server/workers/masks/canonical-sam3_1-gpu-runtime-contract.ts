@@ -221,11 +221,13 @@ const settingsSchema = z.object({
   gpuMemoryProfileId: z.enum([
     'a100_full_gpu_state_v1',
     'a100_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v2',
+    'a100_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v3',
     'l4_gpu_only_trimmed_past_non_conditioning_memory_v1',
     'l4_gpu_only_full_multiplex_streamed_postprocess_trimmed_memory_v2',
     'l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v3',
     'l4_gpu_only_serial_object_streamed_grounding_postprocess_trimmed_memory_v5',
     'l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v6',
+    'l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v7',
   ]).optional(),
   propagationDirection: z.literal('forward'),
   outputFormat: z.literal('lossless_grayscale_png_mask_sequence_v1'),
@@ -261,9 +263,11 @@ const requestWithoutHashSchema = z.object({
     ? [
       'a100_full_gpu_state_v1',
       'a100_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v2',
+      'a100_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v3',
     ] as const
     : [
       'l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v6',
+      'l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v7',
     ] as const
   if (
     request.settings.gpuMemoryProfileId !== undefined
@@ -331,11 +335,13 @@ const gpuEvidenceSchema = z.object({
   gpuMemoryProfileId: z.enum([
     'a100_full_gpu_state_v1',
     'a100_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v2',
+    'a100_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v3',
     'l4_gpu_only_trimmed_past_non_conditioning_memory_v1',
     'l4_gpu_only_full_multiplex_streamed_postprocess_trimmed_memory_v2',
     'l4_gpu_only_serial_object_streamed_postprocess_trimmed_memory_v3',
     'l4_gpu_only_serial_object_streamed_grounding_postprocess_trimmed_memory_v5',
     'l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v6',
+    'l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v7',
   ]).optional(),
   pastNonConditioningMemoryTrimmedOnGpu: z.boolean().optional(),
   cudaDriverLibraryMode: z.enum(['cuda_compat_12_8', 'host_driver']),
@@ -372,8 +378,13 @@ const gpuEvidenceSchema = z.object({
       || (evidence.gpuMemoryProfileId ===
           'a100_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v2'
         && evidence.pastNonConditioningMemoryTrimmedOnGpu === true)
-    : evidence.gpuMemoryProfileId ===
-        'l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v6'
+      || (evidence.gpuMemoryProfileId ===
+          'a100_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v3'
+        && evidence.pastNonConditioningMemoryTrimmedOnGpu === true)
+    : (evidence.gpuMemoryProfileId ===
+          'l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v6'
+        || evidence.gpuMemoryProfileId ===
+          'l4_gpu_only_full_semantic_streamed_grounding_postprocess_trimmed_memory_v7')
       && evidence.pastNonConditioningMemoryTrimmedOnGpu === true
   if (profileFieldsPresent && !exactProfile) context.addIssue({
     code: 'custom',

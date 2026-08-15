@@ -98,6 +98,25 @@ assert.equal((await observe({
   endpoint: liveVertexEndpointProjection,
 })).modelVersionId, '5')
 
+const repeatedRepository = memoryRepository()
+const repeatedResponses = [
+  model, operation, endpoint, model, operation, endpoint,
+]
+let repeatedObservationCount = 0
+const repeatedService = createCanonicalSam31VertexModelVersionRolloutService({
+  auth: {
+    request: async () => ({ data: repeatedResponses.shift() }) as never,
+  },
+  repository: repeatedRepository,
+  now: () => repeatedObservationCount++ === 0
+    ? '2026-08-12T13:40:00.000Z'
+    : '2026-08-12T13:45:00.000Z',
+})
+const firstRepeated = await repeatedService.observeCurrent()
+const secondRepeated = await repeatedService.observeCurrent()
+assert.equal(secondRepeated.rolloutHash, firstRepeated.rolloutHash)
+assert.equal(secondRepeated.observedAt, firstRepeated.observedAt)
+
 assert.throws(() => assertCanonicalSam31VertexModelVersionRollout({
   ...valid,
   customerCreditsMutated: true,
@@ -158,7 +177,7 @@ for (const invalid of [
 
 process.stdout.write(`${JSON.stringify({
   smoke: 'canonical-sam3_1-vertex-model-version-rollout',
-  checks: 16,
+  checks: 18,
   modelVersionId: valid.modelVersionId,
   deployedModelId: valid.deployedModelId,
   exactModelVersionReread: valid.exactModelVersionReread,

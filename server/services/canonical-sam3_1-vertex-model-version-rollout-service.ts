@@ -182,18 +182,24 @@ export function createCanonicalSam31VertexModelVersionRolloutService(input: {
       parseExactModelVersion(modelResponse.data)
       parseExactCompletedOperation(operationResponse.data)
       parseExactEndpoint(endpointResponse.data)
-      const observedAt = timestamp.parse(now())
       const identity = sha256AuthorityValue({
         deployOperationName: DEPLOY_OPERATION,
         immutableImageDigest: IMAGE_DIGEST,
         modelVersionId: CANONICAL_SAM3_1_VERTEX_CURRENT_MODEL_VERSION_ID,
         deployedModelId: DEPLOYED_MODEL_ID,
       })
+      const rolloutId =
+        `sam31-vertex-model-version-rollout-${identity.slice(0, 32)}`
+      const existing = await input.repository.reread({ rolloutId })
+      if (existing !== null) {
+        return assertCanonicalSam31VertexModelVersionRollout(existing)
+      }
+      const observedAt = timestamp.parse(now())
       const payload = rolloutWithoutHashSchema.parse({
         schemaVersion:
           CANONICAL_SAM3_1_VERTEX_MODEL_VERSION_ROLLOUT_VERSION,
         source: 'canonical_server_sam3_1_vertex_model_version_rollout_owner',
-        rolloutId: `sam31-vertex-model-version-rollout-${identity.slice(0, 32)}`,
+        rolloutId,
         imageSupplyChainReleaseRef: {
           id: SUPPLY_CHAIN_RELEASE_ID,
           version: 1,

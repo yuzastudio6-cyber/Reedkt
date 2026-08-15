@@ -41,6 +41,10 @@ import {
   type CanonicalSam31CurrentA100CustomerDispatchReadinessReadPort,
 } from '../../services/canonical-sam3_1-current-a100-customer-dispatch-readiness'
 import {
+  assertCanonicalSam31PrivateInternalDispatchAllowed,
+  type CanonicalSam31PrivateInternalDispatchReadinessReadPort,
+} from '../../services/canonical-sam3_1-private-internal-dispatch-readiness-owner'
+import {
   assertCanonicalSam31GpuRuntimeReleaseRegistryRecord,
   canonicalSam31GpuRuntimeReleaseRef,
 } from '../../services/canonical-sam3_1-gpu-runtime-release-registry'
@@ -83,6 +87,10 @@ export const TRACK_ALL_SAM3_1_ORCHESTRA_QUALIFICATION_PUBLISHER_VERSION =
   'track-all-sam3_1-orchestra-qualification-publisher-v2' as const
 export const TRACK_ALL_SAM3_1_ORCHESTRA_QUALIFICATION_PUBLICATION_RECEIPT_VERSION =
   'track-all-sam3_1-orchestra-qualification-publication-receipt-v2' as const
+export const TRACK_ALL_SAM3_1_ORCHESTRA_PRIVATE_INTERNAL_QUALIFICATION_PUBLISHER_VERSION =
+  'track-all-sam3_1-orchestra-private-internal-qualification-publisher-v1' as const
+export const TRACK_ALL_SAM3_1_ORCHESTRA_PRIVATE_INTERNAL_QUALIFICATION_PUBLICATION_RECEIPT_VERSION =
+  'track-all-sam3_1-orchestra-private-internal-qualification-publication-receipt-v1' as const
 
 const safeId = z.string().trim().min(1).max(512)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:/+-]*$/u)
@@ -99,6 +107,17 @@ const publicationInputSchema = z.object({
   a100RuntimeReleaseRef: refSchema,
   currentA100CustomerDispatchReadinessRef: refSchema,
   l4FallbackRuntimeReleaseRef: refSchema,
+  a100RateAuthorityRef: refSchema,
+  l4FallbackRateAuthorityRef: refSchema,
+  l4TaskQaImageQualificationRef: refSchema,
+  l4TaskQaRuntimeReleaseRef: refSchema,
+  artifactRepositoryReleaseRef: refSchema,
+  observedAt: timestamp,
+}).strict()
+const privateInternalPublicationInputSchema = z.object({
+  a100RuntimeReleaseRef: refSchema,
+  l4FallbackRuntimeReleaseRef: refSchema,
+  privateInternalDispatchReadinessRef: refSchema,
   a100RateAuthorityRef: refSchema,
   l4FallbackRateAuthorityRef: refSchema,
   l4TaskQaImageQualificationRef: refSchema,
@@ -152,10 +171,66 @@ const receiptWithoutHashSchema = z.object({
 const receiptSchema = receiptWithoutHashSchema.extend({
   receiptHash: sha256,
 }).strict()
+const privateInternalReceiptWithoutHashSchema = z.object({
+  schemaVersion: z.literal(
+    TRACK_ALL_SAM3_1_ORCHESTRA_PRIVATE_INTERNAL_QUALIFICATION_PUBLICATION_RECEIPT_VERSION,
+  ),
+  publisherVersion: z.literal(
+    TRACK_ALL_SAM3_1_ORCHESTRA_PRIVATE_INTERNAL_QUALIFICATION_PUBLISHER_VERSION,
+  ),
+  source: z.literal(
+    'canonical_server_track_all_sam3_1_orchestra_private_internal_qualification_publisher',
+  ),
+  evidenceClass: z.literal(
+    'canonical_private_internal_release_rate_readiness_repository_exact_reread_create_only',
+  ),
+  manifestRef: refSchema,
+  qualificationSnapshotRef: refSchema,
+  observedReleaseRef: refSchema,
+  registryRecordRef: refSchema,
+  a100RuntimeReleaseRef: refSchema,
+  l4FallbackRuntimeReleaseRef: refSchema,
+  privateInternalDispatchReadinessRef: refSchema,
+  l4TaskQaImageQualificationRef: refSchema,
+  l4TaskQaRuntimeReleaseRef: refSchema,
+  a100RateAuthorityRef: refSchema,
+  l4FallbackRateAuthorityRef: refSchema,
+  l4TaskQaRateAuthorityRef: refSchema,
+  artifactRepositoryReleaseRef: refSchema,
+  disposition: z.enum(['created', 'identical_replay']),
+  exactA100AndIndependentL4Sam31ReleaseReread: z.literal(true),
+  exactPrivateInternalSequentialDispatchReadinessReread: z.literal(true),
+  exactL4TaskQaImageDeploymentAndScaleZeroReread: z.literal(true),
+  exactBillingAccountEffectiveA100AndL4RateReread: z.literal(true),
+  exactTrackAllResultAndArtifactRepositoryReleaseReread: z.literal(true),
+  exactCanonicalManifestQualificationCreateOnlyReread: z.literal(true),
+  maximumSimultaneousPrivateA100Attempts: z.literal(1),
+  maximumSimultaneousPrivateL4Attempts: z.literal(1),
+  qualificationAttemptsMustRunSequentially: z.literal(true),
+  minimumIdleGpuInstances: z.literal(0),
+  userTriggeredScaleFromZeroRequired: z.literal(true),
+  publicConcurrencyCapacityRequired: z.literal(false),
+  publicConcurrencyA100Target: z.literal(16),
+  publicConcurrencyL4Target: z.literal(16),
+  productionConcurrencyIsSeparateFutureReleaseGate: z.literal(true),
+  customerOrPublicDispatchAuthorized: z.literal(false),
+  callerCanSelfQualify: z.literal(false),
+  gpuJobStarted: z.literal(false),
+  providerOrModelExecuted: z.literal(false),
+  customerCreditsMutated: z.literal(false),
+  qaApprovalGranted: z.literal(false),
+  publicDeliveryAuthorized: z.literal(false),
+  productionAuthorityGranted: z.literal(false),
+  publishedAt: timestamp,
+}).strict()
+const privateInternalReceiptSchema = privateInternalReceiptWithoutHashSchema
+  .extend({ receiptHash: sha256 }).strict()
 
 export type TrackAllSam31OrchestraQualificationPublicationReceipt = z.infer<
   typeof receiptSchema
 >
+export type TrackAllSam31OrchestraPrivateInternalQualificationPublicationReceipt =
+  z.infer<typeof privateInternalReceiptSchema>
 
 type RuntimeReleaseReadPort = Pick<
   CanonicalSam31GpuRuntimeReleaseRegistry,
@@ -183,6 +258,11 @@ type CurrentA100ReadinessReadPort = Pick<
     readonly at: string
   }): Promise<unknown | null>
 }
+type PrivateInternalDispatchReadinessReadPort = Pick<
+  CanonicalSam31PrivateInternalDispatchReadinessReadPort,
+  'schemaVersion' | 'privateInternalOnly' |
+    'customerOrPublicDispatchAuthorized' | 'rereadCurrent'
+>
 
 export interface TrackAllSam31OrchestraQualificationPublisherDependencies {
   readonly runtimeReleaseRegistry: RuntimeReleaseReadPort
@@ -194,6 +274,13 @@ export interface TrackAllSam31OrchestraQualificationPublisherDependencies {
   readonly artifactRepositoryReleaseReadPort:
     CanonicalTrackAllSam31ArtifactRepositoryReleaseReadPort
   readonly qualificationRegistry: CanonicalSkillQualificationRegistry
+}
+
+export interface TrackAllSam31OrchestraPrivateInternalQualificationPublisherDependencies
+  extends Omit<TrackAllSam31OrchestraQualificationPublisherDependencies,
+    'currentA100ReadinessRepository'> {
+  readonly privateInternalDispatchReadinessReadPort:
+    PrivateInternalDispatchReadinessReadPort
 }
 
 export async function publishTrackAllSam31OrchestraQualification(
@@ -373,6 +460,172 @@ export async function publishTrackAllSam31OrchestraQualification(
   })
 }
 
+export async function publishTrackAllSam31OrchestraPrivateInternalQualification(
+  untrusted: unknown,
+  dependencies:
+    TrackAllSam31OrchestraPrivateInternalQualificationPublisherDependencies,
+): Promise<TrackAllSam31OrchestraPrivateInternalQualificationPublicationReceipt> {
+  assertPrivateInternalDependencies(dependencies)
+  assertPlainSerializedData(untrusted,
+    'track_all_private_internal_qualification_publication')
+  const request = privateInternalPublicationInputSchema.parse(untrusted)
+  const a100Record = assertCanonicalSam31GpuRuntimeReleaseRegistryRecord(
+    await dependencies.runtimeReleaseRegistry.rereadReleasePair({
+      runtimeReleaseRef: request.a100RuntimeReleaseRef,
+    }),
+  )
+  const l4Record = assertCanonicalSam31GpuRuntimeReleaseRegistryRecord(
+    await dependencies.runtimeReleaseRegistry.rereadReleasePair({
+      runtimeReleaseRef: request.l4FallbackRuntimeReleaseRef,
+    }),
+  )
+  const a100 = assertCanonicalProfessionalToolGpuRuntimeRelease(
+    a100Record.runtimeRelease, request.observedAt,
+  )
+  const l4 = assertCanonicalProfessionalToolGpuRuntimeRelease(
+    l4Record.runtimeRelease, request.observedAt,
+  )
+  assertExactSam31RuntimePair({ a100, a100Record,
+    a100Ref: request.a100RuntimeReleaseRef, l4, l4Record,
+    l4Ref: request.l4FallbackRuntimeReleaseRef })
+
+  const a100Rate =
+    assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2(
+      await dependencies.a100ServingRateAuthorityRepository.reread({
+        rateAuthorityRef: request.a100RateAuthorityRef,
+        at: request.observedAt,
+      }), request.observedAt,
+    )
+  assertExactPrivateInternalA100Rate({
+    rate: a100Rate, rateRef: request.a100RateAuthorityRef,
+  })
+  const l4FallbackRate = assertCanonicalCurrentGoogleCloudGpuRateAuthority(
+    await dependencies.rateAuthorityRepository.rereadApprovedCurrentRate({
+      rateAuthorityRef: request.l4FallbackRateAuthorityRef,
+      routeId: 'l4_heavy_fallback', at: request.observedAt,
+    }), request.observedAt,
+  )
+  const a100PrivateReadiness =
+    assertCanonicalSam31PrivateInternalDispatchAllowed({
+      readiness: await dependencies.privateInternalDispatchReadinessReadPort
+        .rereadCurrent({
+          runtimeReleaseRef: request.a100RuntimeReleaseRef,
+          rateAuthorityRef: request.a100RateAuthorityRef,
+          at: request.observedAt,
+        }),
+      routeId: 'a100_80gb_heavy_primary',
+      runtimeReleaseRef: request.a100RuntimeReleaseRef,
+      rateAuthorityRef: request.a100RateAuthorityRef,
+      immutableImageDigest: a100.immutableImageDigest,
+      at: request.observedAt,
+    })
+  const l4PrivateReadiness =
+    assertCanonicalSam31PrivateInternalDispatchAllowed({
+      readiness: await dependencies.privateInternalDispatchReadinessReadPort
+        .rereadCurrent({
+          runtimeReleaseRef: request.l4FallbackRuntimeReleaseRef,
+          rateAuthorityRef: request.l4FallbackRateAuthorityRef,
+          at: request.observedAt,
+        }),
+      routeId: 'l4_heavy_fallback',
+      runtimeReleaseRef: request.l4FallbackRuntimeReleaseRef,
+      rateAuthorityRef: request.l4FallbackRateAuthorityRef,
+      immutableImageDigest: l4.immutableImageDigest,
+      at: request.observedAt,
+    })
+  assertExactPrivateInternalReadiness({
+    a100Readiness: a100PrivateReadiness,
+    l4Readiness: l4PrivateReadiness,
+    readinessRef: request.privateInternalDispatchReadinessRef,
+  })
+
+  const l4TaskQaImage =
+    assertCanonicalTrackAllSam31L4TaskQaImageQualification(
+      await dependencies.l4TaskQaReleaseRepository.rereadImageQualification({
+        imageQualificationRef: request.l4TaskQaImageQualificationRef,
+      }),
+    )
+  const l4TaskQaDeployment =
+    assertCanonicalTrackAllSam31L4TaskQaDeploymentObservation(
+      await dependencies.l4TaskQaReleaseRepository
+        .rereadDeploymentObservation({
+          runtimeReleaseRef: request.l4TaskQaRuntimeReleaseRef,
+        }),
+    )
+  assertExactL4TaskQaRelease({ image: l4TaskQaImage,
+    imageRef: request.l4TaskQaImageQualificationRef,
+    deployment: l4TaskQaDeployment,
+    runtimeRef: request.l4TaskQaRuntimeReleaseRef, at: request.observedAt })
+  const l4TaskQaRateRef = refSchema.parse(
+    l4TaskQaImage.accountEffectiveL4RateCompatibilityRef,
+  )
+  const l4TaskQaRate = assertCanonicalCurrentGoogleCloudGpuRateAuthority(
+    await dependencies.rateAuthorityRepository.rereadApprovedCurrentRate({
+      rateAuthorityRef: l4TaskQaRateRef,
+      routeId: 'l4_standard_primary', at: request.observedAt,
+    }), request.observedAt,
+  )
+  assertExactL4Rates({ l4FallbackRate,
+    l4FallbackRef: request.l4FallbackRateAuthorityRef,
+    l4TaskQaRate, l4TaskQaRef: l4TaskQaRateRef })
+  const artifactRepositoryRelease =
+    assertCanonicalTrackAllSam31ArtifactRepositoryRelease(
+      await dependencies.artifactRepositoryReleaseReadPort.readExact({
+        releaseRef: request.artifactRepositoryReleaseRef,
+      }), request.observedAt,
+    )
+  if (!sameRef(canonicalTrackAllSam31ArtifactRepositoryReleaseRef(
+    artifactRepositoryRelease), request.artifactRepositoryReleaseRef)) {
+    throw new Error('Track All artifact repository release ref changed.')
+  }
+  const qualificationEvidenceRefs = sortRefs([
+    request.a100RuntimeReleaseRef, request.l4FallbackRuntimeReleaseRef,
+    request.privateInternalDispatchReadinessRef,
+    request.l4TaskQaImageQualificationRef,
+    request.l4TaskQaRuntimeReleaseRef, request.a100RateAuthorityRef,
+    request.l4FallbackRateAuthorityRef, l4TaskQaRateRef,
+    request.artifactRepositoryReleaseRef,
+  ])
+  const observedReleaseRef = orchestraEvidenceRef(
+    'track-all-sam3_1-private-internal-qualified-release-set-v1',
+    orchestraDigest({
+      qualificationEvidenceRefs,
+      exactA100AndIndependentL4Sam31ReleaseReread: true,
+      exactPrivateInternalSequentialDispatchReadinessReread: true,
+      exactBillingAccountEffectiveA100AndL4RateReread: true,
+      exactL4TaskQaImageDeploymentAndScaleZeroReread: true,
+      exactTrackAllResultAndArtifactRepositoryReleaseReread: true,
+      maximumSimultaneousPrivateA100Attempts: 1,
+      maximumSimultaneousPrivateL4Attempts: 1,
+      publicConcurrencyCapacityRequired: false,
+      productionConcurrencyIsSeparateFutureReleaseGate: true,
+      releaseSetVersion:
+        'track-all-sam3_1-private-internal-qualified-release-set-v1',
+    }),
+  )
+  const qualificationSnapshot = buildQualifiedSnapshot({
+    observedAt: request.observedAt, observedReleaseRef,
+    qualificationEvidenceRefs,
+  })
+  const manifest = createTrackAllSam31OrchestraCapabilityManifestForQualification(
+    qualificationSnapshot,
+  )
+  const persisted = await dependencies.qualificationRegistry.persistCreateOnly({
+    manifest, qualificationSnapshot,
+  })
+  const reread = await dependencies.qualificationRegistry.readExact({
+    manifestRef: persisted.manifestRef,
+    qualificationSnapshotRef: persisted.qualificationSnapshotRef,
+  })
+  if (!reread || stableAuthorityStringify(reread.manifest)
+      !== stableAuthorityStringify(manifest)
+    || stableAuthorityStringify(reread.qualificationSnapshot)
+      !== stableAuthorityStringify(qualificationSnapshot)) {
+    throw new Error('Track All private qualification reread failed.')
+  }
+  return createPrivateInternalReceipt({ request, persisted, l4TaskQaRateRef })
+}
+
 export function assertTrackAllSam31OrchestraQualificationPublicationReceipt(
   value: unknown,
 ): TrackAllSam31OrchestraQualificationPublicationReceipt {
@@ -381,6 +634,19 @@ export function assertTrackAllSam31OrchestraQualificationPublicationReceipt(
   const { receiptHash, ...payload } = receipt
   if (receiptHash !== sha256AuthorityValue(payload)) {
     throw new Error('Track All qualification receipt hash is invalid.')
+  }
+  return structuredClone(receipt)
+}
+
+export function assertTrackAllSam31OrchestraPrivateInternalQualificationPublicationReceipt(
+  value: unknown,
+): TrackAllSam31OrchestraPrivateInternalQualificationPublicationReceipt {
+  assertPlainSerializedData(value,
+    'track_all_private_internal_qualification_receipt')
+  const receipt = privateInternalReceiptSchema.parse(value)
+  const { receiptHash, ...payload } = receipt
+  if (receiptHash !== sha256AuthorityValue(payload)) {
+    throw new Error('Track All private qualification receipt hash is invalid.')
   }
   return structuredClone(receipt)
 }
@@ -472,6 +738,68 @@ function createReceipt(input: {
   return receiptSchema.parse({
     ...payload,
     receiptHash: sha256AuthorityValue(payload),
+  })
+}
+
+function createPrivateInternalReceipt(input: {
+  request: z.infer<typeof privateInternalPublicationInputSchema>
+  l4TaskQaRateRef: z.infer<typeof refSchema>
+  persisted: Awaited<ReturnType<
+    CanonicalSkillQualificationRegistry['persistCreateOnly']
+  >>
+}): TrackAllSam31OrchestraPrivateInternalQualificationPublicationReceipt {
+  const payload = privateInternalReceiptWithoutHashSchema.parse({
+    schemaVersion:
+      TRACK_ALL_SAM3_1_ORCHESTRA_PRIVATE_INTERNAL_QUALIFICATION_PUBLICATION_RECEIPT_VERSION,
+    publisherVersion:
+      TRACK_ALL_SAM3_1_ORCHESTRA_PRIVATE_INTERNAL_QUALIFICATION_PUBLISHER_VERSION,
+    source:
+      'canonical_server_track_all_sam3_1_orchestra_private_internal_qualification_publisher',
+    evidenceClass:
+      'canonical_private_internal_release_rate_readiness_repository_exact_reread_create_only',
+    manifestRef: input.persisted.manifestRef,
+    qualificationSnapshotRef: input.persisted.qualificationSnapshotRef,
+    observedReleaseRef: input.persisted.observedReleaseRef,
+    registryRecordRef: input.persisted.registryRecordRef,
+    a100RuntimeReleaseRef: input.request.a100RuntimeReleaseRef,
+    l4FallbackRuntimeReleaseRef: input.request.l4FallbackRuntimeReleaseRef,
+    privateInternalDispatchReadinessRef:
+      input.request.privateInternalDispatchReadinessRef,
+    l4TaskQaImageQualificationRef:
+      input.request.l4TaskQaImageQualificationRef,
+    l4TaskQaRuntimeReleaseRef: input.request.l4TaskQaRuntimeReleaseRef,
+    a100RateAuthorityRef: input.request.a100RateAuthorityRef,
+    l4FallbackRateAuthorityRef: input.request.l4FallbackRateAuthorityRef,
+    l4TaskQaRateAuthorityRef: input.l4TaskQaRateRef,
+    artifactRepositoryReleaseRef: input.request.artifactRepositoryReleaseRef,
+    disposition: input.persisted.disposition,
+    exactA100AndIndependentL4Sam31ReleaseReread: true,
+    exactPrivateInternalSequentialDispatchReadinessReread: true,
+    exactL4TaskQaImageDeploymentAndScaleZeroReread: true,
+    exactBillingAccountEffectiveA100AndL4RateReread: true,
+    exactTrackAllResultAndArtifactRepositoryReleaseReread: true,
+    exactCanonicalManifestQualificationCreateOnlyReread: true,
+    maximumSimultaneousPrivateA100Attempts: 1,
+    maximumSimultaneousPrivateL4Attempts: 1,
+    qualificationAttemptsMustRunSequentially: true,
+    minimumIdleGpuInstances: 0,
+    userTriggeredScaleFromZeroRequired: true,
+    publicConcurrencyCapacityRequired: false,
+    publicConcurrencyA100Target: 16,
+    publicConcurrencyL4Target: 16,
+    productionConcurrencyIsSeparateFutureReleaseGate: true,
+    customerOrPublicDispatchAuthorized: false,
+    callerCanSelfQualify: false,
+    gpuJobStarted: false,
+    providerOrModelExecuted: false,
+    customerCreditsMutated: false,
+    qaApprovalGranted: false,
+    publicDeliveryAuthorized: false,
+    productionAuthorityGranted: false,
+    publishedAt: input.request.observedAt,
+  })
+  return privateInternalReceiptSchema.parse({
+    ...payload, receiptHash: sha256AuthorityValue(payload),
   })
 }
 
@@ -591,6 +919,52 @@ function assertExactCurrentA100ServingQualification(input: {
   )
 }
 
+function assertExactPrivateInternalA100Rate(input: {
+  rate: ReturnType<
+    typeof assertCanonicalCurrentGoogleCloudVertexA100ServingRateAuthorityV2
+  >
+  rateRef: z.infer<typeof refSchema>
+}): void {
+  if (input.rate.executionTarget !==
+      'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra'
+    || input.rate.minimumReplicaCount !== 0
+    || !input.rate.perReplicaPricingNotMultipliedByConfiguredMaximum
+    || !sameRateRef(input.rate, input.rateRef)
+    || input.rate.customerPricingOrServiceFeeAuthorityGranted
+    || input.rate.walletOrCreditMutationAuthorityGranted) {
+    throw new Error('Track All private-internal A100 serving rate is invalid.')
+  }
+}
+
+function assertExactPrivateInternalReadiness(input: {
+  a100Readiness: ReturnType<
+    typeof assertCanonicalSam31PrivateInternalDispatchAllowed
+  >
+  l4Readiness: ReturnType<
+    typeof assertCanonicalSam31PrivateInternalDispatchAllowed
+  >
+  readinessRef: z.infer<typeof refSchema>
+}): void {
+  const exactRef = {
+    id: input.a100Readiness.readinessId,
+    version: 1,
+    contentHash: `sha256:${input.a100Readiness.readinessHash}` as const,
+  }
+  if (input.a100Readiness.readinessHash !== input.l4Readiness.readinessHash
+    || !sameRef(exactRef, input.readinessRef)
+    || input.a100Readiness.maximumSimultaneousPrivateA100Attempts !== 1
+    || input.a100Readiness.maximumSimultaneousPrivateL4Attempts !== 1
+    || !input.a100Readiness.qualificationAttemptsMustRunSequentially
+    || input.a100Readiness.minimumIdleGpuInstances !== 0
+    || !input.a100Readiness.userTriggeredScaleFromZeroRequired
+    || input.a100Readiness.publicConcurrencyCapacityRequired
+    || !input.a100Readiness.productionConcurrencyIsSeparateFutureReleaseGate
+    || input.a100Readiness.customerOrPublicDispatchAuthorized
+    || input.l4Readiness.customerOrPublicDispatchAuthorized) {
+    throw new Error('Track All private-internal dispatch readiness is not exact.')
+  }
+}
+
 function assertExactL4Rates(input: {
   l4FallbackRate: ReturnType<
     typeof assertCanonicalCurrentGoogleCloudGpuRateAuthority
@@ -687,6 +1061,28 @@ function assertDependencies(
       'function'
     || typeof dependencies.qualificationRegistry.readExact !== 'function'
   ) throw new Error('Track All qualification publisher dependency is invalid.')
+}
+
+function assertPrivateInternalDependencies(
+  dependencies:
+    TrackAllSam31OrchestraPrivateInternalQualificationPublisherDependencies,
+): void {
+  assertDependencies({
+    ...dependencies,
+    currentA100ReadinessRepository: {
+      async rereadCurrent() { return null },
+      async rereadExact() { return null },
+    },
+  })
+  if (dependencies.privateInternalDispatchReadinessReadPort?.schemaVersion !==
+      'canonical-sam3_1-private-internal-dispatch-readiness-read-port-v1'
+    || !dependencies.privateInternalDispatchReadinessReadPort.privateInternalOnly
+    || dependencies.privateInternalDispatchReadinessReadPort
+      .customerOrPublicDispatchAuthorized
+    || typeof dependencies.privateInternalDispatchReadinessReadPort
+      .rereadCurrent !== 'function') {
+    throw new Error('Track All private-internal qualification dependency is invalid.')
+  }
 }
 
 export function parsePublishedTrackAllSam31Qualification(input: {

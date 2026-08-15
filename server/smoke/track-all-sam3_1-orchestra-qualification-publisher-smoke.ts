@@ -52,13 +52,18 @@ import {
   sealCanonicalSam31CurrentA100CustomerDispatchReadiness,
 } from '../services/canonical-sam3_1-current-a100-customer-dispatch-readiness'
 import {
+  assertCanonicalSam31PrivateInternalDispatchReadiness,
+} from '../services/canonical-sam3_1-private-internal-dispatch-readiness-owner'
+import {
   createTrackAllSam31OrchestraQualificationSnapshot,
   TRACK_ALL_SAM3_1_ORCHESTRA_ROUTE_IDS,
 } from '../workers/masks/track-all-sam3_1-orchestra-capability-manifest'
 import {
   assertTrackAllSam31OrchestraQualificationPublicationReceipt,
+  assertTrackAllSam31OrchestraPrivateInternalQualificationPublicationReceipt,
   parsePublishedTrackAllSam31Qualification,
   publishTrackAllSam31OrchestraQualification,
+  publishTrackAllSam31OrchestraPrivateInternalQualification,
 } from '../workers/masks/track-all-sam3_1-orchestra-qualification-publisher'
 import { record as a100Record } from
   './canonical-sam3_1-gpu-runtime-release-registry-smoke'
@@ -125,8 +130,8 @@ const currentA100Readiness =
       'google_cloud_vertex_dedicated_prediction_endpoint_a2_ultra',
     endpointResourceName:
       'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1',
-    deployedModelId: '3101000004',
-    modelVersionId: '2',
+    deployedModelId: '3101000018',
+    modelVersionId: '8',
     immutableImageDigest: a100Record.runtimeRelease.immutableImageDigest,
     runtimeReleaseRef: a100RuntimeReleaseRef,
     rateAuthorityRef: a100RateAuthorityRef,
@@ -166,6 +171,66 @@ const currentA100CustomerDispatchReadinessRef = {
   id: currentA100Readiness.readinessId,
   version: 1,
   contentHash: `sha256:${currentA100Readiness.readinessHash}` as const,
+}
+const privateInternalDispatchReadinessPayload = {
+  schemaVersion:
+    'canonical-sam3_1-private-internal-dispatch-readiness-v1' as const,
+  ownerVersion:
+    'canonical-sam3_1-private-internal-dispatch-readiness-owner-v1' as const,
+  source:
+    'canonical_server_sam3_1_private_internal_dispatch_readiness_owner' as const,
+  evidenceClass:
+    'canonical_private_exact_release_rate_capacity_and_component_reread' as const,
+  status: 'ready_for_private_internal_sequential_dispatch' as const,
+  readinessId: 'track-all-private-internal-dispatch-readiness-smoke',
+  privateInternalReleaseReadinessRef:
+    ref('track-all-private-internal-release-readiness'),
+  a100RouteQualificationObservationRef:
+    ref('track-all-private-a100-route-readiness'),
+  l4RouteQualificationObservationRef:
+    ref('track-all-private-l4-route-readiness'),
+  a100RuntimeReleaseRef,
+  l4RuntimeReleaseRef: l4FallbackRuntimeReleaseRef,
+  currentA100RateAuthorityRef: a100RateAuthorityRef,
+  currentL4RateAuthorityRef: l4FallbackRateAuthorityRef,
+  a100ImmutableImageDigest: a100Record.runtimeRelease.immutableImageDigest,
+  l4ImmutableImageDigest: l4RuntimeRecord.runtimeRelease.immutableImageDigest,
+  maximumSimultaneousPrivateA100Attempts: 1 as const,
+  maximumSimultaneousPrivateL4Attempts: 1 as const,
+  qualificationAttemptsMustRunSequentially: true as const,
+  exactFourComponentA100AndL4QualificationReread: true as const,
+  exactPrivateInternalRuntimeReleasePairReread: true as const,
+  exactAccountEffectiveA100AndL4RatePairReread: true as const,
+  automaticQualityReductionAllowed: false as const,
+  cpuOnlySubstantiveExecutionAllowed: false as const,
+  a100HeavyPrimary: true as const,
+  l4SeparatelyQualifiedQualityPreservingFallbackOnly: true as const,
+  minimumIdleGpuInstances: 0 as const,
+  userTriggeredScaleFromZeroRequired: true as const,
+  privateInternalSequentialDispatchAuthorized: true as const,
+  publicConcurrencyCapacityRequired: false as const,
+  publicConcurrencyA100Target: 16 as const,
+  publicConcurrencyL4Target: 16 as const,
+  productionConcurrencyIsSeparateFutureReleaseGate: true as const,
+  customerOrPublicDispatchAuthorized: false as const,
+  callerReleaseRateCapacityOrQualificationClaimsAccepted: false as const,
+  gpuJobDispatched: false as const,
+  customerCreditsMutated: false as const,
+  qaApprovalGranted: false as const,
+  publicDeliveryAuthorized: false as const,
+  productionAuthorityGranted: false as const,
+  observedAt: '2026-08-11T12:01:00.000Z',
+  expiresAt: '2026-08-11T12:16:00.000Z',
+}
+const privateInternalDispatchReadiness =
+  assertCanonicalSam31PrivateInternalDispatchReadiness({
+    ...privateInternalDispatchReadinessPayload,
+    readinessHash: sha256AuthorityValue(privateInternalDispatchReadinessPayload),
+  })
+const privateInternalDispatchReadinessRef = {
+  id: privateInternalDispatchReadiness.readinessId,
+  version: 1,
+  contentHash: `sha256:${privateInternalDispatchReadiness.readinessHash}` as const,
 }
 
 const repositoryObjectPort = memoryObjectPort()
@@ -387,6 +452,90 @@ const replay = await publishTrackAllSam31OrchestraQualification(
 check(replay.disposition === 'identical_replay')
 check(sameRef(replay.registryRecordRef, receipt.registryRecordRef))
 
+const privateQualificationRegistry = createCanonicalSkillQualificationRegistry({
+  objectPort: memoryObjectPort(),
+  prefix: 'private/smoke/orchestra/track-all-private-qualification',
+})
+const privateDependencies = {
+  ...dependencies,
+  privateInternalDispatchReadinessReadPort: {
+    schemaVersion:
+      'canonical-sam3_1-private-internal-dispatch-readiness-read-port-v1' as const,
+    privateInternalOnly: true as const,
+    customerOrPublicDispatchAuthorized: false as const,
+    async rereadCurrent(input: {
+      runtimeReleaseRef: OrchestraEvidenceRef
+      rateAuthorityRef: OrchestraEvidenceRef
+      at: string
+    }) {
+      const a100Match = sameRef(input.runtimeReleaseRef,
+        a100RuntimeReleaseRef)
+        && sameRef(input.rateAuthorityRef, a100RateAuthorityRef)
+      const l4Match = sameRef(input.runtimeReleaseRef,
+        l4FallbackRuntimeReleaseRef)
+        && sameRef(input.rateAuthorityRef, l4FallbackRateAuthorityRef)
+      return a100Match || l4Match
+        ? structuredClone(privateInternalDispatchReadiness) : null
+    },
+  },
+  qualificationRegistry: privateQualificationRegistry,
+}
+Reflect.deleteProperty(privateDependencies, 'currentA100ReadinessRepository')
+const privatePublicationInput = {
+  a100RuntimeReleaseRef,
+  l4FallbackRuntimeReleaseRef,
+  privateInternalDispatchReadinessRef,
+  a100RateAuthorityRef,
+  l4FallbackRateAuthorityRef,
+  l4TaskQaImageQualificationRef,
+  l4TaskQaRuntimeReleaseRef,
+  artifactRepositoryReleaseRef,
+  observedAt,
+}
+const privateReceipt =
+  await publishTrackAllSam31OrchestraPrivateInternalQualification(
+    privatePublicationInput, privateDependencies,
+  )
+check(privateReceipt.disposition === 'created')
+check(privateReceipt.exactPrivateInternalSequentialDispatchReadinessReread)
+check(privateReceipt.maximumSimultaneousPrivateA100Attempts === 1)
+check(privateReceipt.maximumSimultaneousPrivateL4Attempts === 1)
+check(privateReceipt.publicConcurrencyCapacityRequired === false)
+check(privateReceipt.productionConcurrencyIsSeparateFutureReleaseGate)
+check(privateReceipt.customerOrPublicDispatchAuthorized === false)
+check(stableAuthorityStringify(
+  assertTrackAllSam31OrchestraPrivateInternalQualificationPublicationReceipt(
+    privateReceipt),
+) === stableAuthorityStringify(privateReceipt))
+const privateExact = await privateQualificationRegistry.readExact({
+  manifestRef: privateReceipt.manifestRef,
+  qualificationSnapshotRef: privateReceipt.qualificationSnapshotRef,
+})
+check(privateExact !== null)
+if (!privateExact) throw new Error('Expected private Track All qualification.')
+check(parsePublishedTrackAllSam31Qualification(privateExact)
+  .qualificationSnapshot.overall === 'qualified')
+const privateReplay =
+  await publishTrackAllSam31OrchestraPrivateInternalQualification(
+    structuredClone(privatePublicationInput), privateDependencies,
+  )
+check(privateReplay.disposition === 'identical_replay')
+await assert.rejects(
+  publishTrackAllSam31OrchestraPrivateInternalQualification({
+    ...privatePublicationInput,
+    privateInternalDispatchReadinessRef:
+      ref('wrong-private-dispatch-readiness'),
+  }, privateDependencies),
+)
+checks += 1
+await assert.rejects(
+  publishTrackAllSam31OrchestraPrivateInternalQualification({
+    ...privatePublicationInput,
+    publicConcurrencyCapacityRequired: true,
+  }, privateDependencies),
+)
+checks += 1
+
 await assert.rejects(publishTrackAllSam31OrchestraQualification({
   ...publicationInput,
   a100RuntimeReleaseRef: ref('missing-a100-runtime-release'),
@@ -448,6 +597,10 @@ const cliSource = readFileSync(new URL(
   '../cli/publish-track-all-sam3_1-orchestra-qualification.ts',
   import.meta.url,
 ), 'utf8')
+const privateCliSource = readFileSync(new URL(
+  '../cli/publish-track-all-sam3_1-orchestra-private-internal-qualification.ts',
+  import.meta.url,
+), 'utf8')
 const packageJson = JSON.parse(readFileSync(
   new URL('../../package.json', import.meta.url),
   'utf8',
@@ -470,6 +623,16 @@ check(!/callerQualified|callerCanSelfQualify\s*:\s*true/u.test(cliSource))
 check(packageJson.scripts?.[
   'publish:track-all-sam3_1-orchestra-qualification'
 ] === 'tsx server/cli/publish-track-all-sam3_1-orchestra-qualification.ts')
+check(privateCliSource.includes(
+  'createCanonicalSam31PrivateInternalDispatchReadPort'))
+check(privateCliSource.includes('createWeEditProGcpLocalOperatorAuth'))
+check(privateCliSource.includes(
+  'WEEDITPRO_TRACK_ALL_PRIVATE_INTERNAL_DISPATCH_READINESS_REF'))
+check(!privateCliSource.includes(
+  'createCanonicalSam31CurrentA100CustomerDispatchReadinessRepository'))
+check(packageJson.scripts?.[
+  'publish:track-all-sam3_1-orchestra-private-internal-qualification'
+] === 'tsx server/cli/publish-track-all-sam3_1-orchestra-private-internal-qualification.ts')
 
 console.log(JSON.stringify({
   smoke: 'track-all-sam3_1-orchestra-qualification-publisher',
@@ -480,6 +643,7 @@ console.log(JSON.stringify({
   exactBillingAccountEffectiveA100L4AndTaskQaRateReread: true,
   exactTrackAllResultAndArtifactRepositoryReleaseReread: true,
   canonicalQualificationCreateOnlyAndExactReread: true,
+  privateInternalQualificationSeparatedFromPublicCapacity: true,
   callerSelfQualificationRejected: true,
   missingCrossedAndStaleEvidenceRejected: true,
   gpuJobStarted: false,

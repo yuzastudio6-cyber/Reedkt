@@ -485,6 +485,7 @@
     "qualify:track-all-sam3_1-private-storage": "tsx server/cli/qualify-track-all-sam3_1-private-storage.ts",
     "publish:track-all-sam3_1-artifact-repository-release": "tsx server/cli/publish-track-all-sam3_1-artifact-repository-release.ts",
     "publish:track-all-sam3_1-orchestra-qualification": "tsx server/cli/publish-track-all-sam3_1-orchestra-qualification.ts",
+    "publish:track-all-sam3_1-orchestra-private-internal-qualification": "tsx server/cli/publish-track-all-sam3_1-orchestra-private-internal-qualification.ts",
     "smoke:visual-intelligence-private-gcs-read": "tsx server/smoke/visual-intelligence-gcs-private-object-read-port-smoke.ts",
     "smoke:visual-intelligence-orchestra-manifest": "tsx server/smoke/visual-intelligence-orchestra-capability-manifest-smoke.ts",
     "smoke:visual-intelligence-orchestra-qualification-publisher": "tsx server/smoke/visual-intelligence-orchestra-qualification-publisher-smoke.ts",

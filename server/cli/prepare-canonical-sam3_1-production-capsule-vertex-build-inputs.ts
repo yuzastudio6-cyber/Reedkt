@@ -5,6 +5,9 @@ import { OAuth2Client } from 'google-auth-library'
 import { z } from 'zod'
 
 import {
+  assertWeEditProGcpLocalOperatorContext,
+} from './weeditpro-gcp-local-operator-auth'
+import {
   createCanonicalSam31GcpProductionCapsuleVertexBuildInputOwner,
 } from '../services/canonical-sam3_1-production-capsule-vertex-build-input-owner'
 
@@ -37,6 +40,7 @@ const environment = z.object({
 })
 
 const authClient = new OAuth2Client()
+assertWeEditProGcpLocalOperatorContext()
 const ephemeralAccessToken = readEphemeralImageBuilderAccessToken()
 if (ephemeralAccessToken.length < 20 || ephemeralAccessToken.length > 4_096
   || /\s/u.test(ephemeralAccessToken)) {
@@ -89,7 +93,7 @@ function readEphemeralImageBuilderAccessToken(): string {
         encoding: 'utf8',
         maxBuffer: 8 * 1_024,
         stdio: ['ignore', 'pipe', 'ignore'],
-        timeout: 15_000,
+        timeout: 60_000,
       },
     ).trim()
   } catch {

@@ -125,6 +125,14 @@ print(json.dumps({
   assert.deepEqual(JSON.parse(replay.stdout), firstResult)
   assert.equal(submitCount(), 2)
 
+  const wrongAccount = run({
+    ...common,
+    FAKE_GCLOUD_ACCOUNT: 'solve-your-problems@dukira.com',
+  })
+  assert.notEqual(wrongAccount.status, 0)
+  assert.match(wrongAccount.stderr, /active gcloud account changed/u)
+  assert.equal(submitCount(), 2)
+
   const recoveredEnvironment = {
     ...common,
     WEEDITPRO_SAM31_SOURCE_CHECKPOINT_QUALIFICATION_SHA256: '7'.repeat(64),
@@ -161,11 +169,12 @@ print(json.dumps({
 
   console.log(JSON.stringify({
     smoke: 'canonical-sam3_1-production-capsule-dual-build-launcher',
-    checks: 22,
+    checks: 25,
     exactlyTwoIndependentSlots: true,
     durableReplayCreatedNoDuplicateBuild: true,
     executedResponseLostReconciledByExactSubstitutions: true,
     unobservableOutcomeDidNotRetry: true,
+    reeditproCloudAccountRequired: true,
     customerCreditsMutated: false,
     modelOrCheckpointExecuted: false,
     productionReady: false,
@@ -217,6 +226,10 @@ def cloud_path(uri):
 
 if args[:3] == ['config', 'get', 'project']:
     print('reeditpro')
+    raise SystemExit(0)
+
+if args[:3] == ['config', 'get', 'account']:
+    print(os.environ.get('FAKE_GCLOUD_ACCOUNT', 'aiediting@reeditpro.com'))
     raise SystemExit(0)
 
 if args[:2] == ['storage', 'cat']:

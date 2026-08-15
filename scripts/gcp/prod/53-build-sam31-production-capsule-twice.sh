@@ -37,6 +37,8 @@ done
   || { printf 'ERROR: source worktree must be clean.\n' >&2; exit 1; }
 [[ "$(gcloud config get project 2>/dev/null)" = "${PROJECT_ID}" ]] \
   || { printf 'ERROR: active gcloud project changed.\n' >&2; exit 1; }
+[[ "$(gcloud config get account 2>/dev/null)" = 'aiediting@reeditpro.com' ]] \
+  || { printf 'ERROR: active gcloud account changed.\n' >&2; exit 1; }
 
 readonly WORK="$(mktemp -d)"
 trap 'rm -rf "${WORK}"' EXIT

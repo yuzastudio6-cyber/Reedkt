@@ -30,13 +30,9 @@ export function createWeEditProGcpLocalOperatorAuth(input: {
   if (input.confirmation !== WEEDITPRO_GCP_LOCAL_OPERATOR_AUTH_MODE) {
     throw new Error('Ephemeral API-service authentication is not confirmed.')
   }
-  const operatorContext = (
-    input.readOperatorContext ?? readActiveOperatorContext
-  )()
-  if (
-    operatorContext.account !== OPERATOR_ACCOUNT
-    || operatorContext.project !== OPERATOR_PROJECT
-  ) throw new Error('Reeditpro Google Cloud operator context is not active.')
+  assertWeEditProGcpLocalOperatorContext({
+    readOperatorContext: input.readOperatorContext,
+  })
   const accessToken = (input.readAccessToken ?? readEphemeralAccessToken)()
   if (
     accessToken.length < 20
@@ -53,6 +49,21 @@ export function createWeEditProGcpLocalOperatorAuth(input: {
       retryOptions: { autoRetry: false, maxRetries: 0 },
     }),
   })
+}
+
+export function assertWeEditProGcpLocalOperatorContext(input: {
+  readonly readOperatorContext?: () => {
+    readonly account: string
+    readonly project: string
+  }
+} = {}): void {
+  const operatorContext = (
+    input.readOperatorContext ?? readActiveOperatorContext
+  )()
+  if (
+    operatorContext.account !== OPERATOR_ACCOUNT
+    || operatorContext.project !== OPERATOR_PROJECT
+  ) throw new Error('Reeditpro Google Cloud operator context is not active.')
 }
 
 function readActiveOperatorContext() {

@@ -39,7 +39,7 @@ const upload = createCanonicalSam31VertexModelVersionSuccessorUploadRequest(
 const deploy = createCanonicalSam31VertexModelVersionSuccessorDeployRequest({
   profile,
   modelVersionResourceName:
-    'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@3',
+    'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@4',
 })
 const undeploy =
   createCanonicalSam31VertexPreviousDeploymentCapacityUndeployRequest(profile)
@@ -56,7 +56,7 @@ assert.equal(upload.body.modelId, undefined)
 assert.equal(upload.body.parentModel,
   'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1')
 const model = upload.body.model as Record<string, unknown>
-assert.deepEqual(model.versionAliases, ['cold-start-health-fix-candidate'])
+assert.deepEqual(model.versionAliases, ['bounded-memory-quality-candidate'])
 assert.equal(JSON.stringify(model).includes(profile.immutableImageUri), true)
 const container = model.containerSpec as Record<string, unknown>
 assert.equal(container.deploymentTimeout, '1800s')
@@ -71,9 +71,9 @@ assert.deepEqual(container.startupProbe, {
 assert.equal(upload.body.serviceAccount,
   'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com')
 const deployedModel = deploy.body.deployedModel as Record<string, unknown>
-assert.equal(deployedModel.id, '3101000006')
+assert.equal(deployedModel.id, '3101000008')
 assert.equal(deployedModel.model,
-  'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@3')
+  'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@4')
 assert.equal(deployedModel.enableAccessLogging, false)
 assert.equal(deployedModel.disableContainerLogging, false)
 const resources = deployedModel.dedicatedResources as Record<string, unknown>
@@ -99,7 +99,7 @@ assert.equal(
   'previous_deployed_model_undeploy_for_capacity',
 )
 assert.deepEqual(undeploy.body, {
-  deployedModelId: '3101000004',
+  deployedModelId: '3101000006',
 })
 assert.equal(undeploy.previousModelVersionRetainedForRollback, true)
 assert.equal(deploy.requestResponsePayloadLoggingEnabled, false)
@@ -129,8 +129,8 @@ console.log(JSON.stringify({
   previousModelVersionRetainedForRollback: true,
   previousDeploymentRemovedBeforeSuccessorDeployment: true,
   capacityOneReplacementSequence: true,
-  candidateAlias: 'cold-start-health-fix-candidate',
-  deployedModelId: '3101000006',
+  candidateAlias: 'bounded-memory-quality-candidate',
+  deployedModelId: '3101000008',
   a100HeavyPrimary: true,
   minimumReplicaCount: 0,
   initialReplicaCount: 1,

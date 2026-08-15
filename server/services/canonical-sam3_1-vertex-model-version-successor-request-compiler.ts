@@ -18,11 +18,11 @@ export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_MODEL_RESOURCE =
 export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_ENDPOINT_RESOURCE =
   `${CANONICAL_SAM3_1_VERTEX_SUCCESSOR_PARENT}/endpoints/weeditpro-sam31-a100-scale-zero-v1` as const
 export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_ALIAS =
-  'cold-start-health-fix-candidate' as const
+  'bounded-memory-quality-candidate' as const
 export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_DEPLOYED_MODEL_ID =
-  '3101000006' as const
+  '3101000008' as const
 export const CANONICAL_SAM3_1_VERTEX_PREVIOUS_DEPLOYED_MODEL_ID =
-  '3101000004' as const
+  '3101000006' as const
 export const CANONICAL_SAM3_1_VERTEX_SUCCESSOR_SERVICE_ACCOUNT =
   'weeditpro-sam31-serving-sa@reeditpro.iam.gserviceaccount.com' as const
 
@@ -87,15 +87,15 @@ export function createCanonicalSam31VertexModelVersionSuccessorUploadRequest(
       model: {
         displayName: profile.endpoint.displayName,
         description:
-          'WeEditPro private SAM 3.1 A100 80GB cold-start health successor.',
+          'WeEditPro private SAM 3.1 A100 80GB bounded-memory quality successor.',
         labels: {
           'weeditpro-component': 'sam31',
           'weeditpro-route': 'a100-heavy-primary',
-          'weeditpro-release': 'cold-start-health-fix',
+          'weeditpro-release': 'bounded-memory-quality',
         },
         versionAliases: [CANONICAL_SAM3_1_VERTEX_SUCCESSOR_ALIAS],
         versionDescription:
-          'Source-bound successor with early HTTP liveness and fail-closed checkpoint readiness.',
+          'Source-bound successor with GPU-only quality-preserving bounded-memory propagation.',
         containerSpec: containerSpec(profile),
       },
       serviceAccount: CANONICAL_SAM3_1_VERTEX_SUCCESSOR_SERVICE_ACCOUNT,

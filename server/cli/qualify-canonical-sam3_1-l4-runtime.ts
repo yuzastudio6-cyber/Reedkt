@@ -18,6 +18,9 @@ import {
   createCanonicalSam31CrossAcceleratorMaskComparisonRepository,
 } from '../services/canonical-sam3_1-cross-accelerator-mask-comparison-service'
 import {
+  assertCanonicalSam31L4CrossAcceleratorBaselineBinding,
+} from '../services/canonical-sam3_1-l4-cross-accelerator-baseline-binding'
+import {
   createCanonicalSam31L4RuntimePrivateRunReceiptRepository,
   sealCanonicalSam31L4RuntimePrivateRunReceipt,
 } from '../services/canonical-sam3_1-l4-runtime-qualification-run-receipt-service'
@@ -179,6 +182,13 @@ async function main() {
     || l4ImageRelease.authority.productionReady) {
     throw new Error('sam31_l4_image_supply_chain_release_changed')
   }
+  assertCanonicalSam31L4CrossAcceleratorBaselineBinding({
+    a100ServingQualificationRef:
+      a100ServingQualificationRef(a100ServingQualification),
+    a100ImmutableImageDigest: a100ImageDigest,
+    l4ImageSupplyChainReleaseRef: l4ImageReleaseRef,
+    l4ImmutableImageDigest: l4ImageDigest,
+  })
   const l4ImmutableImageRef = evidenceRefSchema.parse(
     l4ImageRelease.immutableImageRef,
   )

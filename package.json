@@ -376,6 +376,7 @@
     "smoke:sam3_1-gpu-temporal-measurement-compiler": "tsx server/smoke/canonical-sam3_1-gpu-temporal-measurement-compiler-smoke.ts",
     "smoke:sam3_1-gpu-temporal-evidence-assembler": "tsx server/smoke/canonical-sam3_1-gpu-temporal-evidence-assembler-smoke.ts",
     "smoke:sam3_1-cross-accelerator-mask-comparison": "tsx server/smoke/canonical-sam3_1-cross-accelerator-mask-comparison-smoke.ts",
+    "smoke:sam3_1-l4-cross-accelerator-baseline-binding": "tsx server/smoke/canonical-sam3_1-l4-cross-accelerator-baseline-binding-smoke.ts",
     "start:sam3_1-a100-runtime-qualification": "tsx server/cli/start-canonical-sam3_1-a100-runtime-qualification.ts",
     "finalize:sam3_1-a100-runtime-qualification": "tsx server/cli/finalize-canonical-sam3_1-a100-runtime-qualification.ts",
     "rollout:sam3_1-l4-qualification-job-image": "tsx server/cli/rollout-canonical-sam3_1-l4-qualification-job-image.ts",

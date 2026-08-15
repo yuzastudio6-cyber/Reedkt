@@ -438,6 +438,7 @@ for (const requiredRunnerFragment of [
   'model.batched_grounding_batch_size = 1',
   'for _propagation_pass in range(1):',
   'prompt_object_ids != sorted(prompt_object_ids)',
+  'canonicalize_propagated_object_identities(',
   'missing_prompt_object_identities(',
   'empty_absent_mask = torch.zeros(',
   'if object_id in missing_object_ids:',

@@ -12,6 +12,10 @@ assert.match(
 )
 assert.match(
   runner,
+  /def canonicalize_propagated_object_identities\([\s\S]*?exactly one prompt identity and exactly[\s\S]*?return \[prompt_object_ids\[0\]\]/u,
+)
+assert.match(
+  runner,
   /empty_absent_mask = torch\.zeros\([\s\S]*?dtype=torch\.bool,[\s\S]*?device="cuda"/u,
 )
 assert.match(
@@ -32,6 +36,10 @@ spec.loader.exec_module(module)
 assert module.missing_prompt_object_identities([3, 7], [3, 7]) == []
 assert module.missing_prompt_object_identities([3, 7], [3]) == [7]
 assert module.missing_prompt_object_identities([3, 7], []) == [3, 7]
+assert module.canonicalize_propagated_object_identities([3], [9]) == [3]
+assert module.canonicalize_propagated_object_identities([3], [3]) == [3]
+assert module.canonicalize_propagated_object_identities([3], []) == []
+assert module.canonicalize_propagated_object_identities([3, 7], [3]) == [3]
 
 for invalid in ([7, 3], [3, 3], [3, 9]):
     try:
@@ -40,6 +48,14 @@ for invalid in ([7, 3], [3, 3], [3, 9]):
         assert str(error) == "SAM 3.1 propagation object identities changed"
     else:
         raise AssertionError(f"invalid identity set accepted: {invalid}")
+
+for invalid in ([7, 3], [3, 3], [3, 9]):
+    try:
+        module.canonicalize_propagated_object_identities([3, 7], invalid)
+    except RuntimeError as error:
+        assert str(error) == "SAM 3.1 propagation object identities changed"
+    else:
+        raise AssertionError(f"ambiguous identity set accepted: {invalid}")
 
 print("ok")
 `], {
@@ -53,6 +69,7 @@ console.log(JSON.stringify({
   smoke: 'canonical-sam3_1-propagation-identity-continuity',
   promptIdentityContinuityPreserved: true,
   temporarilyAbsentIdentityMaterializedAsEmptyMask: true,
+  singletonModelTokenReboundToApprovedSemanticIdentity: true,
   newDuplicateOrReorderedIdentityRejected: true,
   substantiveCpuMediaProcessingAllowed: false,
   customerCreditsMutated: false,

@@ -2485,6 +2485,31 @@ def missing_prompt_object_identities(
     return [object_id for object_id in prompt_object_ids if object_id not in emitted]
 
 
+def canonicalize_propagated_object_identities(
+    prompt_object_ids: list[int],
+    emitted_object_ids: list[int],
+) -> list[int]:
+    """Bind model-local output tokens to the approved semantic identities.
+
+    The video predictor can replace its internal numeric token after an
+    occlusion even though a single approved text prompt still represents one
+    unambiguous semantic subject.  For exactly one prompt identity and exactly
+    one emitted object, preserve the approved prompt identity on the wire.
+    Multiple prompt identities remain strict because an unfamiliar token could
+    not be remapped without inventing a correspondence.
+    """
+    if (
+        emitted_object_ids != sorted(emitted_object_ids)
+        or len(set(emitted_object_ids)) != len(emitted_object_ids)
+    ):
+        raise RuntimeError("SAM 3.1 propagation object identities changed")
+    if len(prompt_object_ids) == 1 and len(emitted_object_ids) == 1:
+        return [prompt_object_ids[0]]
+    if any(object_id not in prompt_object_ids for object_id in emitted_object_ids):
+        raise RuntimeError("SAM 3.1 propagation object identities changed")
+    return emitted_object_ids
+
+
 def persist_mask(
     value: Any,
     frame_index: int,
@@ -2753,14 +2778,18 @@ def execute_inside_bfloat16_autocast(
                 ):
                     raise RuntimeError("SAM 3.1 emitted an out-of-scope frame")
                 outputs = response["outputs"]
-                object_ids = [
+                emitted_object_ids = [
                     exact_int(int(value), 0, 2**31 - 1, "object id")
                     for value in outputs["out_obj_ids"].tolist()
                 ]
                 boxes = outputs["out_boxes_xywh"].tolist()
                 masks = outputs["out_binary_masks"]
-                if not (len(object_ids) == len(boxes) == len(masks)):
+                if not (len(emitted_object_ids) == len(boxes) == len(masks)):
                     raise RuntimeError("SAM 3.1 output arrays lost alignment")
+                object_ids = canonicalize_propagated_object_identities(
+                    prompt_object_ids,
+                    emitted_object_ids,
+                )
                 missing_object_ids = missing_prompt_object_identities(
                     prompt_object_ids,
                     object_ids,

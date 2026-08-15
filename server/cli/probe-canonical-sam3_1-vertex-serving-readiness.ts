@@ -62,7 +62,7 @@ const readinessTriggerPayload = {
     id: 'sam31-vertex-successor-profile',
     version: 1,
     contentHash:
-      'sha256:516ac9fcf5352cd388f78a011ecb53255f3041e51239993d97713fe955063636',
+      'sha256:4ea441643d8ef3278e4ddb1f3e1e80d83ddd0bbe9ffb1b6ed3dbcbda0034d60a',
   },
   endpointDeploymentRef,
   qualificationFixtureId:
@@ -87,13 +87,13 @@ const probe = await createCanonicalSam31VertexServingReadinessProbeService({
   endpointDeploymentRef,
   readinessTriggerRef,
   imageSupplyChainReleaseRef: {
-    id: 'sam31-production-image-supply-chain-release-b00b2dc99edcfbf04f7ddcdf',
+    id: 'sam31-production-image-supply-chain-release-a08f2b4a2afdcbfeb6030245',
     version: 1,
     contentHash:
-      'sha256:89db73b5790507b821803f5589b9d4bac962f3fdbc630e5347a6903a37e09575',
+      'sha256:58c2fa6b6b6e4d5b3a361ead8cfa241daeef140a4b4a4c10e924e50b7d57733e',
   },
   immutableImageDigest:
-    'sha256:57883cbf16ef0c130885a0237307bc329d214445ae6a4c2109b7410317c68c45',
+    'sha256:1a75275b074e48a76f8c939dcb19994c9064b1edd329e897547230e4352ab017',
 })
 
 process.stdout.write(`${JSON.stringify({

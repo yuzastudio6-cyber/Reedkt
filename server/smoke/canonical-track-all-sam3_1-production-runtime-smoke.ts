@@ -385,6 +385,10 @@ const privateInternalInvocationReadinessPublisherSource = readFileSync(
   'server/cli/publish-canonical-sam3_1-private-internal-invocation-readiness.ts',
   'utf8',
 )
+const privateInternalDispatchReadinessPublisherSource = readFileSync(
+  'server/cli/publish-canonical-sam3_1-private-internal-dispatch-readiness.ts',
+  'utf8',
+)
 const packageJsonSource = readFileSync('package.json', 'utf8')
 assert.doesNotMatch(productionRuntimeSource,
   /createCanonicalA100VertexCustomJobLaunchPort/u)
@@ -484,6 +488,42 @@ assert.match(
   packageJsonSource,
   /"publish:sam3_1-private-internal-invocation-readiness":\s*"tsx server\/cli\/publish-canonical-sam3_1-private-internal-invocation-readiness\.ts"/u,
 )
+assert.match(
+  privateInternalDispatchReadinessPublisherSource,
+  /createCanonicalSam31PrivateQualificationCapacityRepository/u,
+)
+assert.match(
+  privateInternalDispatchReadinessPublisherSource,
+  /createCanonicalSam31GcpGpuRuntimeReleaseReadinessObserver/u,
+)
+assert.match(
+  privateInternalDispatchReadinessPublisherSource,
+  /createCanonicalSam31GpuRuntimeReleaseRegistry/u,
+)
+assert.match(
+  privateInternalDispatchReadinessPublisherSource,
+  /createCanonicalGcsCurrentGoogleCloudVertexA100ServingRateAuthorityRepository/u,
+)
+assert.match(
+  privateInternalDispatchReadinessPublisherSource,
+  /createCanonicalGcsCurrentGoogleCloudGpuRateAuthorityRepository/u,
+)
+assert.match(
+  privateInternalDispatchReadinessPublisherSource,
+  /createCanonicalSam31PrivateInternalDispatchReadinessOwner/u,
+)
+assert.match(
+  privateInternalDispatchReadinessPublisherSource,
+  /persistCreateOnly\(\{ readiness \}\)/u,
+)
+assert.doesNotMatch(
+  privateInternalDispatchReadinessPublisherSource,
+  /\.invokeOne\(|startApprovedTrackAllWork|fetch\(/u,
+)
+assert.match(
+  packageJsonSource,
+  /"publish:sam3_1-private-internal-dispatch-readiness":\s*"tsx server\/cli\/publish-canonical-sam3_1-private-internal-dispatch-readiness\.ts"/u,
+)
 assert.doesNotMatch(productionRuntimeSource,
   /google_cloud_vertex_custom_job_a2_ultra/u)
 assert.match(productionRuntimeSource,
@@ -530,7 +570,7 @@ assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 159,
+  checks: 168,
   localAndMockRuntimeMounted: false,
   vertexA100AndCloudRunL4GcsCompositionMounted: true,
   historicalVertexA100DurableRereadMounted: true,

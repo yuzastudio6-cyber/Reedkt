@@ -479,6 +479,7 @@
     "smoke:professional-gpu-cloud-task-scheduler": "tsx server/smoke/canonical-professional-gpu-cloud-task-scheduler-smoke.ts",
     "smoke:professional-gpu-queue-runtime-read": "tsx server/smoke/canonical-professional-gpu-queue-runtime-read-smoke.ts",
     "smoke:track-all-sam3_1-production-runtime": "tsx server/smoke/canonical-track-all-sam3_1-production-runtime-smoke.ts",
+    "publish:sam3_1-private-internal-dispatch-readiness": "tsx server/cli/publish-canonical-sam3_1-private-internal-dispatch-readiness.ts",
     "publish:sam3_1-private-internal-invocation-readiness": "tsx server/cli/publish-canonical-sam3_1-private-internal-invocation-readiness.ts",
     "smoke:track-all-sam3_1-orchestra-manifest": "tsx server/smoke/track-all-sam3_1-orchestra-capability-manifest-smoke.ts",
     "smoke:canonical-skill-qualification-registry": "tsx server/smoke/canonical-skill-qualification-registry-smoke.ts",

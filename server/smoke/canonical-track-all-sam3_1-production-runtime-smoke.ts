@@ -381,6 +381,11 @@ const privateInternalInvocationReadinessSource = readFileSync(
   'server/services/canonical-sam3_1-private-internal-invocation-readiness-owner.ts',
   'utf8',
 )
+const privateInternalInvocationReadinessPublisherSource = readFileSync(
+  'server/cli/publish-canonical-sam3_1-private-internal-invocation-readiness.ts',
+  'utf8',
+)
+const packageJsonSource = readFileSync('package.json', 'utf8')
 assert.doesNotMatch(productionRuntimeSource,
   /createCanonicalA100VertexCustomJobLaunchPort/u)
 assert.doesNotMatch(productionRuntimeSource,
@@ -451,6 +456,34 @@ assert.match(privateInternalInvocationReadinessSource,
   /vertexServingDeploymentReadinessRef/u)
 assert.match(privateInternalInvocationReadinessSource,
   /customerOrPublicDispatchAuthorized:\s*z\.literal\(false\)/u)
+assert.match(
+  privateInternalInvocationReadinessPublisherSource,
+  /createCanonicalSam31PrivateInternalDispatchReadinessRepository/u,
+)
+assert.match(
+  privateInternalInvocationReadinessPublisherSource,
+  /createCanonicalSam31VertexServingDeploymentReadyRepository/u,
+)
+assert.match(
+  privateInternalInvocationReadinessPublisherSource,
+  /createCanonicalSam31PrivateInternalInvocationReadinessOwner/u,
+)
+assert.match(
+  privateInternalInvocationReadinessPublisherSource,
+  /persistCreateOnly\(\{ readiness \}\)/u,
+)
+assert.match(
+  privateInternalInvocationReadinessPublisherSource,
+  /gpuInvocationStarted:\s*false/u,
+)
+assert.doesNotMatch(
+  privateInternalInvocationReadinessPublisherSource,
+  /\.invokeOne\(|startApprovedTrackAllWork|fetch\(/u,
+)
+assert.match(
+  packageJsonSource,
+  /"publish:sam3_1-private-internal-invocation-readiness":\s*"tsx server\/cli\/publish-canonical-sam3_1-private-internal-invocation-readiness\.ts"/u,
+)
 assert.doesNotMatch(productionRuntimeSource,
   /google_cloud_vertex_custom_job_a2_ultra/u)
 assert.match(productionRuntimeSource,
@@ -497,7 +530,7 @@ assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 152,
+  checks: 159,
   localAndMockRuntimeMounted: false,
   vertexA100AndCloudRunL4GcsCompositionMounted: true,
   historicalVertexA100DurableRereadMounted: true,

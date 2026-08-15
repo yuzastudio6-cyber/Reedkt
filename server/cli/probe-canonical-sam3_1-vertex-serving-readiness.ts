@@ -87,13 +87,13 @@ const probe = await createCanonicalSam31VertexServingReadinessProbeService({
   endpointDeploymentRef,
   readinessTriggerRef,
   imageSupplyChainReleaseRef: {
-    id: 'sam31-production-image-supply-chain-release-758e9f1291c248aa1ed1c70f',
+    id: 'sam31-production-image-supply-chain-release-0707ac9f4a22626982ee131d',
     version: 1,
     contentHash:
-      'sha256:324339cfb8fca18c248723c633dafed145b35abf642e8c2a155ba0e40da63ddd',
+      'sha256:9d6451064868dc337d828d44a51ff740029c8cdc589f6169539c027ed43753c4',
   },
   immutableImageDigest:
-    'sha256:953a883366f51350933bf4b7911b34e652e4edc30e4e81fdf57e661c675c055f',
+    'sha256:9e7bb0b8aaf719843dee0c60cae52d2f4e7a7e1c8edf47a341dc75e25f797ca9',
 })
 
 process.stdout.write(`${JSON.stringify({

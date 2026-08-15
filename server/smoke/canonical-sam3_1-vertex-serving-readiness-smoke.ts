@@ -56,23 +56,23 @@ const dedicatedEndpointResponse = {
   dedicatedEndpointEnabled: true,
   dedicatedEndpointDns,
   deployedModels: [{
-    id: '3101000014',
+    id: '3101000016',
     model:
       'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1',
-    modelVersionId: '6',
+    modelVersionId: '7',
   }],
-  trafficSplit: { '3101000014': 100 },
+  trafficSplit: { '3101000016': 100 },
 }
 const readyResponse = (requestBody: unknown) => {
   const body = requestBody as {
     instances: [{ readinessProbeId: string }]
   }
   return {
-    deployedModelId: '3101000014',
+    deployedModelId: '3101000016',
     model:
       'projects/390722338345/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1',
     modelDisplayName: 'WeEditPro SAM 3.1 A100 scale-zero v1',
-    modelVersionId: '6',
+    modelVersionId: '7',
     predictions: [{
       schemaVersion: 'canonical-sam3_1-vertex-readiness-result-v1',
       readinessProbeId: body.instances[0].readinessProbeId,

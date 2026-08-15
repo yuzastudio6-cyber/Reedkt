@@ -27,12 +27,12 @@ import {
 
 const observedAt = '2026-08-12T14:00:00.000Z'
 const imageDigest =
-  'sha256:953a883366f51350933bf4b7911b34e652e4edc30e4e81fdf57e661c675c055f'
+  'sha256:9e7bb0b8aaf719843dee0c60cae52d2f4e7a7e1c8edf47a341dc75e25f797ca9'
 const imageSupplyChainReleaseRef = {
-  id: 'sam31-production-image-supply-chain-release-758e9f1291c248aa1ed1c70f',
+  id: 'sam31-production-image-supply-chain-release-0707ac9f4a22626982ee131d',
   version: 1 as const,
   contentHash:
-    'sha256:324339cfb8fca18c248723c633dafed145b35abf642e8c2a155ba0e40da63ddd' as const,
+    'sha256:9d6451064868dc337d828d44a51ff740029c8cdc589f6169539c027ed43753c4' as const,
 }
 const profile = createCanonicalSam31VertexScaleZeroDeploymentProfile({
   imageSupplyChainReleaseRef,
@@ -65,19 +65,19 @@ const rolloutPayload = {
   immutableImageUri: profile.immutableImageUri,
   immutableImageDigest: imageDigest,
   deployOperationName:
-    'projects/390722338345/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1/operations/4484415593302196224' as const,
+    'projects/390722338345/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1/operations/9079875019126865920' as const,
   deployOperationDone: true as const,
   modelResourceName:
     'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1' as const,
   modelVersionResourceName:
-    'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@6' as const,
-  modelVersionId: '6' as const,
-  modelVersionAlias: 'occlusion-continuity-candidate' as const,
+    'projects/reeditpro/locations/us-central1/models/weeditpro-sam31-a100-scale-zero-v1@7' as const,
+  modelVersionId: '7' as const,
+  modelVersionAlias: 'singleton-identity-continuity-candidate' as const,
   endpointResourceName:
     'projects/reeditpro/locations/us-central1/endpoints/weeditpro-sam31-a100-scale-zero-v1' as const,
-  deployedModelId: '3101000014' as const,
-  previousModelVersionId: '5' as const,
-  previousDeployedModelId: '3101000012' as const,
+  deployedModelId: '3101000016' as const,
+  previousModelVersionId: '6' as const,
+  previousDeployedModelId: '3101000014' as const,
   previousModelVersionRetainedForRollback: true as const,
   previousDeployedModelRemovedFromTraffic: true as const,
   exactModelVersionReread: true as const,
@@ -202,8 +202,8 @@ assert.equal(candidate.readyForPrivateQualificationInvocation, true)
 assert.equal(candidate.readyForCustomerInvocation, false)
 assert.equal(candidate.runtimeReleaseGranted, false)
 assert.equal(candidate.customerInvocationStarted, false)
-assert.equal(candidate.deployedModelId, '3101000014')
-assert.equal(candidate.modelVersionId, '6')
+assert.equal(candidate.deployedModelId, '3101000016')
+assert.equal(candidate.modelVersionId, '7')
 assert.deepEqual(
   assertCanonicalSam31VertexServingQualificationCandidate(
     candidate,

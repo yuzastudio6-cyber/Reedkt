@@ -13,6 +13,9 @@ import {
   startCanonicalProfessionalGpuPlanFundedJob,
 } from './canonical-professional-gpu-plan-funded-job-lifecycle-service'
 import {
+  startCanonicalProfessionalGpuPlanFundedPrivateInternalJob,
+} from './canonical-professional-gpu-private-internal-funded-job-lifecycle-service'
+import {
   canonicalSam31GpuFixedTaskContractRef,
   createCanonicalSam31PreparingCloudJobLaunchPort,
   type CanonicalSam31GpuTaskStore,
@@ -126,6 +129,24 @@ export function startCanonicalSam31PlanFundedGpuJob(
 ): ReturnType<typeof startCanonicalProfessionalGpuPlanFundedJob> {
   const { runtimeComposition, ...fundedInput } = input
   return startCanonicalProfessionalGpuPlanFundedJob({
+    ...fundedInput,
+    launchPort: canonicalSam31FundedGpuLaunchPort(runtimeComposition),
+  })
+}
+
+type PrivateInternalFundedJobStartInput = Parameters<
+  typeof startCanonicalProfessionalGpuPlanFundedPrivateInternalJob
+>[0]
+
+export function startCanonicalSam31PlanFundedPrivateInternalGpuJob(
+  input: Omit<PrivateInternalFundedJobStartInput, 'launchPort'> & {
+    readonly runtimeComposition: CanonicalSam31FundedGpuRuntimeComposition
+  },
+): ReturnType<
+  typeof startCanonicalProfessionalGpuPlanFundedPrivateInternalJob
+> {
+  const { runtimeComposition, ...fundedInput } = input
+  return startCanonicalProfessionalGpuPlanFundedPrivateInternalJob({
     ...fundedInput,
     launchPort: canonicalSam31FundedGpuLaunchPort(runtimeComposition),
   })

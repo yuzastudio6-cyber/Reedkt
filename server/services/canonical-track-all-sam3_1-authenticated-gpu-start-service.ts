@@ -33,6 +33,7 @@ import type {
 } from './canonical-professional-gpu-job-lifecycle-service'
 import {
   startCanonicalSam31PlanFundedGpuJob,
+  startCanonicalSam31PlanFundedPrivateInternalGpuJob,
   type CanonicalSam31FundedGpuRuntimeComposition,
 } from './canonical-sam3_1-funded-gpu-runtime-composition'
 import {
@@ -44,6 +45,12 @@ import {
 import type {
   CanonicalSam31CurrentA100CustomerDispatchReadinessReadPort,
 } from './canonical-sam3_1-current-a100-customer-dispatch-readiness'
+import type {
+  CanonicalSam31PrivateInternalDispatchReadinessReadPort,
+} from './canonical-sam3_1-private-internal-dispatch-readiness-owner'
+import type {
+  CanonicalProfessionalGpuPrivateInternalPrelaunchBindingRepository,
+} from './canonical-professional-gpu-private-internal-funded-job-lifecycle-service'
 import type {
   CanonicalSam31CurrentVertexCustomerInvocationPort,
 } from './canonical-sam3_1-current-vertex-serving-invocation-service'
@@ -59,6 +66,10 @@ export const CANONICAL_TRACK_ALL_SAM3_1_AUTHENTICATED_GPU_START_RUNTIME_VERSION 
   'canonical-track-all-sam3_1-authenticated-gpu-start-runtime-v2' as const
 export const CANONICAL_TRACK_ALL_SAM3_1_AUTHENTICATED_GPU_INVOCATION_RUNTIME_VERSION =
   'canonical-track-all-sam3_1-authenticated-gpu-invocation-runtime-v1' as const
+export const CANONICAL_TRACK_ALL_SAM3_1_PRIVATE_INTERNAL_GPU_START_RUNTIME_VERSION =
+  'canonical-track-all-sam3_1-private-internal-gpu-start-runtime-v1' as const
+export const CANONICAL_TRACK_ALL_SAM3_1_PRIVATE_INTERNAL_GPU_START_RESULT_VERSION =
+  'canonical-track-all-sam3_1-private-internal-gpu-start-result-v1' as const
 
 const safeId = z.string().trim().min(1).max(240)
   .regex(/^[A-Za-z0-9][A-Za-z0-9._:-]*$/u)
@@ -178,6 +189,41 @@ export interface CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort {
     readonly idempotencyKey: string
     readonly request: unknown
   }): Promise<TrackAllSam31AuthenticatedGpuStartResult>
+}
+
+export interface CanonicalTrackAllSam31PrivateInternalGpuStartResult {
+  readonly schemaVersion:
+    typeof CANONICAL_TRACK_ALL_SAM3_1_PRIVATE_INTERNAL_GPU_START_RESULT_VERSION
+  readonly authenticatedStartResult: TrackAllSam31AuthenticatedGpuStartResult
+  readonly privateInternalPrelaunchBindingRef: z.infer<
+    typeof evidenceRefSchema
+  >
+  readonly privateInternalDispatchReadinessRef: z.infer<
+    typeof evidenceRefSchema
+  >
+  readonly privateInternalQualificationOnly: true
+  readonly customerOrPublicDispatchAuthorized: false
+  readonly callerGpuRouteModelImageCommandOrPriceAccepted: false
+  readonly customerCreditsMutated: false
+  readonly qaApproved: false
+  readonly publicDeliveryAuthorized: false
+  readonly productionAuthorityGranted: false
+}
+
+export interface CanonicalTrackAllSam31PrivateInternalGpuStartRuntimePort {
+  readonly schemaVersion:
+    typeof CANONICAL_TRACK_ALL_SAM3_1_PRIVATE_INTERNAL_GPU_START_RUNTIME_VERSION
+  readonly privateInternalOnly: true
+  readonly customerOrPublicDispatchAuthorized: false
+  readonly privateInternalDispatchReadinessRereadRequired: true
+  readonly routeOwnsGpuPlacementOrPricing: false
+  readonly rawCloudLaunchPortExposed: false
+  startApprovedTrackAllWork(input: {
+    readonly authenticatedOwnerUserId: string
+    readonly workspaceId: string
+    readonly idempotencyKey: string
+    readonly request: unknown
+  }): Promise<CanonicalTrackAllSam31PrivateInternalGpuStartResult>
 }
 
 export interface CanonicalTrackAllSam31AuthenticatedGpuInvocationRuntimePort {
@@ -461,6 +507,187 @@ export function createCanonicalTrackAllSam31AuthenticatedGpuStartRuntime(
         startedAt,
       })
       return buildResult({ request, workspaceId, started })
+    },
+  })
+}
+
+/**
+ * Private/internal Track All preparation path. It deliberately does not reuse
+ * the customer/public dispatch gate. The same approved plan, reservation,
+ * account-effective rate, fixed task and scale-from-zero owners still apply,
+ * while a create-only binding preserves the exact private readiness lineage
+ * before any GPU launch delegate can be reached.
+ */
+export function createCanonicalTrackAllSam31PrivateInternalGpuStartRuntime(
+  input: {
+    readonly pricingAuthorityReadPort:
+      CanonicalProfessionalGpuPlanPricingAuthorityReadPort
+    readonly approvedFundingReadPort:
+      CanonicalProfessionalGpuApprovedFundingReadPort
+    readonly attemptStartReadPort:
+      CanonicalProfessionalGpuAttemptStartAuthorityReadPort
+    readonly runtimeContextReadPort:
+      CanonicalProfessionalGpuRuntimeDispatchContextReadPort
+    readonly privateInternalDispatchReadinessReadPort:
+      CanonicalSam31PrivateInternalDispatchReadinessReadPort
+    readonly releaseReadPort: CanonicalProfessionalGpuRuntimeReleaseReadPort
+    readonly runtimeComposition: CanonicalSam31FundedGpuRuntimeComposition
+    readonly lifecycleStore: CanonicalProfessionalGpuJobLifecycleStore & {
+      rereadLaunchRecord(input: {
+        readonly launchRecordId: string
+      }): Promise<unknown>
+    }
+    readonly fundedLifecycleStore:
+      CanonicalProfessionalGpuFundedJobLifecycleStore
+    readonly privateInternalBindingRepository:
+      CanonicalProfessionalGpuPrivateInternalPrelaunchBindingRepository
+    readonly now?: () => string
+  },
+): CanonicalTrackAllSam31PrivateInternalGpuStartRuntimePort {
+  const now = input.now ?? (() => new Date().toISOString())
+  return Object.freeze({
+    schemaVersion:
+      CANONICAL_TRACK_ALL_SAM3_1_PRIVATE_INTERNAL_GPU_START_RUNTIME_VERSION,
+    privateInternalOnly: true as const,
+    customerOrPublicDispatchAuthorized: false as const,
+    privateInternalDispatchReadinessRereadRequired: true as const,
+    routeOwnsGpuPlacementOrPricing: false as const,
+    rawCloudLaunchPortExposed: false as const,
+    async startApprovedTrackAllWork(untrusted: AuthenticatedStartInput) {
+      assertPlainSerializedData(untrusted,
+        'track_all_sam31_private_internal_start_input')
+      const trusted = authenticatedStartInputSchema.parse(untrusted)
+      const request = parseTrackAllSam31AuthenticatedGpuStartRequest(
+        trusted.request,
+      )
+      if (request.requestId !== trusted.idempotencyKey) {
+        throw new TypeError(
+          'Private Track All SAM 3.1 request differs from its idempotency key.',
+        )
+      }
+      const startedAt = z.string().datetime({ offset: true }).parse(now())
+      const [untrustedFunding, untrustedAttempt] = await Promise.all([
+        input.approvedFundingReadPort.rereadApprovedFunding({
+          workspaceId: trusted.workspaceId,
+          snapshotId: request.approvedSnapshotId,
+          workItemKey: request.workItemKey,
+          at: startedAt,
+        }),
+        input.attemptStartReadPort.rereadCreateOnlyAttemptStart({
+          workspaceId: trusted.workspaceId,
+          snapshotId: request.approvedSnapshotId,
+          workItemKey: request.workItemKey,
+          at: startedAt,
+        }),
+      ])
+      const funding = assertCanonicalProfessionalGpuApprovedFundingObservation(
+        untrustedFunding,
+        startedAt,
+      )
+      const attempt = assertCanonicalProfessionalGpuAttemptStartAuthority(
+        untrustedAttempt,
+        startedAt,
+      )
+      if (
+        funding.scope.ownerUserId !== trusted.authenticatedOwnerUserId
+        || attempt.scope.ownerUserId !== trusted.authenticatedOwnerUserId
+        || funding.scope.workspaceId !== trusted.workspaceId
+        || attempt.scope.workspaceId !== trusted.workspaceId
+        || funding.approvedSnapshotRef.id !== request.approvedSnapshotId
+        || attempt.approvedSnapshotRef.id !== request.approvedSnapshotId
+        || funding.approvedWorkItem.workItemKey !== request.workItemKey
+        || attempt.approvedWorkItemRef.id !==
+          funding.approvedWorkItem.approvedWorkItemRef.id
+        || attempt.idempotencyKey !== trusted.idempotencyKey
+        || !funding.approvedWorkItem.approvedToolIds.includes('sam3_1')
+      ) throw new TypeError(
+        'Private Track All start is not the authenticated approved work.',
+      )
+      const identity = createCanonicalProfessionalGpuFundedLifecycleIdentity({
+        attemptStartAuthority: attempt,
+      })
+      const exactFundingReadPort:
+        CanonicalProfessionalGpuApprovedFundingReadPort = Object.freeze({
+          async rereadApprovedFunding(query: FundingReadInput) {
+            const reread =
+              assertCanonicalProfessionalGpuApprovedFundingObservation(
+                await input.approvedFundingReadPort
+                  .rereadApprovedFunding(query),
+                query.at,
+              )
+            if (reread.observationId !== funding.observationId
+              || reread.observationHash !== funding.observationHash) {
+              throw new TypeError(
+                'Private Track All funding changed before GPU preparation.',
+              )
+            }
+            return reread
+          },
+        })
+      const exactAttemptReadPort:
+        CanonicalProfessionalGpuAttemptStartAuthorityReadPort = Object.freeze({
+          async rereadCreateOnlyAttemptStart(query: AttemptReadInput) {
+            const reread = assertCanonicalProfessionalGpuAttemptStartAuthority(
+              await input.attemptStartReadPort
+                .rereadCreateOnlyAttemptStart(query),
+              query.at,
+            )
+            if (reread.attemptAuthorityId !== attempt.attemptAuthorityId
+              || reread.attemptAuthorityHash !== attempt.attemptAuthorityHash) {
+              throw new TypeError(
+                'Private Track All attempt changed before GPU preparation.',
+              )
+            }
+            return reread
+          },
+        })
+      const started =
+        await startCanonicalSam31PlanFundedPrivateInternalGpuJob({
+          ...identity,
+          privateInternalBindingId:
+            `${identity.prelaunchAuthorizationId}.private-internal`,
+          workspaceId: trusted.workspaceId,
+          snapshotId: request.approvedSnapshotId,
+          workItemKey: request.workItemKey,
+          pricingAuthorityReadPort: input.pricingAuthorityReadPort,
+          approvedFundingReadPort: exactFundingReadPort,
+          attemptStartReadPort: exactAttemptReadPort,
+          runtimeContextReadPort: input.runtimeContextReadPort,
+          privateInternalDispatchReadinessReadPort:
+            input.privateInternalDispatchReadinessReadPort,
+          releaseReadPort: input.releaseReadPort,
+          runtimeComposition: input.runtimeComposition,
+          lifecycleStore: input.lifecycleStore,
+          fundedLifecycleStore: input.fundedLifecycleStore,
+          privateInternalBindingRepository:
+            input.privateInternalBindingRepository,
+          admittedAt: startedAt,
+          admissionExpiresAt: attempt.expiresAt,
+          startedAt,
+        })
+      const binding = started.privateInternalPrelaunchBinding
+      return Object.freeze({
+        schemaVersion:
+          CANONICAL_TRACK_ALL_SAM3_1_PRIVATE_INTERNAL_GPU_START_RESULT_VERSION,
+        authenticatedStartResult: buildResult({
+          request,
+          workspaceId: trusted.workspaceId,
+          started,
+        }),
+        privateInternalPrelaunchBindingRef: ref(
+          binding.bindingId,
+          binding.bindingHash,
+        ),
+        privateInternalDispatchReadinessRef:
+          binding.privateInternalDispatchReadinessRef,
+        privateInternalQualificationOnly: true as const,
+        customerOrPublicDispatchAuthorized: false as const,
+        callerGpuRouteModelImageCommandOrPriceAccepted: false as const,
+        customerCreditsMutated: false as const,
+        qaApproved: false as const,
+        publicDeliveryAuthorized: false as const,
+        productionAuthorityGranted: false as const,
+      })
     },
   })
 }

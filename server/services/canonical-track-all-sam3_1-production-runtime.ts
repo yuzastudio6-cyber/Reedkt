@@ -28,6 +28,9 @@ import {
   createCanonicalProfessionalGpuDurableLifecycleStore,
 } from './canonical-professional-gpu-durable-lifecycle-store'
 import {
+  createCanonicalProfessionalGpuPrivateInternalPrelaunchBindingRepository,
+} from './canonical-professional-gpu-private-internal-funded-job-lifecycle-service'
+import {
   createCanonicalGcsProfessionalGpuFundedStartAuthorityStore,
 } from './canonical-professional-gpu-funded-start-authority-store'
 import {
@@ -91,9 +94,15 @@ import {
   createCanonicalTrackAllSam31AuthenticatedGpuInvocationRuntime,
   createCanonicalTrackAllSam31AuthenticatedGpuInvocationResultReadPort,
   createCanonicalTrackAllSam31AuthenticatedGpuStartRuntime,
+  createCanonicalTrackAllSam31PrivateInternalGpuStartRuntime,
   type CanonicalTrackAllSam31AuthenticatedGpuInvocationRuntimePort,
   type CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort,
+  type CanonicalTrackAllSam31PrivateInternalGpuStartRuntimePort,
 } from './canonical-track-all-sam3_1-authenticated-gpu-start-service'
+import {
+  createCanonicalSam31PrivateInternalDispatchReadinessRepository,
+  createCanonicalSam31PrivateInternalDispatchReadPort,
+} from './canonical-sam3_1-private-internal-dispatch-readiness-owner'
 import {
   createCanonicalTrackAllSam31QueuedGpuStartRuntime,
   type CanonicalTrackAllSam31QueuedGpuStartRuntimePort,
@@ -245,7 +254,7 @@ import {
 } from './private-edit-authority-store'
 
 export const CANONICAL_TRACK_ALL_SAM3_1_PRODUCTION_RUNTIME_VERSION =
-  'canonical-track-all-sam3_1-production-runtime-v30' as const
+  'canonical-track-all-sam3_1-production-runtime-v31' as const
 
 const PROJECT_ID = 'reeditpro' as const
 
@@ -258,6 +267,8 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
     CanonicalSkillQualificationRegistryReadPort
   readonly trackAllSam31AuthenticatedGpuStartRuntimePort:
     CanonicalTrackAllSam31AuthenticatedGpuStartRuntimePort
+  readonly trackAllSam31PrivateInternalGpuStartRuntimePort:
+    CanonicalTrackAllSam31PrivateInternalGpuStartRuntimePort
   readonly trackAllSam31AuthenticatedGpuInvocationRuntimePort:
     CanonicalTrackAllSam31AuthenticatedGpuInvocationRuntimePort
   readonly trackAllSam31QueuedGpuStartRuntimePort:
@@ -325,6 +336,9 @@ export interface CanonicalTrackAllSam31ProductionRuntime {
   readonly rawCloudLaunchPortExposed: false
   readonly historicalVertexCustomJobCustomerDispatchAllowed: false
   readonly currentA100DedicatedEndpointInvocationMounted: true
+  readonly privateInternalFundedStartLifecycleMounted: true
+  readonly privateInternalStartExposedAsCustomerHttpRoute: false
+  readonly privateInternalDedicatedEndpointInvocationMounted: false
   readonly completeSourceSequentialChunkCoordinatorMounted: true
   readonly exactPrivateOutputRereadBeforeNextChunkMounted: true
   readonly durablePostgresQueueMountedBeforeGpuInvocation: true
@@ -791,6 +805,31 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       lifecycleStore,
       fundedLifecycleStore: lifecycleStore,
     })
+  const privateInternalDispatchReadinessRepository =
+    createCanonicalSam31PrivateInternalDispatchReadinessRepository({
+      objectPort: controlPlaneObjectPort,
+    })
+  const privateInternalPrelaunchBindingRepository =
+    createCanonicalProfessionalGpuPrivateInternalPrelaunchBindingRepository({
+      objectPort: controlPlaneObjectPort,
+    })
+  const privateInternalAuthenticatedRuntime =
+    createCanonicalTrackAllSam31PrivateInternalGpuStartRuntime({
+      pricingAuthorityReadPort: pricingAuthorityStore,
+      approvedFundingReadPort: fundedStartAuthorityStore,
+      attemptStartReadPort: fundedStartAuthorityStore,
+      runtimeContextReadPort,
+      privateInternalDispatchReadinessReadPort:
+        createCanonicalSam31PrivateInternalDispatchReadPort(
+          privateInternalDispatchReadinessRepository,
+        ),
+      releaseReadPort: runtimeConfigurationRepository,
+      runtimeComposition,
+      lifecycleStore,
+      fundedLifecycleStore: lifecycleStore,
+      privateInternalBindingRepository:
+        privateInternalPrelaunchBindingRepository,
+    })
   const currentVertexInvocationRepository =
     createCanonicalSam31CurrentVertexCustomerInvocationRepository({
       objectPort: controlPlaneObjectPort,
@@ -952,6 +991,8 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
       ),
     }),
     trackAllSam31AuthenticatedGpuStartRuntimePort: authenticatedRuntime,
+    trackAllSam31PrivateInternalGpuStartRuntimePort:
+      privateInternalAuthenticatedRuntime,
     trackAllSam31AuthenticatedGpuInvocationRuntimePort:
       authenticatedInvocationRuntime,
     trackAllSam31QueuedGpuStartRuntimePort: queuedGpuStartRuntime,
@@ -1004,6 +1045,9 @@ export function createCanonicalTrackAllSam31ProductionRuntime(
     rawCloudLaunchPortExposed: false as const,
     historicalVertexCustomJobCustomerDispatchAllowed: false as const,
     currentA100DedicatedEndpointInvocationMounted: true as const,
+    privateInternalFundedStartLifecycleMounted: true as const,
+    privateInternalStartExposedAsCustomerHttpRoute: false as const,
+    privateInternalDedicatedEndpointInvocationMounted: false as const,
     completeSourceSequentialChunkCoordinatorMounted: true as const,
     exactPrivateOutputRereadBeforeNextChunkMounted: true as const,
     durablePostgresQueueMountedBeforeGpuInvocation: true as const,

@@ -30,7 +30,7 @@ const cloud = loadRuntimeEnv({
 const runtime = createCanonicalTrackAllSam31ProductionRuntime(cloud)
 assert.ok(runtime)
 assert.equal(runtime.schemaVersion,
-  'canonical-track-all-sam3_1-production-runtime-v30')
+  'canonical-track-all-sam3_1-production-runtime-v31')
 assert.equal(typeof runtime.a100VertexCustomJobTerminalReadPort.reread,
   'function')
 assert.equal(
@@ -58,6 +58,9 @@ assert.equal(runtime.cpuOnlySubstantiveExecutionAllowed, false)
 assert.equal(runtime.rawCloudLaunchPortExposed, false)
 assert.equal(runtime.historicalVertexCustomJobCustomerDispatchAllowed, false)
 assert.equal(runtime.currentA100DedicatedEndpointInvocationMounted, true)
+assert.equal(runtime.privateInternalFundedStartLifecycleMounted, true)
+assert.equal(runtime.privateInternalStartExposedAsCustomerHttpRoute, false)
+assert.equal(runtime.privateInternalDedicatedEndpointInvocationMounted, false)
 assert.equal(runtime.completeSourceSequentialChunkCoordinatorMounted, true)
 assert.equal(runtime.exactPrivateOutputRereadBeforeNextChunkMounted, true)
 assert.equal(
@@ -185,6 +188,24 @@ assert.equal(runtime.captionTrackAllEvidenceRequiresPrivateVisualReview, true)
 assert.equal(
   runtime.trackAllSam31AuthenticatedGpuStartRuntimePort.schemaVersion,
   'canonical-track-all-sam3_1-authenticated-gpu-start-runtime-v2',
+)
+assert.equal(
+  runtime.trackAllSam31PrivateInternalGpuStartRuntimePort.schemaVersion,
+  'canonical-track-all-sam3_1-private-internal-gpu-start-runtime-v1',
+)
+assert.equal(
+  runtime.trackAllSam31PrivateInternalGpuStartRuntimePort.privateInternalOnly,
+  true,
+)
+assert.equal(
+  runtime.trackAllSam31PrivateInternalGpuStartRuntimePort
+    .customerOrPublicDispatchAuthorized,
+  false,
+)
+assert.equal(
+  runtime.trackAllSam31PrivateInternalGpuStartRuntimePort
+    .privateInternalDispatchReadinessRereadRequired,
+  true,
 )
 assert.equal(
   runtime.trackAllSam31AuthenticatedGpuInvocationRuntimePort.schemaVersion,
@@ -333,6 +354,10 @@ const productionRuntimeSource = readFileSync(
   'server/services/canonical-track-all-sam3_1-production-runtime.ts',
   'utf8',
 )
+const privateInternalLifecycleSource = readFileSync(
+  'server/services/canonical-professional-gpu-private-internal-funded-job-lifecycle-service.ts',
+  'utf8',
+)
 assert.doesNotMatch(productionRuntimeSource,
   /createCanonicalA100VertexCustomJobLaunchPort/u)
 assert.doesNotMatch(productionRuntimeSource,
@@ -373,6 +398,24 @@ assert.match(productionRuntimeSource,
   /createGoogleCloudProfessionalGpuTerminalObservationPort/u)
 assert.match(productionRuntimeSource,
   /createCanonicalTrackAllSam31L4TaskQaTerminalReconciler/u)
+assert.match(productionRuntimeSource,
+  /createCanonicalTrackAllSam31PrivateInternalGpuStartRuntime/u)
+assert.match(productionRuntimeSource,
+  /createCanonicalSam31PrivateInternalDispatchReadPort/u)
+assert.match(productionRuntimeSource,
+  /createCanonicalProfessionalGpuPrivateInternalPrelaunchBindingRepository/u)
+assert.match(privateInternalLifecycleSource,
+  /admitCanonicalProfessionalGpuPlanFundedPrivateInternalDispatch/u)
+assert.match(privateInternalLifecycleSource,
+  /persistCreateOnly\(\{ binding \}\)/u)
+assert.match(privateInternalLifecycleSource,
+  /launchCanonicalProfessionalGpuPreparedPlanFundedJob/u)
+assert.ok(
+  privateInternalLifecycleSource.indexOf('persistCreateOnly({ binding })')
+  < privateInternalLifecycleSource.indexOf(
+    'const started = await launchCanonicalProfessionalGpuPreparedPlanFundedJob',
+  ),
+)
 assert.doesNotMatch(productionRuntimeSource,
   /google_cloud_vertex_custom_job_a2_ultra/u)
 assert.match(productionRuntimeSource,
@@ -407,11 +450,15 @@ assert.match(
   entrypoint,
   /trackAllSam31TaskQaEvidenceFinalizationRuntimePort/u,
 )
+assert.doesNotMatch(
+  entrypoint,
+  /trackAllSam31PrivateInternalGpuStartRuntimePort/u,
+)
 assert.doesNotMatch(entrypoint, /sam2|qwen/u)
 
 console.log(JSON.stringify({
   smoke: 'canonical-track-all-sam3_1-production-runtime',
-  checks: 126,
+  checks: 144,
   localAndMockRuntimeMounted: false,
   vertexA100AndCloudRunL4GcsCompositionMounted: true,
   historicalVertexA100DurableRereadMounted: true,
@@ -440,6 +487,12 @@ console.log(JSON.stringify({
   historicalBatchA100LaunchMounted: false,
   authenticatedRouteUsesDurableProductionRuntime: true,
   directA100InvocationHttpRouteMounted: false,
+  privateInternalFundedStartLifecycleMounted:
+    runtime.privateInternalFundedStartLifecycleMounted,
+  privateInternalStartExposedAsCustomerHttpRoute:
+    runtime.privateInternalStartExposedAsCustomerHttpRoute,
+  privateInternalDedicatedEndpointInvocationMounted:
+    runtime.privateInternalDedicatedEndpointInvocationMounted,
   userTriggeredCloudTaskSchedulerMounted: true,
   authenticatedGoogleOidcTaskConsumerMounted: true,
   pricingFundingRateReleaseSourceProxyTaskAndLifecyclePortsComposed: true,
